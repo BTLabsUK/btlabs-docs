@@ -6,7 +6,7 @@
 #   deploy/install.sh            deploy
 #   deploy/install.sh --check    only nginx -t on the host (nothing installed or reloaded)
 set -eu
-HOST=${BTLABS_DOCS_HOST:-docs-host}
+HOST=${BTLABS_DOCS_HOST:?set BTLABS_DOCS_HOST to the ssh host of the web server}
 cd "$(dirname "$0")/.."
 [ -f site/build/index.html ] || { echo "install: build the site first (cd site && npm run build)" >&2; exit 1; }
 ssh "$HOST" "mkdir -p btlabs-docs-stage"
