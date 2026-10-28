@@ -50,3 +50,23 @@ names are not looked up.
 
 How to run a node is on the
 [Epic Cash Developer Hub](https://devdocs.btlabs.uk).
+
+### Owner access (desktop)
+
+For a node on this computer, your home network or a VPN, or one you mark as yours, Epic Cash Desktop
+asks the node directly and offers **Owner access** under **Settings › Node**: the node's sync stage
+and peers, and banning a peer. Owner access uses the node's API secret, so the node must have one
+set:
+
+- In the node's `epic-server.toml`, the line `api_secret_path` names the secret file, by default
+  `.api_secret` in the node's data folder (`~/.epic/main` on mainnet). It is set in the file the node
+  writes itself; some downloaded or bootstrap configurations have it commented out with `#`.
+- Commented out, the node asks for no secret on its owner API at all: anyone who can reach the API
+  port can use it. Remove the `#`, make sure the file exists, and restart the node.
+- Paste the first line of that file under **Owner access**. The secret is kept in the computer's
+  keyring, never in the settings or the wallet data file.
+
+:::note
+`api_http_addr` decides who can reach the node's API. The default `127.0.0.1:3413` is this computer
+only; another machine on your network needs the node's network address there.
+:::
