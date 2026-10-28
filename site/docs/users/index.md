@@ -1,7 +1,7 @@
 ---
 title: Epic Cash Desktop and Epic Cash Mobile
 description: What the two wallets are, what they run on, and where to start.
-slug: /users/
+sidebar_label: Overview
 ---
 
 # Epic Cash Desktop and Epic Cash Mobile

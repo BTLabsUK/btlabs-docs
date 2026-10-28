@@ -1,6 +1,6 @@
 ---
 title: Contributing
-description: How to propose a change to the app, LEPIC or lepic-flutter: commit format, sign-off and checks.
+description: "How to propose a change to the app, LEPIC or lepic-flutter: commit format, sign-off and checks."
 ---
 
 # Contributing

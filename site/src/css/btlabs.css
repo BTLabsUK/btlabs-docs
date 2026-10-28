@@ -34,3 +34,24 @@
   letter-spacing: 0.12em;
   font-size: 0.95rem;
 }
+
+/* The byline is BT LABS, in capitals as the brand is always written. */
+.epicFooterBy {
+  text-transform: none !important;
+  letter-spacing: 0.12em;
+}
+
+/* The closing line of the landing page sits apart from the index above it. */
+.ixMain .ixFoot {
+  margin-top: 2rem;
+}
+
+/* Under 997px Docusaurus pins the search container absolutely to the right edge, where the
+   Developer Hub has its own control; here it would sit on top of the theme toggle. In the row it
+   follows the toggle instead. */
+@media (max-width: 996px) {
+  .navbar__items--right > [class*='navbarSearchContainer'] {
+    position: static;
+    margin-left: 0.5rem;
+  }
+}
