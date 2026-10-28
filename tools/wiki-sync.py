@@ -49,6 +49,7 @@ TOKEN = Path.home() / '.config' / 'btlabs' / 'gitlab-token'
 # The GitLab group path lives in one place, the GITLAB_GROUP file at the repository root (the site
 # build reads it too). The pages name it as SOURCE_GROUP; another path rewrites their links.
 SOURCE_GROUP = 'epic-cash-bt'
+IDENTITY = ('blacktyger', '53139520+blacktyger@users.noreply.github.com')
 GITLAB_GROUP = (ROOT / 'GITLAB_GROUP').read_text().strip()
 GITHUB_ORG = 'BTLabs-EPIC'
 
@@ -362,7 +363,9 @@ def push(repo, dest):
         print(f'{repo}: wiki already up to date')
         return True
     sha = git('rev-parse', '--short', 'HEAD', cwd=ROOT, check=False).stdout.strip() or 'local'
-    git('commit', '--quiet', '-m', f'Sync from the docs ({sha})', cwd=work)
+    # Commits in a published wiki carry the project's public identity, never a machine's own.
+    git('-c', f'user.name={IDENTITY[0]}', '-c', f'user.email={IDENTITY[1]}',
+        'commit', '--quiet', '-m', f'Sync from the docs ({sha})', cwd=work)
     branch = git('rev-parse', '--abbrev-ref', 'HEAD', cwd=work).stdout.strip()
     p = git('push', '--quiet', 'origin', f'HEAD:{branch}', cwd=work, check=False, auth=True)
     if p.returncode != 0:
