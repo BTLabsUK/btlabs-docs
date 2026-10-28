@@ -40,7 +40,7 @@ cargo xtask upstream-drift    # upstream commits since the recorded pins
 ```
 
 The formats LEPIC matches are written up in its
-[compatibility notes](https://github.com/BTLabs-EPIC/lepic/tree/main/docs/compat) *(available soon)*:
+[compatibility notes](https://gitlab.com/btlabs/lepic/-/tree/main/docs/compat) *(available soon)*:
 legacy slates, Epicbox, keys and proofs, the node API, the foreign API, transaction states and the
 `epic-wallet` database. Protocol-level documentation is on the
 [Epic Cash developer docs](https://devdocs.btlabs.uk).

@@ -2,7 +2,7 @@
 // The BT LABS wallet documentation: Epic Cash Desktop, Epic Cash Mobile, LEPIC and lepic-flutter.
 // The look is the Epic Cash Developer Hub's (devdocs.btlabs.uk): its custom.css, colour-mode
 // toggle, table-of-contents panel and prism theme are copied here unchanged, so the two sites read
-// as one family. The Markdown under docs/ is also the source of the GitHub wikis
+// as one family. The Markdown under docs/ is also the source of the GitLab wikis
 // (tools/wiki-sync.py), which is why the pages use plain Markdown only (WRITING.md).
 import {darkPrismTheme} from './src/prism-themes.js';
 

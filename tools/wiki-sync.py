@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Turns the docs Markdown (site/docs) into GitHub wiki pages for the three repositories.
+"""Turns the docs Markdown (site/docs) into wiki pages for the three repositories.
 
 One source of truth: the pages under site/docs are written once (WRITING.md) and built into
 https://docs.btlabs.uk. This script exports a chosen set of them to each repository's wiki:
@@ -8,21 +8,32 @@ https://docs.btlabs.uk. This script exports a chosen set of them to each reposit
     lepic             the Rust core pages
     lepic-flutter     the binding pages
 
-For each wiki it writes Home.md, _Sidebar.md, _Footer.md and one file per page into
-build-wiki/<repo>/, with front matter dropped, admonitions turned into quotes, links between pages
-rewritten to wiki page names (or to docs.btlabs.uk for a page that wiki does not carry), and images
-copied into images/.
+The default host is GitLab.com (group btlabs, or $GITLAB_GROUP, or --group); --host github exports
+for the GitHub wikis of BTLabs-EPIC instead. For each wiki it writes the home page, the sidebar and
+one file per page into build-wiki/<repo>/, with front matter dropped, admonitions turned into
+quotes, links between pages rewritten to wiki page names (or to docs.btlabs.uk for a page that wiki
+does not carry), and images copied into images/.
+
+    GitLab:  home.md, _sidebar.md. GitLab wikis have no footer page, so the footer text is
+             appended to every page. Page links are relative slugs without extension
+             ([User guide](User-guide)); a page's file name is its slug.
+    GitHub:  Home.md, _Sidebar.md, _Footer.md. Page links are the page names.
 
     tools/wiki-sync.py                 dry run: write build-wiki/ and list what would change
     tools/wiki-sync.py --push          the same, then push each wiki to <repo>.wiki.git
     tools/wiki-sync.py --repo lepic    only one wiki (with or without --push)
+    tools/wiki-sync.py --host github   export for GitHub (set up --push as below)
 
-A wiki's git repository exists only after its first page was saved in the GitHub web interface
+Push credentials on GitLab: if ~/.config/btlabs/gitlab-token exists it is passed to git through a
+credential helper on the command line (user oauth2); it is never written anywhere else. A wiki that
+is still empty is created by the push itself (the project must exist and its wiki must be on).
+On GitHub a wiki's git repository exists only after its first page was saved in the web interface
 (Wiki tab, "Create the first page"); --push says so when the clone fails. Everything in a wiki is
 generated: --push replaces the pages there with the export.
 """
 
 import argparse
+import os
 import re
 import shutil
 import subprocess
@@ -33,7 +44,31 @@ ROOT = Path(__file__).resolve().parent.parent
 DOCS = ROOT / 'site' / 'docs'
 OUT = ROOT / 'build-wiki'
 SITE = 'https://docs.btlabs.uk'
-ORG = 'https://github.com/BTLabs-EPIC'
+TOKEN = Path.home() / '.config' / 'btlabs' / 'gitlab-token'
+
+# The one place the group names live. GitLab: gitlab.com/<group>/<repo>; GitHub: github.com/<org>.
+GITLAB_GROUP = 'btlabs'
+GITHUB_ORG = 'BTLabs-EPIC'
+
+HOSTS = {
+    'gitlab': {
+        'home': 'home', 'sidebar': '_sidebar', 'footer': None,
+        'wiki_path': '/-/wikis/home',
+    },
+    'github': {
+        'home': 'Home', 'sidebar': '_Sidebar', 'footer': '_Footer',
+        'wiki_path': '/wiki',
+    },
+}
+HOST = {'name': 'gitlab', 'base': 'https://gitlab.com/' + GITLAB_GROUP}
+
+
+def repo_url(repo):
+    return f'{HOST["base"]}/{repo}'
+
+
+def wiki_url(repo):
+    return repo_url(repo) + HOSTS[HOST['name']]['wiki_path']
 
 # Page names in the wikis, for the pages whose title is too long or too generic for a wiki link.
 NAMES = {
@@ -49,7 +84,7 @@ WIKIS = {
         'title': 'Epic Cash Desktop and Epic Cash Mobile',
         'intro': (
             'Epic Cash Desktop (Windows, Linux, macOS preview) and Epic Cash Mobile (Android, iOS '
-            'preview): the Flutter app on top of the [LEPIC](' + ORG + '/lepic/wiki) wallet core.'
+            'preview): the Flutter app on top of the [LEPIC]({wiki:lepic}) wallet core.'
         ),
         'sections': [
             ('Use the wallet', [
@@ -77,7 +112,7 @@ WIKIS = {
         'intro': (
             'LEPIC is the Epic Cash wallet core in Rust behind Epic Cash Desktop and Epic Cash '
             'Mobile: a library that runs inside the app, with its FFI API for the '
-            '[Flutter binding](' + ORG + '/lepic-flutter/wiki).'
+            '[Flutter binding]({wiki:lepic-flutter}).'
         ),
         'sections': [
             ('The core', [
@@ -94,9 +129,9 @@ WIKIS = {
     'lepic-flutter': {
         'title': 'lepic-flutter',
         'intro': (
-            'The Flutter binding of [LEPIC](' + ORG + '/lepic/wiki): the Dart API over the Rust '
+            'The Flutter binding of [LEPIC]({wiki:lepic}): the Dart API over the Rust '
             'wallet core, and the build hook that bundles its native library. Used by '
-            '[Epic Cash Desktop and Epic Cash Mobile](' + ORG + '/wallet-for-epic/wiki).'
+            '[Epic Cash Desktop and Epic Cash Mobile]({wiki:wallet-for-epic}).'
         ),
         'sections': [
             ('The binding', [
@@ -110,6 +145,10 @@ WIKIS = {
         ],
     },
 }
+
+FOOTER = (f'Generated from the BT LABS documentation, [docs.btlabs.uk]({SITE}). '
+          'Edits made here are replaced at the next sync. '
+          'Security issues: support@btlabs.uk.')
 
 FRONT = re.compile(r'\A---\n(.*?)\n---\n', re.S)
 LINK = re.compile(r'(!?)\[([^\]]*)\]\(([^)\s]+)\)')
@@ -220,6 +259,8 @@ def export(repo, spec):
     if dest.exists():
         shutil.rmtree(dest)
     dest.mkdir(parents=True)
+    names = HOSTS[HOST['name']]
+    gitlab = HOST['name'] == 'gitlab'
     order = [p for _, ps in spec['sections'] for p in ps]
     metas = {}
     for rel in order:
@@ -232,7 +273,10 @@ def export(repo, spec):
 
     images = {}
     for rel in dict.fromkeys(order):
-        (dest / f'{pages[rel]}.md').write_text(convert(rel, (DOCS / rel).read_text(), pages, images))
+        body = convert(rel, (DOCS / rel).read_text(), pages, images)
+        if gitlab:
+            body += '\n' + FOOTER + '\n'
+        (dest / f'{pages[rel]}.md').write_text(body)
     for name, src in images.items():
         (dest / name).parent.mkdir(exist_ok=True)
         shutil.copyfile(src, dest / name)
@@ -241,7 +285,8 @@ def export(repo, spec):
         title = page_name(rel, metas[rel])
         return f'- [{title}]({pages[rel]})'
 
-    home = [f'# {spec["title"]}', '', spec['intro'], '',
+    intro = re.sub(r'\{wiki:([a-z-]+)\}', lambda m: wiki_url(m.group(1)), spec['intro'])
+    home = [f'# {spec["title"]}', '', intro, '',
             f'The full documentation, with search, is at **[docs.btlabs.uk]({SITE})**. '
             'These wiki pages are generated from it.', '']
     for heading, rels in spec['sections']:
@@ -251,38 +296,58 @@ def export(repo, spec):
             desc = metas[rel].get('description', '')
             home.append(entry(rel) + (f': {desc}' if desc else ''))
         home.append('')
-    (dest / 'Home.md').write_text('\n'.join(home))
+    if gitlab:
+        home += [FOOTER, '']
+    (dest / f'{names["home"]}.md').write_text('\n'.join(home))
 
-    side = ['**[Home](Home)**', '']
+    side = [f'**[Home]({names["home"]})**', '']
     for heading, rels in spec['sections']:
         side.append(f'**{heading}**')
         side.append('')
         side.extend(entry(rel) for rel in rels)
         side.append('')
     side.append(f'[docs.btlabs.uk]({SITE})')
-    (dest / '_Sidebar.md').write_text('\n'.join(side) + '\n')
+    (dest / f'{names["sidebar"]}.md').write_text('\n'.join(side) + '\n')
 
-    (dest / '_Footer.md').write_text(
-        f'Generated from the BT LABS documentation, [docs.btlabs.uk]({SITE}). '
-        'Edits made here are replaced at the next sync. '
-        'Security issues: support@btlabs.uk.\n')
+    if names['footer']:
+        (dest / f'{names["footer"]}.md').write_text(FOOTER + '\n')
     return dest
 
 
-def git(*args, cwd=None, check=True):
-    return subprocess.run(['git', *args], cwd=cwd, check=check, text=True, capture_output=True)
+def git(*args, cwd=None, check=True, auth=False):
+    cmd = ['git']
+    if auth and HOST['name'] == 'gitlab' and TOKEN.is_file():
+        # The token is read by the helper at run time; it is not in the arguments or on disk elsewhere.
+        helper = ('!f() { echo username=oauth2; echo "password=$(cat ' + str(TOKEN) + ')"; }; f')
+        cmd += ['-c', 'credential.helper=', '-c', f'credential.helper={helper}']
+    return subprocess.run(cmd + list(args), cwd=cwd, check=check, text=True, capture_output=True,
+                          env={**os.environ, 'GIT_TERMINAL_PROMPT': '0'})
 
 
 def push(repo, dest):
-    url = f'{ORG}/{repo}.wiki.git'
+    url = f'{repo_url(repo)}.wiki.git'
     work = OUT / f'.{repo}.wiki'
     if work.exists():
         shutil.rmtree(work)
-    r = git('clone', '--quiet', url, str(work), check=False)
+    gitlab = HOST['name'] == 'gitlab'
+    r = git('clone', '--quiet', url, str(work), check=False, auth=True)
     if r.returncode != 0:
-        print(f'{repo}: cannot clone {url}. Open {ORG}/{repo}/wiki, create the first page once in '
-              f'the web interface, then run this again.\n{r.stderr.strip()}', file=sys.stderr)
-        return False
+        if gitlab:
+            # A wiki with no page yet: start a repository and let the push create it.
+            work.mkdir(parents=True, exist_ok=True)
+            git('init', '--quiet', '-b', 'main', cwd=work)
+            git('remote', 'add', 'origin', url, cwd=work)
+            probe = git('ls-remote', '--exit-code', 'origin', cwd=work, check=False, auth=True)
+            if probe.returncode == 128:
+                print(f'{repo}: cannot reach {url}. Check that the project exists, is accessible '
+                      f'with the token, and has the wiki feature on.\n{probe.stderr.strip()}',
+                      file=sys.stderr)
+                return False
+        else:
+            print(f'{repo}: cannot clone {url}. Open {repo_url(repo)}/wiki, create the first page '
+                  f'once in the web interface, then run this again.\n{r.stderr.strip()}',
+                  file=sys.stderr)
+            return False
     for f in work.iterdir():
         if f.name != '.git':
             shutil.rmtree(f) if f.is_dir() else f.unlink()
@@ -293,7 +358,11 @@ def push(repo, dest):
         return True
     sha = git('rev-parse', '--short', 'HEAD', cwd=ROOT, check=False).stdout.strip() or 'local'
     git('commit', '--quiet', '-m', f'Sync from the docs ({sha})', cwd=work)
-    git('push', '--quiet', 'origin', 'HEAD', cwd=work)
+    branch = git('rev-parse', '--abbrev-ref', 'HEAD', cwd=work).stdout.strip()
+    p = git('push', '--quiet', 'origin', f'HEAD:{branch}', cwd=work, check=False, auth=True)
+    if p.returncode != 0:
+        print(f'{repo}: push to {url} failed.\n{p.stderr.strip()}', file=sys.stderr)
+        return False
     print(f'{repo}: pushed to {url}')
     return True
 
@@ -301,8 +370,13 @@ def push(repo, dest):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
     ap.add_argument('--push', action='store_true', help='push each wiki to <repo>.wiki.git')
+    ap.add_argument('--host', choices=sorted(HOSTS), default='gitlab', help='default: gitlab')
+    ap.add_argument('--group', default=os.environ.get('GITLAB_GROUP', GITLAB_GROUP),
+                    help='GitLab group (default: $GITLAB_GROUP or %s)' % GITLAB_GROUP)
     ap.add_argument('--repo', choices=sorted(WIKIS), help='only this wiki')
     a = ap.parse_args()
+    HOST['name'] = a.host
+    HOST['base'] = f'https://gitlab.com/{a.group}' if a.host == 'gitlab' else f'https://github.com/{GITHUB_ORG}'
     ok = True
     for repo, spec in WIKIS.items():
         if a.repo and repo != a.repo:

@@ -1,7 +1,7 @@
 # Writing the docs
 
 The Markdown under `site/docs/` is the one source. It is built into the site at
-https://docs.btlabs.uk (Docusaurus) and exported to the GitHub wikis of wallet-for-epic, lepic and
+https://docs.btlabs.uk (Docusaurus) and exported to the GitLab wikis of wallet-for-epic, lepic and
 lepic-flutter by `tools/wiki-sync.py`. Write it so both work.
 
 ## Format
@@ -35,6 +35,6 @@ lepic-flutter by `tools/wiki-sync.py`. Write it so both work.
   `epicbox.epiccash.com`) are fine.
 - Never mention internal chat groups, bots, plans, reviews, audits or internal tooling.
 - The source repositories are private until they are published. Link them as usual, and put
-  ` *(available soon)*` right after every link to github.com/BTLabs-EPIC. `tools/repos-public.sh`
+  ` *(available soon)*` right after every link to gitlab.com/btlabs. `tools/repos-public.sh`
   removes the marks once the repositories are public.
-- Security reports go to support@btlabs.uk.
+- Security reports go to support@btlabs.uk, or to a confidential issue on GitLab.

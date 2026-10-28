@@ -73,7 +73,7 @@ list.
 - **Logs.** Secret types redact themselves, and a test checks that known secrets never appear in
   captured output. A support bundle keeps only the values of log fields that say nothing about
   keys, amounts or addresses. Field names and rules are in LEPIC's
-  [logging guide](https://github.com/BTLabs-EPIC/lepic/blob/main/docs/logging.md) *(available soon)*.
+  [logging guide](https://gitlab.com/btlabs/lepic/-/blob/main/docs/logging.md) *(available soon)*.
 
 ## Untrusted input
 

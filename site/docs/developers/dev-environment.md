@@ -62,7 +62,7 @@ The full steps are on [Build from source](build/index.md).
 ## LEPIC
 
 ```bash
-git clone https://github.com/BTLabs-EPIC/lepic.git
+git clone https://gitlab.com/btlabs/lepic.git
 cd lepic
 cargo xtask check
 ```

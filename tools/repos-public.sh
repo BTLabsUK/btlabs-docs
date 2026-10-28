@@ -1,7 +1,7 @@
 #!/bin/sh
-# Removes the " *(available soon)*" marks after links to github.com/BTLabs-EPIC, once
-# wallet-for-epic, lepic and lepic-flutter are public. Run it, check `git diff`, commit, then
-# rebuild and deploy the site (deploy/install.sh) and sync the wikis (tools/wiki-sync.py --push).
+# Strips the " *(available soon)*" marks after links to gitlab.com/btlabs, once wallet-for-epic,
+# lepic and lepic-flutter are public on GitLab. Run it, check `git diff`, commit, then rebuild
+# and deploy the site (deploy/install.sh) and sync the wikis (tools/wiki-sync.py --push).
 set -eu
 cd "$(dirname "$0")/.."
 grep -rl --include='*.md' ' \*(available soon)\*' site/docs | while read -r f; do
