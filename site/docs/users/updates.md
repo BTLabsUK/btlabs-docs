@@ -19,6 +19,11 @@ The app reads a signed update file published with each release and checks the si
 built into the app before it shows or downloads anything. An unsigned, forged, expired or older
 file means "No update information available", and nothing is offered.
 
+The same signed file is published in three places, and the app reads all of them: BT Labs'
+download server (`examples.btlabs.uk`; with Tor on, its onion address), the GitLab copy of BT Labs'
+signed public files, and GitHub Pages. Each copy is checked against the same keys, and the newest
+valid one is used, so one place being down or blocked never stops an update.
+
 - **Android:** the app downloads the APK for the phone, checks its size and SHA-256, and hands it to
   Android's installer, which also insists on the same app, a higher version and the same signing
   key. The first time, Android asks you to allow installs from Epic Cash Mobile.
