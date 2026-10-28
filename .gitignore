@@ -1,0 +1,9 @@
+node_modules/
+site/build/
+site/.docusaurus/
+site/.cache-loader/
+build-wiki/
+*.log
+.DS_Store
+.env
+.env.*

@@ -1,0 +1,36 @@
+/* What this site adds to the Developer Hub's stylesheets (custom.css, index-page.css, copied
+   unchanged): the two audience panels on the landing page, and the BT LABS title in the navbar. */
+
+.btPanels {
+  display: grid;
+  gap: 1.25rem;
+}
+@container page (min-width: 700px) {
+  .btPanels {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.btPanelLede {
+  margin: 0 0 0.6rem;
+  font-size: 0.875rem;
+  color: var(--ifm-color-content-secondary);
+}
+.btPanels .ixPanelList {
+  list-style: none;
+  padding: 0;
+}
+.btPanels .ixPanelList li {
+  padding-block: 0.32rem;
+  border-top: 1px solid var(--ifm-toc-border-color);
+}
+.btPanels .ixPanelList a {
+  font-size: 0.9rem;
+}
+
+/* "BT LABS" beside the Epic Cash mark: capitals, tracked, in the display face. */
+.navbar__title {
+  font-family: var(--ifm-heading-font-family);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  font-size: 0.95rem;
+}

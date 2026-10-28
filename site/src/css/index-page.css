@@ -1,0 +1,1610 @@
+/*
+ * Documentation index page.
+ *
+ * Design notes, because the previous version read as cheap and it is worth recording why:
+ *
+ *   - Fourteen identical bordered cards in two grids is the signature of a template. Boxes
+ *     were doing the work that typography should do, and every item had equal visual weight,
+ *     so nothing had priority.
+ *   - Replaced with: a real quick start carrying actual commands, one focal diagram, and a
+ *     dense grouped link index. No card grid on this page at all.
+ *   - Hierarchy comes from a small mono uppercase kicker, a heading, then body. Rules separate
+ *     sections instead of borders enclosing everything.
+ *   - The gold accent appears only on kickers and group labels, never on large areas.
+ */
+
+.ixMast {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(3.25rem, 6vw, 5.5rem) 0 2.5rem;
+  border-bottom: 1px solid var(--ifm-toc-border-color);
+}
+.ixMastIn {
+  position: relative;
+  z-index: 1;
+}
+
+/* Measurement grid. Masked to a radial so it frames the masthead and then gets out of the
+   way rather than tiling behind text. This is the one place it appears: it was briefly
+   global and at site scale a 56px lattice behind reference prose competes with the words,
+   which turns a substrate into wallpaper. Documentation pages get a gradient lift instead,
+   defined in custom.css.
+
+   Light mode gets a fainter grid because a dark line on white is far more visible than a
+   light line on near-black at the same alpha. */
+.ixGrid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(28, 30, 33, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(28, 30, 33, 0.1) 1px, transparent 1px);
+  background-size: 56px 56px;
+  /* Wider and taller than the first version, which combined with a low alpha made
+     the grid effectively invisible and, on a narrow viewport where the masthead is
+     tall rather than wide, cut it out entirely. */
+  -webkit-mask-image: radial-gradient(150% 130% at 26% -10%, #000 0%, #000 38%, transparent 88%);
+  mask-image: radial-gradient(150% 130% at 26% -10%, #000 0%, #000 38%, transparent 88%);
+}
+[data-theme='dark'] .ixGrid {
+  background-image:
+    linear-gradient(to right, rgba(255, 249, 249, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 249, 249, 0.035) 1px, transparent 1px);
+}
+
+/* A warm bloom behind the grid so the masthead has a light source and the lattice
+   is brightest where the title sits. */
+.ixMast::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(
+    62% 80% at 16% 0%,
+    rgba(246, 212, 113, 0.03) 0%,
+    transparent 64%
+  );
+}
+[data-theme='light'] .ixMast::after {
+  /* 0.035, not 0.02. On the old near-white base a 2% warm bloom was invisible,
+     which is cost with no benefit; on #f8f5ef it is a light source. */
+  background-image: radial-gradient(
+    62% 80% at 16% 0%,
+    rgba(138, 90, 29, 0.035) 0%,
+    transparent 64%
+  );
+}
+
+@media (max-width: 600px) {
+  /* Smaller cells so a 375px masthead shows a lattice rather than three lines,
+     and a stronger alpha because there is less of it to read. */
+  .ixGrid {
+    background-size: 38px 38px;
+    -webkit-mask-image: radial-gradient(180% 110% at 40% -6%, #000 0%, #000 46%, transparent 94%);
+    mask-image: radial-gradient(180% 110% at 40% -6%, #000 0%, #000 46%, transparent 94%);
+  }
+  [data-theme='dark'] .ixGrid {
+    background-image:
+      linear-gradient(to right, rgba(255, 249, 249, 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 249, 249, 0.045) 1px, transparent 1px);
+  }
+}
+
+/* "Epic Cash" above the title. Small, gold, tight to the h1 so the two read as one block
+   rather than two separate lines, and aligned on the same left edge as everything in the
+   masthead column. Not a heading: the h1 below it is the page's only first-level heading and
+   adding another would break the outline for no gain. */
+.ixEyebrow {
+  /* Optically aligned to the h1 below rather than box-aligned to it: a smaller, lighter face
+     at the same box position reads as sitting left of the title, which the grid background
+     makes obvious. The nudge is in em so it tracks the font size instead of drifting when
+     the clamp resolves differently at another viewport. */
+  margin: 0 0 0.15rem 0.1em;
+  font-family: var(--epic-font-ui);
+  /* The previous ramp scaled by 1.2: floor, slope and ceiling move together, so the type
+     keeps growing smoothly with the viewport instead of stepping at a breakpoint. */
+  font-size: clamp(1.2rem, 1.08rem + 0.54vw, 1.44rem);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  color: var(--ifm-color-primary);
+}
+
+.ixTitle {
+  /* Fluid, and tracked in. Was a fixed 2.25rem with default tracking, which at display
+     size left Montserrat reading conspicuously loose. Tracking is scoped to sizes above
+     2rem for the subpixel reason recorded in custom.css.
+
+     cqi, not vw. With the assistant panel open the box is narrower than the window, and a title
+     sized off the window then overflows a box it knows nothing about. With no panel the container is
+     the viewport, so this renders identically to the vw version it replaces. */
+  font-size: clamp(2rem, 1.3rem + 2.6cqi, 3.5rem);
+  letter-spacing: -0.022em;
+  margin-bottom: 0.9rem;
+  max-width: 24ch;
+}
+.ixLede {
+  font-size: clamp(1.0625rem, 1rem + 0.35cqi, 1.25rem);
+  line-height: 1.55;
+  /* Was 52rem, roughly 832px, which is about double a comfortable measure and was the
+     single loudest reason this page read as a dated template. */
+  max-width: 54ch;
+  color: var(--ifm-color-content-secondary);
+  margin-bottom: 0;
+}
+
+/* Match the optical left edge of the Montserrat hero title. */
+.ixLede,
+.ixExplorerStrip {
+  margin-left: 0.15rem;
+}
+
+/* Two-column masthead. Capping the lede gives up width, and leaving that width blank was the
+   same fault the old page had, so the second column carries real orientation data. */
+.ixMastGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: start;
+}
+/* Two columns only when the box this sits in is wide enough, which is not the same as the window
+   being wide enough: the assistant panel takes its width from this box. A viewport query here left
+   the title track around 60px across with the panel open, wrapping the word "Developer" one letter
+   per line. The container is declared in custom.css. */
+@container page (min-width: 1000px) {
+  .ixMastGrid {
+    /* Was 17rem, sized for a list of links. The quick-start snippet holds release download
+       URLs, and at 17rem every line scrolled, which makes a copyable block look broken. */
+    grid-template-columns: minmax(0, 1fr) 27rem;
+    gap: 3.5rem;
+    align-items: center;
+  }
+}
+
+/* On a full-HD screen the title column had a few hundred pixels of nothing in it while the snippet
+   still clipped its longest line, a 100-character curl to a release asset. 32rem gives the code 80px
+   more and leaves the title track around 720px at the 1320px content cap, which is still more measure
+   than the title uses. The line is long enough that it scrolls either way; this is about the balance
+   between the two halves, not about fitting it. */
+@container page (min-width: 1400px) {
+  .ixMastGrid {
+    grid-template-columns: minmax(0, 1fr) 32rem;
+  }
+}
+
+/* Instrument panel. Square, corner-ticked, monospace, because every value in it is data. */
+.ixPanel {
+  position: relative;
+  border: 1px solid var(--ifm-toc-border-color);
+  background: var(--ifm-background-surface-color);
+  padding: 1rem 1.1rem 1.1rem;
+}
+[data-theme='dark'] .ixPanel {
+  background: rgba(16, 16, 20, 0.7);
+  border-color: var(--epic-line, var(--ifm-toc-border-color));
+}
+/* Corner ticks. Only the two sides each one draws are declared, never as a `border` shorthand on the
+   shared rule: cssnano reorders the shorthand after the longhands in the production build, which
+   shipped these as closed squares. The reasoning is recorded once, on `.epic-ticked` in custom.css. */
+.ixPanel::before,
+.ixPanel::after {
+  content: '';
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  pointer-events: none;
+}
+.ixPanel::before {
+  top: -1px;
+  left: -1px;
+  border-top: 1px solid var(--ifm-color-primary);
+  border-left: 1px solid var(--ifm-color-primary);
+}
+.ixPanel::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 1px solid var(--ifm-color-primary);
+  border-right: 1px solid var(--ifm-color-primary);
+}
+[data-theme='dark'] .ixPanel::before,
+[data-theme='dark'] .ixPanel::after {
+  border-color: var(--epic-gold-deep);
+}
+
+/* A structural field label, which is the one job uppercase monospace is right for. */
+.ixPanelHead {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ifm-color-content-secondary);
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--ifm-toc-border-color);
+}
+
+.ixPanelList {
+  margin: 0;
+  display: grid;
+  gap: 0;
+  font-size: 0.8125rem;
+}
+.ixPanelList > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.32rem;
+}
+.ixPanelList > div + div {
+  border-top: 1px solid var(--ifm-toc-border-color);
+}
+.ixPanelList dt {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  color: var(--ifm-color-content-secondary);
+}
+.ixPanelList dd {
+  margin: 0;
+  font-family: var(--ifm-font-family-monospace);
+  color: var(--ifm-font-color-base);
+  white-space: nowrap;
+}
+.ixPanelList dd code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 1em;
+  color: var(--ifm-color-primary);
+}
+[data-theme='dark'] .ixPanelList dd code {
+  color: var(--epic-gold-light);
+}
+
+/* Version pills. Bracket-style readout badges above the title, matching mockup C's
+   `[ node 4.0.3 ]` treatment. Monospace because they are machine-readable data. */
+.ixVersionPills {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 1rem;
+  margin-bottom: 1.25rem;
+}
+.ixVersionSource {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-right: 0.15rem;
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+.ixVersionSource:hover {
+  color: var(--ifm-color-primary-light);
+  text-decoration: none;
+}
+.ixVersionSource:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+[data-theme='dark'] .ixVersionSource {
+  color: var(--epic-gold-deep);
+}
+.ixPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--ifm-color-content-secondary);
+  white-space: nowrap;
+  text-decoration: none;
+}
+.ixPill:hover {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+.ixPill::before {
+  content: '[ ';
+  color: var(--ifm-color-primary);
+}
+.ixPill::after {
+  content: ' ]';
+  color: var(--ifm-color-primary);
+}
+.ixPillIcon {
+  width: 0.85rem;
+  height: 0.85rem;
+  flex: none;
+  color: var(--ifm-color-primary);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ixPillIcon--github {
+  width: 0.9rem;
+  height: 0.9rem;
+  fill: currentColor;
+  stroke: none;
+}
+[data-theme='dark'] .ixPill::before,
+[data-theme='dark'] .ixPill::after,
+[data-theme='dark'] .ixPillIcon {
+  color: var(--epic-gold-deep);
+}
+
+/* Explorer data strip below the trace. Same bracket readout style. */
+.ixExplorerStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.25rem;
+  margin-top: 0.75rem;
+}
+.ixPill--data {
+  font-size: 0.72rem;
+  color: var(--ifm-color-content-secondary);
+}
+[data-theme='dark'] .ixPill--data {
+  color: var(--ifm-color-content-secondary);
+}
+
+.ixMain {
+  padding-bottom: 4rem;
+}
+.ixSection {
+  padding: 2.75rem 0;
+  border-bottom: 1px solid var(--ifm-toc-border-color);
+}
+.ixSectionLast {
+  border-bottom: none;
+  padding-bottom: 1rem;
+}
+
+/* Section eyebrow: a short gold rule followed by sentence-case text.
+
+   Was uppercase letterspaced monospace, which the design audit identified as one of the five
+   patterns dating this site. That treatment was the startup house style roughly 2016 to 2019.
+   It survives elsewhere for small structural labels such as .ixGroupLabel and .ixConventions
+   dt, where a monospace field label is the right answer; what it must not be is the opener of
+   a content section.
+
+   Three of the four sections used this on a <p>, which meant Quick start, Everything else and
+   Reading these pages were absent from the document outline entirely: a screen reader listing
+   headings on this page got the title and one h2. Those three are now <h2>, with the heading
+   defaults reset here so nothing about the design changes. The fourth ("Before you write
+   code") stays a <p> because it is an eyebrow above a real h2. */
+.ixKicker {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--ifm-font-family-base);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: normal;
+  text-transform: none;
+  /* --epic-gold-deep (#c98a3e) measured 2.92:1 on white, which fails AA for text this
+     size. --ifm-color-primary is the same hue darkened for light mode and measures
+     5.54:1. The bright gold below is only used where the background is near-black. */
+  color: var(--ifm-color-primary);
+  margin: 0 0 0.9rem;
+}
+.ixKicker::before {
+  content: '';
+  flex: none;
+  width: 28px;
+  height: 1px;
+  background: currentColor;
+}
+[data-theme='dark'] .ixKicker {
+  color: var(--epic-gold-light);
+}
+.ixHeading {
+  font-size: clamp(1.4rem, 1.15rem + 0.8vw, 1.9rem);
+  letter-spacing: -0.014em;
+  margin: 0 0 1.5rem;
+  max-width: 34ch;
+}
+
+/* ---- Quick start ---- */
+
+.ixSteps {
+  position: relative;
+  max-width: var(--epic-measure);
+  margin-top: 2.25rem;
+  padding-left: 3.25rem;
+}
+.ixSteps::before {
+  content: '';
+  position: absolute;
+  left: 0.95rem;
+  top: 0.55rem;
+  bottom: 1.25rem;
+  width: 2px;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--epic-line-strong) 0 6px,
+    transparent 6px 12px
+  );
+}
+.ixStep {
+  position: relative;
+  padding: 0 0 2.25rem;
+}
+.ixStep:last-child {
+  padding-bottom: 0;
+}
+.ixStep::before {
+  content: '';
+  position: absolute;
+  left: -2.65rem;
+  top: 0.45rem;
+  width: 14px;
+  height: 14px;
+  z-index: 1;
+  border: 2px solid var(--ifm-color-primary);
+  border-radius: 50%;
+  background: var(--ifm-background-color);
+}
+.ixStep--current::before {
+  background: var(--epic-gold-light);
+  box-shadow: 0 0 0 5px rgba(246, 212, 113, 0.1);
+}
+.ixStep--current::after {
+  content: '';
+  position: absolute;
+  left: -2.3rem;
+  top: 1.35rem;
+  width: 2px;
+  height: calc(100% - 0.9rem);
+  background: linear-gradient(to bottom, var(--epic-gold-deep), transparent);
+}
+.ixStepTag {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ifm-color-primary);
+}
+[data-theme='dark'] .ixStepTag {
+  color: var(--epic-gold-deep);
+}
+.ixStepHead {
+  font-family: var(--ifm-heading-font-family);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0.3rem 0 0.4rem;
+}
+
+/* Hand-rolled rather than a Docusaurus CodeBlock, because these are three short
+   illustrative snippets and the full component's chrome would dominate the section.
+   tabIndex is set on the element in index.js: this is a horizontal scroll container and
+   without it a keyboard-only reader cannot reach the overflowing content, which is
+   WCAG 2.2 2.1.1. Docusaurus's own CodeBlock sets tabindex="0" for the same reason. */
+.ixCode {
+  position: relative;
+  min-width: 0;
+  font-size: 0.8rem;
+  line-height: 1.65;
+  padding: 0.9rem 1rem;
+  margin: 0 0 0.7rem;
+  /* Square, with corner ticks below. A code block genuinely is a separate object, which is
+     what earns it an enclosure in this system. */
+  border-radius: 0;
+  border: 1px solid var(--ifm-toc-border-color);
+  background: var(--ifm-background-surface-color);
+  overflow-x: auto;
+}
+/* Corner ticks. Only two corners, which reads as a measured enclosure rather than a frame. Per-side
+   longhands only, never a `border` shorthand: see `.epic-ticked` in custom.css for why. */
+.ixCode::before,
+.ixCode::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  pointer-events: none;
+}
+.ixCode::before {
+  top: -1px;
+  left: -1px;
+  border-top: 1px solid var(--ifm-color-primary);
+  border-left: 1px solid var(--ifm-color-primary);
+}
+.ixCode::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 1px solid var(--ifm-color-primary);
+  border-right: 1px solid var(--ifm-color-primary);
+}
+[data-theme='dark'] .ixCode {
+  background: #0b0b0e;
+  border-color: var(--epic-line-strong, var(--ifm-toc-border-color));
+}
+[data-theme='dark'] .ixCode::before,
+[data-theme='dark'] .ixCode::after {
+  border-color: var(--epic-gold-deep);
+}
+.ixCode code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--ifm-font-color-base);
+  white-space: pre;
+}
+.ixStepNote {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--ifm-color-content-secondary);
+  margin: 0;
+}
+
+/* ---- The model ---- */
+
+.ixModel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 2.75rem;
+  align-items: start;
+}
+.ixModelList {
+  margin: 0;
+  padding-left: 1.9rem;
+  /* The measure is capped here rather than left to the grid. Without this the line length was
+     whatever 1.05fr of the container happened to be, which drifted with the window and jumped
+     when the grid collapsed: 68ch at 1600px, 57ch at 1280px, 44ch at 1024px, then 84ch at 834px
+     and 77ch at 768px, measured in a browser on 2026-08-27. 84 is past this project's own cap and
+     past the 80-character ceiling in WCAG 1.4.8, and it happened on an iPad in portrait. */
+  max-width: var(--epic-measure);
+  /* Zero-padded gold numbers, matching documentation pages. This list previously
+     used the browser default `1.` in secondary grey, so the landing page and every
+     doc page numbered their steps differently. */
+  list-style-type: decimal-leading-zero;
+}
+.ixModelList li {
+  margin-bottom: 1.05rem;
+  line-height: 1.65;
+}
+.ixModelList li::marker {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.85em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ifm-color-primary);
+}
+[data-theme='dark'] .ixModelList li::marker {
+  color: var(--epic-gold-deep);
+}
+
+/* No border around the diagram. A rule above it and a caption below is enough, and it stops
+   the figure looking like a widget bolted onto the page. */
+/* The figure is the grid's second column, which is what makes this band a two-column band rather
+   than a 68ch list with a hole beside it.
+
+   It used to span the row with `grid-column: 1 / -1`, on the reasoning that a 760-unit diagram in a
+   369px column renders at half scale. That was true of a 369px column. It also left column two
+   empty at every width from 1024px up: 666 x 331px of nothing beside the best content on the page,
+   and then a 720px diagram sitting in a 1320px band with 600px empty to its right. Both measured on
+   2026-08-27. In the centred body the column is about 640px and the SVG scales into it, so the list
+   keeps its 68ch and the diagram gets a column that suits a diagram. Absorbing the figure into the
+   row also takes about 430px off the page, which lifts everything below it by most of a screen.
+
+   The border-top belongs to the collapsed layout, where the figure sits under the list and needs a
+   rule to separate them. Beside the list it would be a hairline aligned to nothing. */
+.ixFigure {
+  margin: 0;
+  padding-top: 0.4rem;
+}
+.ixFigure .slateExchange {
+  margin: 0.75rem 0 0;
+}
+.ixFigure figcaption {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--ifm-color-content-secondary);
+}
+
+/* ---- Link index ---- */
+
+/* Three tracks, not `auto-fit`. There are six groups, and `auto-fit minmax(13.5rem, 1fr)` landed on
+   five columns in a 1320px band, which left "Mining and consensus" alone on a second row beside four
+   empty cells. Six divides by three and by two, so an explicit track count cannot orphan a group.
+   The collapse steps are below. */
+.ixIndex {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2rem 2.5rem;
+}
+@container page (max-width: 820px) {
+  .ixIndex {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container page (max-width: 520px) {
+  .ixIndex {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.ixGroupLabel {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ifm-color-content-secondary);
+  padding-bottom: 0.5rem;
+  margin: 0 0 0.6rem;
+  border-bottom: 1px solid var(--ifm-toc-border-color);
+}
+.ixGroup ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.ixGroup li {
+  margin: 0;
+}
+.ixGroup a {
+  display: block;
+  padding: 0.28rem 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--ifm-font-color-base);
+  border-bottom: 1px solid transparent;
+}
+.ixGroup a:hover {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+/* Dense link list on a near-black page: the default focus ring is hard to spot, and this
+   is the whole navigation of the index and 404 pages. */
+.ixGroup a:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 1px;
+  text-decoration: none;
+}
+.ixCode:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+/* Container, not viewport, for the same reason as the masthead above: with the assistant panel open
+   these grids have less room while the window has not changed. A container query fires in every case
+   the viewport query used to, plus that one. */
+@container page (max-width: 996px) {
+  /* minmax(0, 1fr), not 1fr. A plain `1fr` track has an implicit `auto` minimum, so it
+     cannot shrink below the min-content width of its widest item. The widest item here is
+     an .ixCode block containing `white-space: pre` shell commands, so at 375px the track
+     grew to the longest command and dragged the whole document sideways by 43px, measured
+     in a browser. The desktop rule above already guards against this; the mobile override
+     dropped the guard, which is why only the landing page and only narrow viewports were
+     affected. */
+  .ixSteps {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+}
+
+/* The model band collapses at 1200, not 996, because 996 is where the list stops being readable
+   rather than where it stops fitting. Two columns at a 894px container gave column one 435px, which
+   is 44 characters. The two-column form now only exists while column one can still hold about 60,
+   and below that the figure goes under the list and takes the rule that separates them. */
+@container page (max-width: 1200px) {
+  .ixModel {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+  .ixFigure {
+    border-top: 1px solid var(--ifm-toc-border-color);
+  }
+}
+
+@media (max-width: 600px) {
+  .ixConventions {
+    grid-template-columns: 1fr;
+    gap: 0.2rem 0;
+  }
+  .ixConventions dd {
+    margin-bottom: 0.9rem;
+  }
+  /* The trace is page presence, not information. At phone width the space is better spent
+     on content. */
+  .ixTrace {
+    display: none;
+  }
+
+  .ixVersionPills,
+  .ixExplorerStrip {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    gap: 0.45rem 0;
+  }
+
+  .ixVersionSource {
+    margin: 0 0 0.1rem;
+  }
+
+  .ixVersionPills .ixPill,
+  .ixExplorerStrip .ixPill {
+    width: max-content;
+  }
+}
+
+/* ---- Typed lede animation ---- */
+
+.ixTyped {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: clamp(0.95rem, 0.85rem + 0.4vw, 1.15rem);
+  letter-spacing: 0.01em;
+  max-width: 68ch;
+  color: var(--ifm-color-content-secondary);
+}
+
+.ixTypedRow {
+  display: block;
+  min-height: 1.55em;
+}
+
+.ixTypedSegment {
+  position: relative;
+  display: inline-block;
+  width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
+  animation: ixTypeSegment var(--ix-type-duration) steps(var(--ix-type-chars), end)
+    var(--ix-type-delay) forwards;
+}
+
+.ixTypedSegment + .ixTypedSegment {
+  margin-left: 0;
+}
+
+.ixTypedSegment::after {
+  content: '';
+  position: absolute;
+  top: 0.14em;
+  right: 0;
+  width: 2px;
+  height: 1.05em;
+  background: var(--ifm-color-primary);
+  opacity: 0;
+  animation: ixTypeCursor var(--ix-type-duration) step-end var(--ix-type-delay) forwards;
+}
+
+[data-theme='dark'] .ixTypedSegment::after {
+  background: var(--epic-gold-light);
+}
+
+.ixTypedSegment--1 {
+  --ix-type-chars: 25;
+  --ix-type-duration: 1.25s;
+  --ix-type-delay: 0.35s;
+}
+
+.ixTypedSegment--2 {
+  --ix-type-chars: 18;
+  --ix-type-duration: 1s;
+  --ix-type-delay: 1.75s;
+}
+
+.ixTypedSegment--2::after {
+  animation:
+    ixTypeCursorFinal var(--ix-type-duration) step-end var(--ix-type-delay) forwards,
+    ixCursorFade 0.3s ease 2.85s forwards;
+}
+
+@keyframes ixTypeSegment {
+  to { width: calc(var(--ix-type-chars) * 1ch); }
+}
+
+@keyframes ixTypeCursor {
+  0%, 24%, 50%, 74% { opacity: 1; }
+  25%, 49%, 75%, 100% { opacity: 0; }
+}
+
+@keyframes ixTypeCursorFinal {
+  0%, 24%, 50%, 74%, 100% { opacity: 1; }
+  25%, 49%, 75%, 99% { opacity: 0; }
+}
+
+@keyframes ixCursorFade {
+  to { opacity: 0; }
+}
+
+@media (max-width: 600px) {
+  .ixTypedRow {
+    min-height: 0;
+  }
+
+  .ixTypedSegment {
+    display: block;
+    min-height: 1.55em;
+  }
+
+  .ixTypedSegment + .ixTypedSegment {
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ixTypedSegment {
+    width: calc(var(--ix-type-chars) * 1ch);
+    animation: none;
+  }
+
+  .ixTypedSegment::after {
+    display: none;
+    animation: none;
+  }
+}
+
+/* ---- Masthead quick start and compact AI status ---- */
+
+/* The snippet treatment from the approved protocol-scope design: square, corner-ticked by
+   .ixPanel, a head carrying the platform switch, a scrollable body, and a caveat foot. This
+   replaced a project-links list whose four links the footer already carries, and its styles went
+   with it rather than staying in the payload budget.mjs gates. */
+.ixSnippet {
+  min-width: 0;
+  padding: 0;
+  background: var(--ifm-background-surface-color);
+}
+[data-theme='dark'] .ixSnippet {
+  background: rgba(13, 13, 16, 0.85);
+  border-color: var(--epic-line, var(--ifm-toc-border-color));
+}
+.ixSnippetHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.7rem 0.85rem;
+  border-bottom: 1px solid var(--ifm-toc-border-color);
+}
+.ixSnippetTitle {
+  margin: 0;
+  padding: 0;
+  border-bottom: none;
+}
+.ixSnippetTabs {
+  display: flex;
+  gap: var(--epic-space-4);
+}
+/* Second control row: the platform set for the selected binary. Its own row because the head
+   already holds the Node and Wallet tabs, and two switches on one line wrapped badly at 27rem. */
+.ixSnippetPlatforms {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--epic-space-4) var(--epic-space-8);
+  padding: var(--epic-space-8) var(--epic-space-12) 0;
+}
+/* Both of the panel's control types are `sm`, so the head row and the platform row read as one
+   toolbar rather than three sizes stacked. Height comes from min-height plus centring, not from
+   padding: padding-driven height is what produced 23.9px and 21.7px in the same panel, and both were
+   under the 24px floor of WCAG 2.2 SC 2.5.8. */
+.ixSnippetTab {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--epic-control-sm);
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.03em;
+  padding: 0 var(--epic-space-8);
+  color: var(--ifm-color-content-secondary);
+  background: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.ixSnippetTab:hover {
+  color: var(--ifm-color-primary);
+}
+.ixSnippetTab.isActive {
+  color: var(--ifm-color-primary);
+  border-color: var(--ifm-color-primary);
+}
+[data-theme='dark'] .ixSnippetTab.isActive {
+  color: var(--epic-gold-light);
+  border-color: var(--epic-gold-deep);
+}
+.ixSnippetTab:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+/* The fast-sync toggle. It shares .ixSnippetTab so the control row reads as one toolbar, and adds
+   only the disabled treatment: the snapshot applies to the node's chain database, so the toggle is
+   inert for the wallet and the miner. Kept mounted rather than removed, because this panel sets the
+   masthead's height and a control that appears and disappears drags every section of the page. */
+.ixSnippetToggle:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+.ixSnippetToggle:disabled:hover {
+  color: var(--ifm-color-content-secondary);
+}
+.ixSnippetBody {
+  margin: 0;
+  padding: 0.8rem 0.85rem;
+  background: none;
+  border-radius: 0;
+  font-size: 0.72rem;
+  /* Reserve the tallest command set instead of sizing to the selected one. The masthead's height
+     is set by this panel, so a panel that shrinks when a tab is pressed drags every section of
+     the page up and down: Wallet/Windows has two commands where every other variant has three,
+     which moved .ixMain by 19px on its own. Lines, not pixels, so the reservation follows the
+     font size and the mobile padding override. Raise --ix-snippet-lines if a variant gains a
+     command; verify-runtime.mjs fails if the variants stop agreeing.
+
+     5, not 3, since the lines wrap. Three commands of 96, 37 and 29 characters are three lines
+     while the block clips and up to five once it does not, and the count now depends on the column
+     as well as on the variant. The longest single command is 123 characters, Wallet/Windows.
+     The mobile override below reserves six, because a phone column wraps the first command three
+     ways. Reserving high is the safe direction: min-height only sets a floor, so a reservation
+     under the true maximum is what lets a tab press move the page. */
+  --ix-snippet-lines: 5;
+  --ix-snippet-line: 1.7;
+  line-height: var(--ix-snippet-line);
+  /* Release URLs are longer than any sensible column, so this block scrolls. Never the
+     document: verify-runtime.mjs fails the run if a route scrolls sideways at 375px. */
+  overflow-x: auto;
+}
+.ixSnippetBody:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: -2px;
+}
+/* Infima styles a bare <code> as an inline chip with its own background, border and padding.
+   Inside this block that drew a faint box, and because the lines are display:block inside an
+   inline element it also generated a leading empty line box, so the snippet rendered with a
+   stray mark and one blank line above the first command. */
+.ixSnippetBody code {
+  display: block;
+  min-height: calc(var(--ix-snippet-lines) * var(--ix-snippet-line) * 1em);
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+.ixSnippetLine {
+  display: block;
+  /* Wrapped, with the continuation hanging under the start of the command. `pre` here clipped the
+     first thing a reader sees on the page: a release-asset URL overflowed the panel by 117px at
+     2401px, 181px at 1600px, 261px at 1280px and 347px at 375px, measured on 2026-08-27. The copy
+     button always wrote the whole command, so the panel worked; it did not look like it worked.
+
+     `pre-wrap`, not `pre-line`, so runs of spaces inside a command survive. The indent is 2ch,
+     which is the prompt glyph and its space, so a continuation line starts under the `curl` rather
+     than under the `$`. */
+  white-space: pre-wrap;
+  padding-left: 2ch;
+  text-indent: -2ch;
+}
+.ixSnippetPrompt {
+  color: var(--ifm-color-primary);
+  user-select: none;
+}
+[data-theme='dark'] .ixSnippetPrompt {
+  color: var(--epic-gold-deep);
+}
+.ixSnippetFoot {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.65rem 0.85rem 0.8rem;
+  border-top: 1px solid var(--ifm-toc-border-color);
+}
+.ixSnippetCopy {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--epic-control-sm);
+  justify-self: start;
+  margin-left: auto;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.66rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0 var(--epic-space-8);
+  color: var(--ifm-font-color-base);
+  background: none;
+  border: 1px solid var(--ifm-toc-border-color);
+  cursor: pointer;
+}
+.ixSnippetCopy:hover {
+  color: var(--ifm-color-primary);
+  border-color: var(--ifm-color-primary);
+}
+.ixSnippetCopy:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+/* One grid cell holding every note variant, so the tallest one sets the height and switching a tab
+   or the snapshot toggle cannot move the panel. The pixel reservation this replaces read
+   `min-height: calc(2 * 1.5em)`, which was measured in English and was short by one line in English
+   at 1440px, two in Russian at the same width, and four in Russian at 375px. */
+.ixSnippetNotes {
+  display: grid;
+}
+.ixSnippetNote {
+  grid-area: 1 / 1;
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--ifm-color-content-secondary);
+}
+/* visibility, not display: a hidden grid item still occupies the cell, which is the whole point.
+   `display: none` would take it out of layout and hand the height back to the selected variant. */
+.ixSnippetNote:not(.isActive) {
+  visibility: hidden;
+}
+.ixSnippetLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1rem;
+  margin: 0;
+  font-size: 0.72rem;
+}
+
+/* The .ixAiBadge rules that were here are gone with the badge itself. It announced "Ask AI · Soon",
+   became a live button when the assistant shipped, and was then a third way to open the same panel on
+   a page whose navbar already offers it. */
+
+@media (max-width: 600px) {
+  .ixSnippetTab,
+  .ixSnippetCopy {
+    /* `md`, not `lg`. Two switch rows plus a copy button at 44px each put roughly 120px of chrome
+       above three lines of code, which reads as a header with a snippet attached rather than the
+       reverse. A thumb gets the step up from `sm`, which is what the touch case is for. */
+    min-height: var(--epic-control-md);
+  }
+
+  /* Tighter chrome on a narrow screen, for the same reason. */
+  .ixSnippetHead {
+    padding: var(--epic-space-8) var(--epic-space-12);
+  }
+  .ixSnippetPlatforms {
+    padding: 0.35rem 0.6rem;
+  }
+  .ixSnippetBody {
+    padding: 0.65rem 0.7rem;
+    /* A phone column is about 45 characters after the hanging indent, so the long commands take
+       three lines each. Seven, not six: at 375px Node/Windows reached seven while every other
+       variant reached six, and a reservation under the true maximum is exactly what lets a tab
+       press move the page. Measured across all five variants at ten widths on 2026-08-27. */
+    --ix-snippet-lines: 7;
+  }
+  .ixSnippetFoot {
+    padding: 0.6rem 0.7rem 0.7rem;
+  }
+}
+
+/* ---- Journey start CTA ---- */
+
+/* ---- Journey manifest ----
+   The right column of the journey section: an enclosure with corner ticks holding monospace
+   data, which the visual language permits for an object that genuinely is separate.
+   Deliberately not a path. The legs on the left are this page's one trail rail, and repeating
+   that metaphor here read as the same idea twice, with a second drawing trace on top of it.
+   Gold now appears only in the corner ticks and the action: a list of eight equal items has no
+   current position to signal, and gold used to organise rather than to signal is what the
+   brief warns against. */
+/* One column, not two. This was `minmax(0, 1fr) minmax(0, 20rem)` for a manifest panel in the second
+   column, and that panel no longer renders: nothing in src/ references .ixManifest. The empty track
+   plus its 3rem gap held the journey to 952px inside a 1320px band, so the completeness dial landed
+   368px short of the band's right edge. Same fault as the model band had, second instance. The
+   .ixManifest rules below are now unreachable and want deleting in a pass of their own. */
+.ixJourneyLayout {
+  display: block;
+}
+.ixManifest {
+  margin-top: 2.25rem;
+  border: 1px solid var(--epic-line);
+  background-color: var(--epic-s1);
+  background-image:
+    linear-gradient(var(--epic-gold-deep), var(--epic-gold-deep)),
+    linear-gradient(var(--epic-gold-deep), var(--epic-gold-deep)),
+    linear-gradient(var(--epic-gold-deep), var(--epic-gold-deep)),
+    linear-gradient(var(--epic-gold-deep), var(--epic-gold-deep));
+  background-position: left top, left top, right bottom, right bottom;
+  background-repeat: no-repeat;
+  background-size: 9px 1px, 1px 9px, 9px 1px, 1px 9px;
+}
+.ixManifestHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 0.95rem 0.65rem;
+  border-bottom: 1px solid var(--epic-line);
+}
+.ixManifestLabel,
+.ixManifestCount {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+}
+.ixManifestLabel {
+  color: var(--ifm-font-color-base);
+  text-transform: uppercase;
+}
+.ixManifestCount {
+  color: var(--ifm-color-content-secondary);
+}
+.ixManifestList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ixManifestItem {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: baseline;
+  padding: 0.5rem 0.95rem;
+}
+.ixManifestItem:not(:last-child) {
+  border-bottom: 1px solid var(--epic-line);
+}
+.ixManifestNum {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.72rem;
+  color: var(--ifm-color-content-secondary);
+}
+.ixManifestTitle {
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+.ixManifest .ixJourneyBtn {
+  display: flex;
+  justify-content: center;
+  border: 0;
+  border-top: 1px solid var(--epic-line);
+}
+/* The gold trace draws once over the spine, the signal-trace idea used elsewhere. pathLength
+   normalises the dash maths so the animation does not need to know the pixel height. */
+.ixManifest .ixJourneyBtn:hover {
+  background: color-mix(in srgb, var(--epic-gold-deep) 12%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ixManifest .ixJourneyBtn {
+    transition: none;
+  }
+}
+
+@container page (max-width: 996px) {
+  .ixManifest {
+    max-width: 24rem;
+  }
+}
+
+.ixJourneyStart {
+  margin-top: 2.25rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ifm-toc-border-color);
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+.ixJourneyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 1.4rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ifm-color-primary);
+  background: transparent;
+  border: 1px solid var(--ifm-color-primary);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.ixJourneyBtn:hover {
+  background: color-mix(in srgb, var(--ifm-color-primary) 10%, transparent);
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+/* Gold as a signal, not a slab. A solid gold block was the loudest thing in the section and
+   read as a warning rather than an invitation; the hairline and gold label keep the identity
+   and the fill arrives only on hover. */
+[data-theme='dark'] .ixJourneyBtn {
+  background: transparent;
+  border-color: var(--epic-gold-deep);
+  color: var(--epic-gold-light);
+}
+[data-theme='dark'] .ixJourneyBtn:hover {
+  background: color-mix(in srgb, var(--epic-gold-deep) 14%, transparent);
+  border-color: var(--epic-gold-light);
+  color: var(--epic-gold-light);
+}
+@media (max-width: 600px) {
+  .ixJourneyStart {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+
+
+/* Compact release rail. It is the only homepage metadata between the navbar and
+   masthead, so readers get version context without a second visible brand name or
+   the old vertical gap. */
+.ixMast {
+  padding-top: 0;
+}
+.ixVersionRail {
+  position: relative;
+  z-index: 1;
+  min-height: 2rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--ifm-toc-border-color);
+  background: color-mix(in srgb, var(--ifm-background-color) 90%, transparent);
+}
+.ixVersionRail .container {
+  display: flex;
+  justify-content: flex-start;
+}
+.ixMastIn {
+  padding-top: clamp(3rem, 4vw, 4rem);
+}
+.ixVersionPills {
+  flex-wrap: nowrap;
+  gap: clamp(0.45rem, 1.25vw, 0.9rem);
+  margin: 0;
+  overflow: visible;
+}
+.ixVersionPills .ixPill {
+  font-size: clamp(0.58rem, 0.52rem + 0.18vw, 0.68rem);
+  letter-spacing: 0.025em;
+}
+
+@media (max-width: 600px) {
+  .ixVersionRail {
+    min-height: 1.9rem;
+  }
+  .ixVersionRail .container {
+    padding-inline: var(--ifm-navbar-padding-horizontal, 1rem);
+    display: flex;
+    justify-content: flex-start;
+  }
+  .ixVersionPills {
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .ixExplorerStrip {
+    display: none;
+  }
+  .ixVersionPills .ixPill {
+    width: auto;
+    font-size: 0.58rem;
+  }
+  .ixMastIn {
+    padding-top: 3.25rem;
+  }
+}
+
+
+/* Keep every left edge on the page on the same x-coordinate as the first navbar label.
+   The geometry tokens live in custom.css under "Page horizontal geometry", shared with the
+   navbar so the two sides of the page cannot drift apart. */
+.ixVersionRail > .container {
+  display: flex;
+  width: 100%;
+  max-width: none;
+  justify-content: flex-start;
+  padding-inline: var(--epic-page-inset) var(--ifm-navbar-padding-horizontal, 1rem);
+}
+.ixVersionRail .ixVersionPills {
+  width: max-content;
+  margin-inline: 0;
+}
+
+/* Left-pinned rather than centred. The width subtracts the inset because `.container` is
+   `width: 100%`, so adding a left margin on top of it overflowed the viewport by exactly the
+   inset: 16px of sideways scroll on the landing page at 375px. */
+.ixMastIn,
+.ixMain {
+  width: calc(100% - var(--epic-page-inset));
+  margin-inline: var(--epic-page-inset) auto;
+  padding-inline: 0 var(--ifm-spacing-horizontal, 1rem);
+}
+
+/* Above 1548px the ink centres on --epic-content-max, so a wide window no longer leaves 640px of
+   dead space on the right, and the ink is not off-centre inside its own window either. The
+   breakpoint's derivation is in custom.css under "The centred body above 1548px"; this is the page
+   half, and the only half, because the navbar stays on the window gutters.
+
+   `max-width: none` is needed because these are Infima `.container` elements, and its own cap would
+   otherwise hold them at --epic-content-max after `width` had already set them there, which is
+   harmless but says the rule twice. `padding-inline: 0`: the centring keeps the box off the window
+   edge, so a gutter here would only pull the right edge inside the box that defines it.
+
+   The version rail is in this block, unlike the previous formulation. It carries
+   --epic-page-inset in its base rule, which is the navbar's first label, and staying there while
+   the body centred is what put three different left edges on one screen: 16px for the navbar,
+   113.8px for the pills, 589px for the ink at 2401px. The rail's band is still full bleed and its
+   border still spans the window, so it still reads as the bottom line of the chrome; only its
+   contents join the document. */
+@media (min-width: 1548px) {
+  .ixMastIn,
+  .ixMain,
+  .ixVersionRail > .container {
+    width: var(--epic-content-max);
+    max-width: none;
+    margin-inline: auto;
+    padding-inline: 0;
+  }
+}
+
+/* The quick-start panel takes another 4rem once the shell is at full size. It grows leftward, not
+   rightward: its right edge is the body's right edge and stays there, so the extra width comes off
+   the title track, which has more measure than the title uses. 27rem clipped the release-asset curl
+   badly, 32rem still clips it, and this is not an attempt to fit a 100-character line — it is the
+   balance between the two halves of the masthead.
+
+   Keyed on the `page` container, which is .main-wrapper and therefore tracks the window rather than
+   the capped body. A media query would do the same job here; the container query is used because
+   every other column rule in this file is one, and the assistant panel narrows .main-wrapper without
+   narrowing the window. */
+@container page (min-width: 1700px) {
+  .ixMastGrid {
+    grid-template-columns: minmax(0, 1fr) 36rem;
+  }
+}
+
+@media (max-width: 996px) {
+  .ixMast,
+  .ixMain {
+    /* Nothing to override: the collapse happens once on :root in custom.css. */
+  }
+}
+@media (max-width: 600px) {
+  .ixExplorerStrip {
+    display: none;
+  }
+}
+
+
+/* Desktop uses one compact reveal, so animated segment boundaries never wrap into
+   the masthead panel. Mobile switches to the deliberately grouped two-line copy. */
+.ixTyped {
+  max-width: 100%;
+  font-size: clamp(0.9rem, 0.82rem + 0.25vw, 1rem);
+}
+.ixTypedDesktop {
+  display: inline-block;
+  width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
+  animation: ixDesktopSubtitleReveal 2s steps(44, end) 0.35s forwards;
+}
+.ixTypedMobile {
+  display: none;
+}
+@keyframes ixDesktopSubtitleReveal {
+  to {
+    width: min(44ch, 100%);
+  }
+}
+@media (max-width: 600px) {
+  .ixTypedDesktop {
+    display: none;
+  }
+  .ixTypedMobile {
+    display: block;
+    min-height: 3.1em;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ixTypedDesktop {
+    width: auto;
+    animation: none;
+  }
+}
+
+
+/* ---- Journey invite ----------------------------------------------------
+   One structure, replacing three legs beside eight stages. That layout was the same sequence
+   twice, and no amount of restyling either column fixed it: the fault was having two.
+
+   What earns the space now is information the page did not have before: how much of each stage
+   has actually been read. Gold is the fill on the meters, which is what gold is for in this
+   system, a travelling value. The numbers stay secondary text. */
+.jtInvite {
+  margin-top: 2rem;
+}
+.jtHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2rem;
+  align-items: start;
+}
+.jtTitle {
+  margin: 0 0 0.6rem;
+}
+.jtLede {
+  max-width: 62ch;
+  margin: 0;
+  color: var(--ifm-color-content-secondary);
+}
+
+/* The readout is type, not a widget: a ring or a gauge here would be dashboard decoration. */
+.jtDial {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1;
+}
+.jtDialPct {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: clamp(2rem, 1.6rem + 1.4vw, 2.75rem);
+  font-variant-numeric: tabular-nums;
+  color: var(--epic-gold-light);
+}
+[data-theme='light'] .jtDialPct {
+  color: #8a5a1d;
+}
+.jtDialNote {
+  margin-top: 0.35rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ifm-color-content-secondary);
+}
+
+.jtMeter {
+  position: relative;
+  height: 3px;
+  margin: 1.25rem 0 1.75rem;
+  background: var(--epic-line);
+  overflow: hidden;
+}
+.jtMeterFill {
+  display: block;
+  height: 100%;
+  width: var(--jt-fill, 0%);
+  background: var(--epic-gradient-gold, var(--epic-gold-deep));
+  transition: width 0.5s var(--epic-ease, ease-out);
+}
+
+/* Two columns of four at desktop width. A single column of eight was the tall list this section
+   is replacing, and four rows read as a set rather than a queue. */
+.jtStages {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.15rem 2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+.jtStage {
+  position: relative;
+  border-top: 1px solid var(--epic-line);
+}
+.jtStageLink {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.7rem 0.1rem 0.55rem;
+  color: var(--ifm-font-color-base);
+  text-decoration: none;
+}
+.jtStageLink:hover {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+.jtStageNum {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.72rem;
+  color: var(--ifm-color-content-secondary);
+}
+.jtStageTitle {
+  font-size: 0.95rem;
+}
+.jtStagePct {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ifm-color-content-secondary);
+}
+/* The per-stage meter sits on the row's own top hairline, so progress reads as the line filling
+   in rather than as an extra element per row. */
+.jtStageBar {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  height: 1px;
+  width: var(--jt-fill, 0%);
+  background: var(--epic-gold-deep);
+  transition: width 0.5s var(--epic-ease, ease-out);
+}
+.jtStage--done .jtStageNum,
+.jtStage--done .jtStagePct {
+  color: var(--epic-gold-deep);
+}
+
+.jtActions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--epic-line);
+}
+.jtGo {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6rem 1.4rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  color: var(--ifm-color-primary);
+  background: transparent;
+  border: 1px solid var(--ifm-color-primary);
+  text-decoration: none;
+  transition: background 0.15s var(--epic-ease, ease-out);
+}
+.jtGo:hover {
+  background: color-mix(in srgb, var(--ifm-color-primary) 10%, transparent);
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+[data-theme='dark'] .jtGo {
+  color: var(--epic-gold-light);
+  border-color: var(--epic-gold-deep);
+}
+[data-theme='dark'] .jtGo:hover {
+  background: color-mix(in srgb, var(--epic-gold-deep) 14%, transparent);
+  border-color: var(--epic-gold-light);
+}
+.jtActionsNote {
+  font-size: 0.8rem;
+  color: var(--ifm-color-content-secondary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jtMeterFill,
+  .jtStageBar {
+    transition: none;
+  }
+}
+
+@container page (max-width: 996px) {
+  .jtHead {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+  .jtDial {
+    align-items: flex-start;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+  .jtStages {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+}
