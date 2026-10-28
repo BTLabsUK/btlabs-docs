@@ -16,9 +16,9 @@ and lepic-flutter.**
 
 One set of Markdown pages, written once, becomes two things: the website
 [docs.btlabs.uk](https://docs.btlabs.uk) (Docusaurus) and the wikis of the three code projects on
-GitLab ([wallet-for-epic](https://gitlab.com/bt-labs-group/wallet-for-epic),
-[lepic](https://gitlab.com/bt-labs-group/lepic),
-[lepic-flutter](https://gitlab.com/bt-labs-group/lepic-flutter)).
+GitLab ([wallet-for-epic](https://gitlab.com/epic-cash-bt/wallet-for-epic),
+[lepic](https://gitlab.com/epic-cash-bt/lepic),
+[lepic-flutter](https://gitlab.com/epic-cash-bt/lepic-flutter)).
 
 > **Status: live.** The site is published at docs.btlabs.uk. Links to the code repositories are
 > marked "available soon" until those projects are public.
@@ -28,7 +28,7 @@ GitLab ([wallet-for-epic](https://gitlab.com/bt-labs-group/wallet-for-epic),
 You need Node.js 20 or newer (tested with 22) and npm. Nothing else: the site has no server part.
 
 ```bash
-git clone https://gitlab.com/bt-labs-group/btlabs-docs && cd btlabs-docs/site
+git clone https://gitlab.com/epic-cash-bt/btlabs-docs && cd btlabs-docs/site
 npm ci
 npm start            # http://localhost:3002, reloads on save
 npm run build        # site/build; a broken link fails the build
@@ -61,13 +61,13 @@ certificate for docs.btlabs.uk with the server's certbot; renewals run with the 
 
 ```bash
 tools/wiki-sync.py               # dry run: writes build-wiki/<repo>/, pushes nothing
-tools/wiki-sync.py --push        # pushes each wiki to gitlab.com/bt-labs-group/<repo>.wiki.git
+tools/wiki-sync.py --push        # pushes each wiki to gitlab.com/epic-cash-bt/<repo>.wiki.git
 ```
 
 Which pages go to which wiki is the `WIKIS` table at the top of the script. Each wiki gets
 `home.md`, `_sidebar.md` and its pages; GitLab has no footer page, so the footer text is added to
 the end of every page. Links to pages a wiki does not carry point to docs.btlabs.uk. The group is
-`bt-labs-group`; use `--group <name>` or `GITLAB_GROUP` for another.
+`epic-cash-bt`, set in one place: the `GITLAB_GROUP` file at the root, which the site build and this script both read (`--group` or the `GITLAB_GROUP` variable override it for one run).
 
 `--push` uses the token in `~/.config/btlabs/gitlab-token` (user `oauth2`) if the file exists,
 otherwise git's own credentials. An empty wiki is created by the push; the project must exist and

@@ -8,7 +8,7 @@ https://docs.btlabs.uk. This script exports a chosen set of them to each reposit
     lepic             the Rust core pages
     lepic-flutter     the binding pages
 
-The default host is GitLab.com (group bt-labs-group, or $GITLAB_GROUP, or --group); --host github exports
+The default host is GitLab.com (group epic-cash-bt, or $GITLAB_GROUP, or --group); --host github exports
 for the GitHub wikis of BTLabs-EPIC instead. For each wiki it writes the home page, the sidebar and
 one file per page into build-wiki/<repo>/, with front matter dropped, admonitions turned into
 quotes, links between pages rewritten to wiki page names (or to docs.btlabs.uk for a page that wiki
@@ -46,8 +46,10 @@ OUT = ROOT / 'build-wiki'
 SITE = 'https://docs.btlabs.uk'
 TOKEN = Path.home() / '.config' / 'btlabs' / 'gitlab-token'
 
-# The one place the group names live. GitLab: gitlab.com/<group>/<repo>; GitHub: github.com/<org>.
-GITLAB_GROUP = 'bt-labs-group'
+# The GitLab group path lives in one place, the GITLAB_GROUP file at the repository root (the site
+# build reads it too). The pages name it as SOURCE_GROUP; another path rewrites their links.
+SOURCE_GROUP = 'epic-cash-bt'
+GITLAB_GROUP = (ROOT / 'GITLAB_GROUP').read_text().strip()
 GITHUB_ORG = 'BTLabs-EPIC'
 
 HOSTS = {
@@ -208,6 +210,9 @@ def split_code(text):
 
 def convert(rel, text, pages, images):
     """One page's body, as wiki Markdown. pages maps doc path -> wiki file name for this wiki."""
+    group = HOST['base'].rsplit('/', 1)[-1] if HOST['name'] == 'gitlab' else SOURCE_GROUP
+    if group != SOURCE_GROUP:
+        text = text.replace(f'gitlab.com/{SOURCE_GROUP}/', f'gitlab.com/{group}/')
     _, body = front_matter(text)
     # The wiki shows the page name as its title, so the page's own H1 would repeat it.
     body = re.sub(r'\A\s*# [^\n]*\n+', '', body)

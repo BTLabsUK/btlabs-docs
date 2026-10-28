@@ -10,9 +10,9 @@ Rust. Three repositories, all under the Apache License 2.0:
 
 | Repository | Language | What it is |
 | --- | --- | --- |
-| [wallet-for-epic](https://gitlab.com/bt-labs-group/wallet-for-epic) *(available soon)* | Dart, Flutter | The app: desktop and phone interfaces, build and release scripts |
-| [lepic-flutter](https://gitlab.com/bt-labs-group/lepic-flutter) *(available soon)* | Dart, Rust glue | The Flutter binding: the Dart API over LEPIC and the native build hook |
-| [lepic](https://gitlab.com/bt-labs-group/lepic) *(available soon)* | Rust | LEPIC: the wallet engine, its crates, the `lepic` CLI and the FFI API |
+| [wallet-for-epic](https://gitlab.com/epic-cash-bt/wallet-for-epic) *(available soon)* | Dart, Flutter | The app: desktop and phone interfaces, build and release scripts |
+| [lepic-flutter](https://gitlab.com/epic-cash-bt/lepic-flutter) *(available soon)* | Dart, Rust glue | The Flutter binding: the Dart API over LEPIC and the native build hook |
+| [lepic](https://gitlab.com/epic-cash-bt/lepic) *(available soon)* | Rust | LEPIC: the wallet engine, its crates, the `lepic` CLI and the FFI API |
 
 ```text
  Epic Cash Desktop / Epic Cash Mobile   (wallet-for-epic, Flutter)
