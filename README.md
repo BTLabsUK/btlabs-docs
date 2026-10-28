@@ -33,11 +33,11 @@ certificate for docs.btlabs.uk with the server's certbot; renewals run with the 
 
 ## GitLab wikis
 
-The code lives at https://gitlab.com/btlabs (wallet-for-epic, lepic, lepic-flutter).
+The code lives at https://gitlab.com/bt-labs-group (wallet-for-epic, lepic, lepic-flutter).
 
 ```bash
 tools/wiki-sync.py               # dry run: writes build-wiki/<repo>/, pushes nothing
-tools/wiki-sync.py --push        # pushes each wiki to gitlab.com/btlabs/<repo>.wiki.git
+tools/wiki-sync.py --push        # pushes each wiki to gitlab.com/bt-labs-group/<repo>.wiki.git
 ```
 
 Which pages go to which wiki is the `WIKIS` table at the top of the script. Each wiki gets

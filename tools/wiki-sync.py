@@ -8,7 +8,7 @@ https://docs.btlabs.uk. This script exports a chosen set of them to each reposit
     lepic             the Rust core pages
     lepic-flutter     the binding pages
 
-The default host is GitLab.com (group btlabs, or $GITLAB_GROUP, or --group); --host github exports
+The default host is GitLab.com (group bt-labs-group, or $GITLAB_GROUP, or --group); --host github exports
 for the GitHub wikis of BTLabs-EPIC instead. For each wiki it writes the home page, the sidebar and
 one file per page into build-wiki/<repo>/, with front matter dropped, admonitions turned into
 quotes, links between pages rewritten to wiki page names (or to docs.btlabs.uk for a page that wiki
@@ -47,7 +47,7 @@ SITE = 'https://docs.btlabs.uk'
 TOKEN = Path.home() / '.config' / 'btlabs' / 'gitlab-token'
 
 # The one place the group names live. GitLab: gitlab.com/<group>/<repo>; GitHub: github.com/<org>.
-GITLAB_GROUP = 'btlabs'
+GITLAB_GROUP = 'bt-labs-group'
 GITHUB_ORG = 'BTLabs-EPIC'
 
 HOSTS = {

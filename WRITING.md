@@ -35,6 +35,6 @@ lepic-flutter by `tools/wiki-sync.py`. Write it so both work.
   `epicbox.epiccash.com`) are fine.
 - Never mention internal chat groups, bots, plans, reviews, audits or internal tooling.
 - The source repositories are private until they are published. Link them as usual, and put
-  ` *(available soon)*` right after every link to gitlab.com/btlabs. `tools/repos-public.sh`
+  ` *(available soon)*` right after every link to gitlab.com/bt-labs-group. `tools/repos-public.sh`
   removes the marks once the repositories are public.
 - Security reports go to support@btlabs.uk, or to a confidential issue on GitLab.

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Strips the " *(available soon)*" marks after links to gitlab.com/btlabs, once wallet-for-epic,
+# Strips the " *(available soon)*" marks after links to gitlab.com/bt-labs-group, once wallet-for-epic,
 # lepic and lepic-flutter are public on GitLab. Run it, check `git diff`, commit, then rebuild
 # and deploy the site (deploy/install.sh) and sync the wikis (tools/wiki-sync.py --push).
 set -eu

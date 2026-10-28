@@ -6,7 +6,7 @@ description: How to report a vulnerability in Epic Cash Desktop, Epic Cash Mobil
 # Report a security issue
 
 Write to **support@btlabs.uk**, or open a confidential issue in the affected repository on GitLab
-(`https://gitlab.com/btlabs/<repository>/-/issues/new?issuable_template=&issue[confidential]=true`).
+(`https://gitlab.com/bt-labs-group/<repository>/-/issues/new?issuable_template=&issue[confidential]=true`).
 Do not open a public issue for a vulnerability.
 
 Include:
