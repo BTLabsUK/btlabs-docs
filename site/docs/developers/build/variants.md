@@ -26,7 +26,8 @@ What changes:
 - No Tor binary is fetched or packed.
 - The app has no Tor switch, no Link · Tor method and no Tor only network mode, and cannot send to
   `.onion` addresses.
-- The in-app updater is off.
+- The in-app updater reads the `notor` section of the same signed update.json (since 26.10.23), so
+  it is only ever offered builds without Tor.
 - The file names carry `-notor`, so the build cannot be mistaken for the standard one.
 
 The native library is built per switch. When you change `WFE_TOR`, run `tools/lepic.sh build` again

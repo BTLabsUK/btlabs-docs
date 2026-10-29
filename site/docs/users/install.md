@@ -67,7 +67,7 @@ so a phone can move between them without a restore.
    password and choose **Always Allow**. A new version asks again.
 
 Apple silicon and Intel Macs are both supported; the built-in node runs on Apple silicon only.
-There are no in-app updates on macOS yet: download new versions from the page.
+From 26.10.23 the app checks for updates and opens the new disk image; drag the app over the old one.
 
 ## iPhone and iPad (preview)
 
@@ -84,7 +84,8 @@ Every platform also has a file with `-notor` in its name: the same app with Tor 
 completely, for places where Tor is unwanted or blocked.
 
 - It cannot send to Tor (`.onion`) addresses, and has no Tor settings or Tor help.
-- It does not update itself: get new versions from the download page.
+- From 26.10.23 it updates itself like the normal app (**Settings › About**). A build without Tor
+  from 26.10.21 or older has no updater: install 26.10.23 from the download page once.
 - It installs over the normal app, and the normal app over it. Wallets and settings stay; Tor
   settings read as off.
 
