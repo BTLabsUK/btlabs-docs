@@ -16,8 +16,8 @@ Include:
 - what happens;
 - the smallest reproduction you have.
 
-Never send a recovery phrase, a wallet file of a wallet with funds, or a password. A test wallet on
-Floonet is enough to show almost anything.
+Never send a recovery phrase, a wallet file of a wallet with funds, or a password. A wallet with no funds,
+or a very small amount, is enough to show almost anything.
 
 ## In scope
 

@@ -32,7 +32,7 @@ still gets ordinary transaction files and Epicbox payments.
 ### Three ways to pair
 
 - **Spoken.** One wallet shows five pairing words and leaves a sealed invite on the connection
-  servers (by default epicbox.epiccash.com, epicbox.stackwallet.com and the BT LABS server). The
+  servers (by default epicbox.epiccash.com, epicbox.stackwallet.com and the BT LABS server, epicbox.btlabs.uk). The
   other wallet types the words under **Got words or a link?** and finds it. Both wallets must be
   online and reach one of these servers, so spoken invites need Epicbox. The words expire.
 - **Invite by message.** Three messages in any chat: the invite, the reply, the finish link. No

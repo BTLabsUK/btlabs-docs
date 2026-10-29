@@ -19,9 +19,8 @@ you already have, see [Restore](restore.md).
 Epic Cash Desktop can hold several wallets: **Add a wallet** on the unlock screen, or
 **Settings › All wallets**.
 
-**Network and folder** on the first screen picks the network (Mainnet holds real EPIC; Floonet
-and Usernet are test networks) and the app data folder. The folder can be changed only before the
-first wallet is added.
+The first screen also picks the app data folder. The folder can be changed only before the first
+wallet is added.
 
 ## On the phone
 

@@ -24,6 +24,14 @@ to the people who pay you.
 If the server stops answering, or the network you are on blocks it, the wallet says so and offers
 another server.
 
+## Servers in the list
+
+The list holds public Epicbox servers, among them `epicbox.epiccash.com` and the BT LABS server
+`epicbox.btlabs.uk`. The BT LABS server is in the list but is not the default. It is also reached
+over Tor at its onion address when [Tor](tor.md) is on. Its former name, `flooepicbox.btlabs.uk`,
+is retired and takes no payments: a wallet that still has an address ending in it needs to switch
+to a current server and share the new address.
+
 ## Turn Epicbox off
 
 Epicbox is a switch under **Settings › Transactions**. Off, the wallet connects to no Epicbox

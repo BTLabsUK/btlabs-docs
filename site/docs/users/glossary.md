@@ -19,7 +19,6 @@ The terms as the app writes them, in alphabetical order.
 - **Epicbox**: The server that carries payment messages between wallets and holds them while the other wallet is offline. See [Epicbox](epicbox.md).
 - **EPIC**: The coin of Epic Cash.
 - **Export wallet data**: Saves history, notes, contacts, invoices and settings in an encrypted wallet data file (`.wfeh`). See [Backups and wallet data](backups.md).
-- **Floonet, Usernet**: Test networks. Their coins have no value. Mainnet holds real EPIC.
 - **Held by**: Coins a linked device is spending, held on this device until its payment ends.
 - **Invoice**: A request to be paid, sent between paired contacts. Experimental.
 - **Link · HTTP, Link · Tor**: Paying straight to the other wallet while it is open, at a web address or a `.onion` address.

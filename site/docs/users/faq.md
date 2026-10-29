@@ -58,8 +58,8 @@ update check, and a problem report when you send one. No analytics.
 
 ## Can I test without real money?
 
-Epic Cash Desktop can make wallets on Floonet, a test network whose coins have no value: choose it
-under **Network and folder** on the first screen.
+The app runs on the main network only. To try it, make a wallet and move a very small amount of EPIC
+between two wallets of your own.
 
 ## Where do I report a bug or a security problem?
 
