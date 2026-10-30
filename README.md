@@ -18,7 +18,9 @@ One set of Markdown pages, written once, becomes two things: the website
 [docs.btlabs.uk](https://docs.btlabs.uk) (Docusaurus) and the wikis of the three code projects on
 GitLab ([wallet-for-epic](https://gitlab.com/epic-cash-bt/wallet-for-epic),
 [lepic](https://gitlab.com/epic-cash-bt/lepic),
-[lepic-flutter](https://gitlab.com/epic-cash-bt/lepic-flutter)).
+[lepic-flutter](https://gitlab.com/epic-cash-bt/lepic-flutter)). Source: GitLab,
+[gitlab.com/epic-cash-bt/btlabs-docs](https://gitlab.com/epic-cash-bt/btlabs-docs) · Mirror: GitHub,
+[github.com/BTLabsUK/btlabs-docs](https://github.com/BTLabsUK/btlabs-docs).
 
 > **Status: live.** The site is published at docs.btlabs.uk. Links to the code repositories are
 > marked "available soon" until those projects are public.
@@ -83,7 +85,7 @@ its wiki must be on.
 
 ### GitHub
 
-`tools/wiki-sync.py --host github` exports for the GitHub wikis of BTLabs-EPIC (`Home.md`,
+`tools/wiki-sync.py --host github` exports for the GitHub wikis of BTLabsUK (`Home.md`,
 `_Sidebar.md`, `_Footer.md`). Before `--push`, each repository needs its wiki switched on
 (Settings › Features › Wikis) and a first page created once in the Wiki tab; a GitHub wiki's git
 repository exists only after that.

@@ -22,7 +22,7 @@ file means "No update information available", and nothing is offered.
 
 The same signed file is published in three places, and the app reads all of them: BT Labs'
 download server (`examples.btlabs.uk`; with Tor on, its onion address), the GitLab copy of BT Labs'
-signed public files, and GitHub Pages. Each copy is checked against the same keys, and the newest
+signed public files, and the latest GitHub release of wallet-for-epic. Each copy is checked against the same keys, and the newest
 valid one is used, so one place being down or blocked never stops an update. The file names the
 builds with Tor and, in a section of its own, the builds without Tor; each build takes only its own.
 

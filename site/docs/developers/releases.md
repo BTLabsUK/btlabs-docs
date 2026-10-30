@@ -65,7 +65,8 @@ After moving the LEPIC pin, run `tools/version.sh core`.
 6. Publish the signed `update.json` to every source the apps read with
    `tools/publish-update-json.sh <signed update.json>`: BT Labs' download server, the GitLab copy
    of the signed public files (`gitlab.com/epic-cash-bt/btlabs-epic.github.io`, read as the raw
-   file on `main`) and GitHub Pages, in that order (`updateManifestSources` in
+   file on `main`) and the GitHub release mirror
+   (`github.com/BTLabsUK/wallet-for-epic/releases/latest/download/update-v2.json`), in that order (`updateManifestSources` in
    `app/lib/src/updater.dart`). The apps check all of them and use the valid copy with the higher
    serial; a source that is down, private or flagged is skipped.
 7. Tag the release commit, for example `git tag -a v26.10.0 -m "Epic Cash 26.10.0"`.

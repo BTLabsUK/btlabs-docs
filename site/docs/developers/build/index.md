@@ -9,9 +9,9 @@ Epic Cash Desktop and Epic Cash Mobile are built from three repositories:
 
 | Repository | What it is |
 | --- | --- |
-| [wallet-for-epic](https://gitlab.com/epic-cash-bt/wallet-for-epic) *(available soon)* | The Flutter app and its build scripts |
-| [lepic-flutter](https://gitlab.com/epic-cash-bt/lepic-flutter) *(available soon)* | The Flutter binding, the Dart package `lepic` |
-| [LEPIC](https://gitlab.com/epic-cash-bt/lepic) *(available soon)* | The Rust wallet core, built into a native library |
+| [wallet-for-epic](https://gitlab.com/epic-cash-bt/wallet-for-epic) *(available soon)* · [GitHub mirror](https://github.com/BTLabsUK/wallet-for-epic) | The Flutter app and its build scripts |
+| [lepic-flutter](https://gitlab.com/epic-cash-bt/lepic-flutter) *(available soon)* · [GitHub mirror](https://github.com/BTLabsUK/lepic-flutter) | The Flutter binding, the Dart package `lepic` |
+| [LEPIC](https://gitlab.com/epic-cash-bt/lepic) *(available soon)* · [GitHub mirror](https://github.com/BTLabsUK/lepic) | The Rust wallet core, built into a native library |
 
 See [Architecture](../architecture.md) for how they work together at run time.
 

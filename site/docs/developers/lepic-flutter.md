@@ -11,6 +11,7 @@ bundles the prebuilt native library into the app, so the app needs no Rust toolc
 at build time.
 
 Repository: [gitlab.com/epic-cash-bt/lepic-flutter](https://gitlab.com/epic-cash-bt/lepic-flutter) *(available soon)*.
+Mirror: [github.com/BTLabsUK/lepic-flutter](https://github.com/BTLabsUK/lepic-flutter).
 Licence: Apache-2.0. Version 0.1.0, versioned with SemVer on its own.
 
 ## What is in the repository

@@ -10,7 +10,8 @@ process: it creates and restores wallets, scans the chain through an Epic node, 
 receives transactions with the standard `epic-wallet`. Epic Cash Desktop and Epic Cash Mobile use
 it through [lepic-flutter](lepic-flutter.md).
 
-Repository: [gitlab.com/epic-cash-bt/lepic](https://gitlab.com/epic-cash-bt/lepic) *(available soon)*.
+Repository: [gitlab.com/epic-cash-bt/lepic](https://gitlab.com/epic-cash-bt/lepic) *(available soon)*. Mirror:
+[github.com/BTLabsUK/lepic](https://github.com/BTLabsUK/lepic).
 Licence: Apache-2.0. Rust edition 2024, toolchain pinned in `rust-toolchain.toml`.
 
 :::warning

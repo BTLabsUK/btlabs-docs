@@ -9,7 +9,7 @@ https://docs.btlabs.uk. This script exports a chosen set of them to each reposit
     lepic-flutter     the binding pages
 
 The default host is GitLab.com (group epic-cash-bt, or $GITLAB_GROUP, or --group); --host github exports
-for the GitHub wikis of BTLabs-EPIC instead. For each wiki it writes the home page, the sidebar and
+for the GitHub wikis of BTLabsUK instead. For each wiki it writes the home page, the sidebar and
 one file per page into build-wiki/<repo>/, with front matter dropped, admonitions turned into
 quotes, links between pages rewritten to wiki page names (or to docs.btlabs.uk for a page that wiki
 does not carry), and images copied into images/.
@@ -51,7 +51,7 @@ TOKEN = Path.home() / '.config' / 'btlabs' / 'gitlab-token'
 SOURCE_GROUP = 'epic-cash-bt'
 IDENTITY = ('blacktyger', '53139520+blacktyger@users.noreply.github.com')
 GITLAB_GROUP = (ROOT / 'GITLAB_GROUP').read_text().strip()
-GITHUB_ORG = 'BTLabs-EPIC'
+GITHUB_ORG = 'BTLabsUK'
 
 HOSTS = {
     'gitlab': {
