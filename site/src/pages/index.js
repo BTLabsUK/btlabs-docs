@@ -1,11 +1,11 @@
 import React from 'react';
 import Layout from '@theme/Layout';
 import Link from '@docusaurus/Link';
-import './../css/index-page.css';
+import {Icon} from '@site/src/components/icons';
 
 /**
- * The landing page. It reuses the Developer Hub's masthead and index styles (index-page.css), with
- * two panels instead of the quick start: one per audience, each a short list of first pages.
+ * The landing page, in the BT Wallet landing page's looks (src/css/looks.css): a hero with the two
+ * first steps, one panel per audience, every page by group, and the way to support.
  */
 
 const USERS = [
@@ -66,12 +66,12 @@ const GROUPS = [
 
 function Panel({id, title, lede, links}) {
   return (
-    <section className="ixPanel" aria-labelledby={id}>
-      <p className="ixPanelHead" id={id}>
+    <section className="btwCard" aria-labelledby={id}>
+      <p className="btwCardHead" id={id}>
         {title}
       </p>
-      <p className="btPanelLede">{lede}</p>
-      <ul className="ixPanelList">
+      <p className="btwCardLede">{lede}</p>
+      <ul className="btwList">
         {links.map(([label, to]) => (
           <li key={to}>
             <Link to={to}>{label}</Link>
@@ -85,63 +85,85 @@ function Panel({id, title, lede, links}) {
 export default function Home() {
   return (
     <Layout
-      title="Epic Cash wallet documentation"
-      description="Documentation for Epic Cash Desktop, Epic Cash Mobile and the LEPIC wallet core: install, use, build and review.">
-      <header className="ixMast">
-        <div className="ixGrid" aria-hidden="true" />
-        <div className="container ixMastIn">
-          <div className="ixMastGrid">
+      title="BT Wallet documentation"
+      description="Documentation for BT Wallet for Epic Cash, desktop and mobile, and the LEPIC wallet core: install, use, build and review.">
+      <main className="btw">
+        <header className="btwHero">
+          <div className="btwWrap btwHeroIn">
             <div>
-              <p className="ixEyebrow">BT LABS</p>
-              <h1 className="ixTitle">Epic Cash wallets</h1>
-              <p className="ixLede">
-                Epic Cash Desktop, Epic Cash Mobile and LEPIC, the Rust wallet core behind them. How to
-                use them, and how they are built.
+              <p className="btwKicker">Documentation</p>
+              <h1 className="btwTitle">
+                <span>BT Wallet</span> <span className="btwTitle-b">docs.</span>
+              </h1>
+              <p className="btwLede">
+                How to install and use the self-custodial wallet for Epic Cash, and how it is built.
               </p>
-              <div className="ixExplorerStrip">
-                <span className="ixPill ixPill--data">Windows · Linux · Android</span>
-                <span className="ixPill ixPill--data">macOS · iOS preview</span>
-                <span className="ixPill ixPill--data">Apache-2.0</span>
+              <div className="btwCta">
+                <Link className="btwBtn btwBtn--primary" to="/users/">
+                  Get started
+                </Link>
+                <Link className="btwBtn btwBtn--ghost" to="/users/install/">
+                  Install
+                </Link>
+                <Link className="btwBtn btwBtn--ghost" to="/support/">
+                  Support
+                </Link>
               </div>
             </div>
-            <div className="btPanels">
-              <Panel
-                id="btUsers"
-                title="Use the wallet"
-                lede="Install, first wallet, payments, backups."
-                links={USERS}
-              />
-              <Panel
-                id="btDevs"
-                title="Build and review"
-                lede="The code, the build, the security model."
-                links={DEVELOPERS}
-              />
+            <div className="btwPanels">
+              <Panel id="btwUsers" title="Use the wallet" lede="Install, first wallet, payments, backups." links={USERS} />
+              <Panel id="btwDevs" title="Build and review" lede="The code, the build, the security model." links={DEVELOPERS} />
             </div>
           </div>
-        </div>
-      </header>
-      <main className="container ixMain">
-        <section className="ixSection ixSectionLast">
-          <h2 className="ixKicker">Everything here</h2>
-          <div className="ixIndex">
-            {GROUPS.map((group) => (
-              <nav className="ixGroup" key={group.heading} aria-label={group.heading}>
-                <h3 className="ixGroupLabel">{group.heading}</h3>
-                <ul>
-                  {group.links.map(([label, to]) => (
-                    <li key={to}>
-                      <Link to={to}>{label}</Link>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-            ))}
+        </header>
+
+        <section className="btwSection">
+          <div className="btwWrap">
+            <h2 className="btwH2">Everything here</h2>
+            <div className="btwIndex">
+              {GROUPS.map((group) => (
+                <nav className="btwGroup" key={group.heading} aria-label={group.heading}>
+                  <h3 className="btwGroupLabel">{group.heading}</h3>
+                  <ul>
+                    {group.links.map(([label, to]) => (
+                      <li key={to}>
+                        <Link to={to}>{label}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              ))}
+            </div>
           </div>
-          <p className="ixFoot">
-            The Epic Cash node, reference wallet, Epicbox protocol and APIs are documented on the{' '}
-            <a href="https://devdocs.btlabs.uk">Epic Cash Developer Hub</a>.
-          </p>
+        </section>
+
+        <section className="btwSection">
+          <div className="btwWrap">
+            <div className="btwHelp">
+              <div>
+                <h2>Stuck?</h2>
+                <p>Ask on Telegram, follow BT LABS on X, or write to support@btlabs.uk.</p>
+              </div>
+              <div className="btwChips">
+                <Link className="btwChip" to="/support/">
+                  <Icon name="help" /> Support
+                </Link>
+                <a className="btwChip" href="https://t.me/BTLABS_EPIC" rel="noopener">
+                  <Icon name="telegram" /> Telegram
+                </a>
+                <a className="btwChip" href="https://x.com/BTLabsUK" rel="noopener">
+                  <Icon name="x" /> X
+                </a>
+                <a className="btwChip" href="mailto:support@btlabs.uk">
+                  <Icon name="mail" /> Email
+                </a>
+              </div>
+            </div>
+            <p className="btwFootNote">
+              The Epic Cash node, reference wallet, Epicbox protocol and APIs are documented on the{' '}
+              <a href="https://devdocs.btlabs.uk">Epic Cash Developer Hub</a>.
+            </p>
+          </div>
         </section>
       </main>
     </Layout>

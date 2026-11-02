@@ -1,8 +1,9 @@
 // @ts-check
-// The BT LABS wallet documentation: Epic Cash Desktop, Epic Cash Mobile, LEPIC and lepic-flutter.
-// The look is the Epic Cash Developer Hub's (devdocs.btlabs.uk): its custom.css, colour-mode
-// toggle, table-of-contents panel and prism theme are copied here unchanged, so the two sites read
-// as one family. The Markdown under docs/ is also the source of the GitLab wikis
+// The BT Wallet documentation: BT Wallet for Epic Cash (desktop and mobile), LEPIC and lepic-flutter.
+// The base is the Epic Cash Developer Hub's theme (devdocs.btlabs.uk): its custom.css, table-of-contents
+// panel and prism theme are copied here unchanged. On top of it, src/css/looks.css gives the site the
+// BT Wallet landing page's three looks (Night, Grid, Day; src/components/look.js), and the colour-mode
+// toggle is the look switch. The Markdown under docs/ is also the source of the GitLab wikis
 // (tools/wiki-sync.py), which is why the pages use plain Markdown only (WRITING.md).
 import {darkPrismTheme} from './src/prism-themes.js';
 import {readFileSync} from 'node:fs';
@@ -14,14 +15,18 @@ const GITLAB_GROUP = readFileSync(new URL('../GITLAB_GROUP', import.meta.url), '
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Epic Cash Wallet Docs',
-  tagline: 'Epic Cash Desktop, Epic Cash Mobile and the LEPIC wallet core',
-  favicon: 'img/favicon.png',
+  title: 'BT Wallet Docs',
+  tagline: 'BT Wallet for Epic Cash, desktop and mobile, and the LEPIC wallet core',
+  favicon: 'img/favicon.ico',
 
   future: {
     v4: true,
     faster: false,
   },
+
+  // A fixed namespace, so the colour mode's key is known: theme-btw. The look script in headTags
+  // writes it (it was theme-eaa, a hash of the URL, which it migrates).
+  storage: {type: 'localStorage', namespace: 'btw'},
 
   // Self-hosted; see deploy/. DOCS_URL overrides the origin for a preview build.
   url: process.env.DOCS_URL || 'https://docs.btlabs.uk',
@@ -64,7 +69,18 @@ const config = {
   ],
 
   headTags: [
-    {tagName: 'meta', attributes: {property: 'og:site_name', content: 'Epic Cash Wallet Docs'}},
+    // The look before the first paint (src/components/look.js): the saved one, Day for a reader whose
+    // saved theme was light, else Night. It also stores the look's colour mode, which Docusaurus's own
+    // inline script (later, in <body>) then applies, so the look and the mode never disagree.
+    {
+      tagName: 'script',
+      attributes: {},
+      innerHTML:
+        "(function(){var d=document.documentElement,l='a';try{l=localStorage.getItem('btw-look')||((localStorage.getItem('theme-btw')||localStorage.getItem('theme-eaa'))==='light'?'c':'a')}catch(e){}l=l==='b'||l==='c'?l:'a';d.setAttribute('data-look',l);try{localStorage.setItem('theme-btw',l==='c'?'light':'dark')}catch(e){}})();",
+    },
+    {tagName: 'link', attributes: {rel: 'icon', href: '/img/favicon.svg', type: 'image/svg+xml'}},
+    {tagName: 'link', attributes: {rel: 'apple-touch-icon', href: '/img/apple-touch-icon.png'}},
+    {tagName: 'meta', attributes: {property: 'og:site_name', content: 'BT Wallet Docs'}},
     {tagName: 'meta', attributes: {property: 'og:type', content: 'website'}},
   ],
 
@@ -79,7 +95,7 @@ const config = {
         },
         blog: false,
         sitemap: {ignorePatterns: ['/404', '/404.html', '/search', '/search/**']},
-        theme: {customCss: ['./src/css/custom.css', './src/css/btlabs.css']},
+        theme: {customCss: ['./src/css/custom.css', './src/css/btlabs.css', './src/css/looks.css']},
       }),
     ],
   ],
@@ -96,11 +112,12 @@ const config = {
         sidebar: {hideable: true, autoCollapseCategories: false},
       },
       navbar: {
-        title: 'BT LABS',
+        title: 'BT Wallet',
         logo: {
-          alt: 'Epic Cash',
-          src: 'img/epic-logo-nav.png',
-          width: 65,
+          alt: 'BT Wallet',
+          src: 'img/bt-wallet-mark-ink.svg',
+          srcDark: 'img/bt-wallet-mark-gold.svg',
+          width: 30,
           height: 26,
         },
         items: [
@@ -110,11 +127,20 @@ const config = {
           {to: '/developers/build/', label: 'Build', position: 'left'},
           {to: '/developers/lepic/', label: 'LEPIC', position: 'left'},
           {to: '/security/', label: 'Security', position: 'left'},
+          {to: '/support/', label: 'Support', position: 'right'},
           {href: 'https://devdocs.btlabs.uk', label: 'Developer Hub', position: 'right'},
         ],
       },
       footer: {
         style: 'dark',
+        logo: {
+          alt: 'BT Wallet for Epic Cash',
+          src: 'img/bt-wallet-lockup-row-light.svg',
+          srcDark: 'img/bt-wallet-lockup-row-dark.svg',
+          href: 'https://epiccash.btlabs.uk',
+          width: 220,
+          height: 53,
+        },
         links: [
           {
             title: 'Wallet',
@@ -135,16 +161,26 @@ const config = {
             ],
           },
           {
+            title: 'Support',
+            items: [
+              {label: 'Get help', to: '/support/'},
+              {label: 'Telegram', href: 'https://t.me/BTLABS_EPIC'},
+              {label: 'X', href: 'https://x.com/BTLabsUK'},
+              {label: 'support@btlabs.uk', href: 'mailto:support@btlabs.uk'},
+            ],
+          },
+          {
             title: 'BT LABS',
             items: [
-              {label: 'Epic Cash wallets', href: 'https://epiccash.btlabs.uk'},
+              {label: 'BT Wallet', href: 'https://epiccash.btlabs.uk'},
+              {label: 'Download', href: 'https://epiccash.btlabs.uk/releases/'},
               {label: 'btlabs.uk', href: 'https://btlabs.uk'},
               {label: 'Report a security issue', to: '/security/'},
-              {label: 'epiccash.com', href: 'https://epiccash.com'},
             ],
           },
         ],
-        copyright: '<span class="epicFooterBy">BT LABS</span>',
+        copyright:
+          'An independent, open-source wallet by <span class="epicFooterBy">BT LABS</span>. Not made by the Epic Cash project. Use it within the law where you live.',
       },
       prism: {
         theme: darkPrismTheme,

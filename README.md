@@ -1,11 +1,11 @@
 <div align="center">
 
-<img src="site/static/img/epic-logo.png" alt="Epic Cash" width="96" height="96">
+<img src="site/static/img/bt-wallet-lockup-row-dark.svg" alt="BT Wallet for Epic Cash" width="260">
 
 # btlabs-docs
 
-**The source of docs.btlabs.uk: the documentation of Epic Cash Desktop, Epic Cash Mobile, LEPIC
-and lepic-flutter.**
+**The source of docs.btlabs.uk: the documentation of BT Wallet for Epic Cash (desktop and mobile),
+LEPIC and lepic-flutter.**
 
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Docusaurus 3.10](https://img.shields.io/badge/docusaurus-3.10.2-3ECC5F.svg)](site/package.json)
@@ -43,7 +43,7 @@ Builds run on your own machine; there is no hosted CI.
 | Path | Contents |
 | --- | --- |
 | `site/docs/` | The pages: `users/` (the user guide), `developers/` (building, architecture, testing, releases), `security.md`. The one source. |
-| `site/` | Docusaurus 3: `docusaurus.config.js`, `sidebars.js`, the theme in `src/` (the look of the Epic Cash Developer Hub, `src/css/custom.css`; this site's additions in `src/css/btlabs.css`). |
+| `site/` | Docusaurus 3: `docusaurus.config.js`, `sidebars.js`, the theme in `src/`: the Epic Cash Developer Hub's base (`src/css/custom.css`), this site's additions (`src/css/btlabs.css`), and the BT Wallet landing page's three looks, Night, Grid and Day (`src/css/looks.css`, `src/components/look.js`; the navbar's switch and the footer's picker). `src/pages/support.js` is the support page. |
 | `WRITING.md` | Format and word rules for the pages. Read it before writing. |
 | `tools/wiki-sync.py` | Exports a chosen set of pages to each code project's GitLab wiki (or GitHub's, `--host github`). |
 | `tools/repos-public.sh` | Removes the "available soon" marks once the code projects are public. |
