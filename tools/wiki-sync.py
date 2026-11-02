@@ -16,7 +16,7 @@ does not carry), and images copied into images/.
 Each wiki gets Home.md, _Sidebar.md and _Footer.md. Page links are the page names.
 
     tools/wiki-sync.py                 dry run: write build-wiki/ and list what would change
-    tools/wiki-sync.py --push          the same, then push each wiki to <repo>.wiki.git
+    tools/wiki-sync.py --push          the same, then push each wiki to <repo>.wiki.git over SSH
     tools/wiki-sync.py --repo lepic    only one wiki (with or without --push)
 
 A wiki's git repository exists only after its first page was saved in the web interface
@@ -301,7 +301,7 @@ def git(*args, cwd=None, check=True):
 
 
 def push(repo, dest):
-    url = f'{repo_url(repo)}.wiki.git'
+    url = f'git@github.com:{GITHUB_ORG}/{repo}.wiki.git'
     work = OUT / f'.{repo}.wiki'
     if work.exists():
         shutil.rmtree(work)
@@ -334,7 +334,7 @@ def push(repo, dest):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
-    ap.add_argument('--push', action='store_true', help='push each wiki to <repo>.wiki.git')
+    ap.add_argument('--push', action='store_true', help='push each wiki to <repo>.wiki.git over SSH')
     ap.add_argument('--repo', choices=sorted(WIKIS), help='only this wiki')
     a = ap.parse_args()
     ok = True
