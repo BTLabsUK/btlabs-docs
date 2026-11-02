@@ -78,6 +78,14 @@ const config = {
       innerHTML:
         "(function(){var d=document.documentElement,l='a';try{l=localStorage.getItem('btw-look')||((localStorage.getItem('theme-btw')||localStorage.getItem('theme-eaa'))==='light'?'c':'a')}catch(e){}l=l==='b'||l==='c'?l:'a';d.setAttribute('data-look',l);try{localStorage.setItem('theme-btw',l==='c'?'light':'dark')}catch(e){}})();",
     },
+    // Here and not in looks.css: the build inlines a font file this small into the CSS as a data:
+    // URL, which the CSP (font-src 'self') blocks. A <style> in <head> keeps it a request to /fonts/.
+    {
+      tagName: 'style',
+      attributes: {},
+      innerHTML:
+        "@font-face{font-family:'JetBrains Mono';src:url('/fonts/jetbrainsmono-nl.woff2') format('woff2');font-weight:100 800;font-display:swap}",
+    },
     {tagName: 'link', attributes: {rel: 'icon', href: '/img/favicon.svg', type: 'image/svg+xml'}},
     {tagName: 'link', attributes: {rel: 'apple-touch-icon', href: '/img/apple-touch-icon.png'}},
     {tagName: 'meta', attributes: {property: 'og:site_name', content: 'BT Wallet Docs'}},
