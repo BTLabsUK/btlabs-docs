@@ -9,9 +9,9 @@ Epic Cash Desktop and Epic Cash Mobile are built from three repositories:
 
 | Repository | What it is |
 | --- | --- |
-| [wallet-for-epic](https://gitlab.com/epic-cash-bt/wallet-for-epic) · [GitHub mirror](https://github.com/BTLabsUK/wallet-for-epic) | The Flutter app and its build scripts |
-| [lepic-flutter](https://gitlab.com/epic-cash-bt/lepic-flutter) · [GitHub mirror](https://github.com/BTLabsUK/lepic-flutter) | The Flutter binding, the Dart package `lepic` |
-| [LEPIC](https://gitlab.com/epic-cash-bt/lepic) · [GitHub mirror](https://github.com/BTLabsUK/lepic) | The Rust wallet core, built into a native library |
+| [wallet-for-epic](https://github.com/BTLabsUK/wallet-for-epic) | The Flutter app and its build scripts |
+| [lepic-flutter](https://github.com/BTLabsUK/lepic-flutter) | The Flutter binding, the Dart package `lepic` |
+| [LEPIC](https://github.com/BTLabsUK/lepic) | The Rust wallet core, built into a native library |
 
 See [Architecture](../architecture.md) for how they work together at run time.
 
@@ -27,7 +27,7 @@ Clone the app; `tools/lepic.sh sync` then clones LEPIC and lepic-flutter at the 
 `app/third_party/` (git-ignored), and `build` builds the native library:
 
 ```bash
-git clone https://gitlab.com/epic-cash-bt/wallet-for-epic
+git clone https://github.com/BTLabsUK/wallet-for-epic
 cd wallet-for-epic
 . tools/env.sh
 tools/lepic.sh sync            # clone or move both repositories to the pinned commits
