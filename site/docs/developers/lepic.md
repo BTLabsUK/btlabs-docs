@@ -10,8 +10,7 @@ process: it creates and restores wallets, scans the chain through an Epic node, 
 receives transactions with the standard `epic-wallet`. Epic Cash Desktop and Epic Cash Mobile use
 it through [lepic-flutter](lepic-flutter.md).
 
-Repository: [gitlab.com/epic-cash-bt/lepic](https://gitlab.com/epic-cash-bt/lepic). Mirror:
-[github.com/BTLabsUK/lepic](https://github.com/BTLabsUK/lepic).
+Repository: [github.com/BTLabsUK/lepic](https://github.com/BTLabsUK/lepic).
 Licence: Apache-2.0. Rust edition 2024, toolchain pinned in `rust-toolchain.toml`.
 
 :::warning
@@ -148,7 +147,7 @@ arguments: they come from `LEPIC_PASSWORD`, a hidden prompt, or one line of stan
 `http://` and `ws://` are accepted only for a loopback host.
 
 The full guide is
-[docs/cli.md](https://gitlab.com/epic-cash-bt/lepic/-/blob/main/docs/cli.md) in
+[docs/cli.md](https://github.com/BTLabsUK/lepic/blob/main/docs/cli.md) in
 the repository.
 
 ## Quick start: LEPIC from Rust
@@ -157,8 +156,8 @@ LEPIC needs Rust and a C compiler. It is not on crates.io yet, so take it from g
 
 ```toml
 [dependencies]
-lepic-wallet = { git = "https://gitlab.com/epic-cash-bt/lepic" }
-lepic-primitives = { git = "https://gitlab.com/epic-cash-bt/lepic" }
+lepic-wallet = { git = "https://github.com/BTLabsUK/lepic" }
+lepic-primitives = { git = "https://github.com/BTLabsUK/lepic" }
 ```
 
 Read a slate from `epic-wallet` without opening a wallet:

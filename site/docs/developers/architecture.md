@@ -147,4 +147,4 @@ app through the binding.
 - [lepic-flutter](lepic-flutter.md): the binding and how native libraries are bundled.
 - [Security model](security-model.md): keys, secrets at the boundary, input validation.
 - [Architecture decisions](decisions.md): the ADRs behind this design.
-- LEPIC's own [architecture notes](https://gitlab.com/epic-cash-bt/lepic/-/blob/main/docs/architecture.md).
+- LEPIC's own [architecture notes](https://github.com/BTLabsUK/lepic/blob/main/docs/architecture.md).

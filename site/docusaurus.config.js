@@ -3,15 +3,9 @@
 // The base is the Epic Cash Developer Hub's theme (devdocs.btlabs.uk): its custom.css, table-of-contents
 // panel and prism theme are copied here unchanged. On top of it, src/css/looks.css gives the site the
 // BT Wallet landing page's three looks (Night, Grid, Day; src/components/look.js), and the colour-mode
-// toggle is the look switch. The Markdown under docs/ is also the source of the GitLab wikis
+// toggle is the look switch. The Markdown under docs/ is also the source of the GitHub wikis
 // (tools/wiki-sync.py), which is why the pages use plain Markdown only (WRITING.md).
 import {darkPrismTheme} from './src/prism-themes.js';
-import {readFileSync} from 'node:fs';
-
-// The GitLab group path lives in one place, ../GITLAB_GROUP. The pages name it as SOURCE_GROUP;
-// a different path in the file rewrites their links at build time, so a group rename is one line.
-const SOURCE_GROUP = 'epic-cash-bt';
-const GITLAB_GROUP = readFileSync(new URL('../GITLAB_GROUP', import.meta.url), 'utf8').trim();
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -37,10 +31,6 @@ const config = {
   onBrokenAnchors: 'throw',
   markdown: {
     format: 'detect',
-    preprocessor: ({fileContent}) =>
-      GITLAB_GROUP === SOURCE_GROUP
-        ? fileContent
-        : fileContent.replaceAll(`gitlab.com/${SOURCE_GROUP}/`, `gitlab.com/${GITLAB_GROUP}/`),
     hooks: {onBrokenMarkdownLinks: 'throw'},
   },
 

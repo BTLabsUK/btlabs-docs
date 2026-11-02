@@ -13,9 +13,9 @@ Contributions to LEPIC, lepic-flutter and the app follow the same rules.
    [Dev environment](dev-environment.md).
 2. Read [Architecture](architecture.md), [Decisions](decisions.md) and, for security-relevant
    code, [Security model](security-model.md).
-3. Check which repository the change belongs in: [LEPIC](https://gitlab.com/epic-cash-bt/lepic)
-   for wallet logic, [lepic-flutter](https://gitlab.com/epic-cash-bt/lepic-flutter)
-   for the binding, [wallet-for-epic](https://gitlab.com/epic-cash-bt/wallet-for-epic)
+3. Check which repository the change belongs in: [LEPIC](https://github.com/BTLabsUK/lepic)
+   for wallet logic, [lepic-flutter](https://github.com/BTLabsUK/lepic-flutter)
+   for the binding, [wallet-for-epic](https://github.com/BTLabsUK/wallet-for-epic)
    for the app.
 
 ## Making a change

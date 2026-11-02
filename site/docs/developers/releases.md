@@ -63,9 +63,9 @@ After moving the LEPIC pin, run `tools/version.sh core`.
    `app/tool/release_android.sh <download-base-url> "notes"`. Set `WFE_DESKTOP_RELEASE=1` when
    desktop builds ship in the same release.
 6. Publish the signed `update.json` to every source the apps read with
-   `tools/publish-update-json.sh <signed update.json>`: BT Labs' download server, the GitLab copy
-   of the signed public files (`gitlab.com/epic-cash-bt/btlabs-epic.github.io`, read as the raw
-   file on `main`) and the GitHub release mirror
+   `tools/publish-update-json.sh <signed update.json>`: BT Labs' download server, the GitHub copy
+   of the signed public files (`github.com/BTLabsUK/btlabs-epic.github.io`, read as the raw
+   file on `main`) and the GitHub release
    (`github.com/BTLabsUK/wallet-for-epic/releases/latest/download/update-v2.json`), in that order (`updateManifestSources` in
    `app/lib/src/updater.dart`). The apps check all of them and use the valid copy with the higher
    serial; a source that is down, private or flagged is skipped.

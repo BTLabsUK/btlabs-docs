@@ -7,7 +7,7 @@ description: A summary of LEPIC's architecture decision records (ADRs 0001 to 00
 
 LEPIC records each design decision as an architecture decision record (ADR): one decision, why it
 was made, and what it costs. The full records are in
-[docs/adr](https://gitlab.com/epic-cash-bt/lepic/-/blob/main/docs/adr/README.md).
+[docs/adr](https://github.com/BTLabsUK/lepic/blob/main/docs/adr/README.md).
 
 ## How ADRs work
 
