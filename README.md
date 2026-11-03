@@ -25,13 +25,14 @@ GitHub ([wallet-for-epic](https://github.com/BTLabsUK/wallet-for-epic),
 
 ## Build from source
 
-You need Node.js 20 or newer (tested with 22) and npm. Nothing else: the site has no server part.
+You need Node.js 20 or newer (tested with 22), npm and Python 3. Nothing else: the site has no
+server part.
 
 ```bash
 git clone https://github.com/BTLabsUK/btlabs-docs && cd btlabs-docs/site
 npm ci
 npm start            # http://localhost:3002, reloads on save
-npm run build        # site/build; a broken link fails the build
+npm run build        # site/build; a broken link or an old app name fails the build
 ```
 
 Builds run on your own machine; there is no hosted CI.
@@ -43,6 +44,7 @@ Builds run on your own machine; there is no hosted CI.
 | `site/docs/` | The pages: `users/` (the user guide), `developers/` (building, architecture, testing, releases), `security.md`. The one source. |
 | `site/` | Docusaurus 3: `docusaurus.config.js`, `sidebars.js`, the theme in `src/`: the Epic Cash Developer Hub's base (`src/css/custom.css`), this site's additions (`src/css/btlabs.css`), and the BT Wallet landing page's three looks, Night, Grid and Day (`src/css/looks.css`, `src/components/look.js`; the navbar's switch and the footer's picker). `src/pages/support.js` is the support page. |
 | `WRITING.md` | Format and word rules for the pages. Read it before writing. |
+| `tools/check-doc-names.py` | Fails on the app's old names outside `tools/doc-names.allow`, and on Epic node or epic-wallet version numbers in the pages. `npm run build` runs it first. |
 | `tools/wiki-sync.py` | Exports a chosen set of pages to each code project's GitHub wiki. |
 | `deploy/` | Deploys the built site to the web server (an nginx site serving `/srv/btlabs-docs`). |
 

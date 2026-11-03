@@ -28,8 +28,14 @@ lepic-flutter by `tools/wiki-sync.py`. Write it so both work.
   Export wallet data, Linked devices, Pair, Advanced, Network modes (Standard, Tor only,
   Offline). Places in the app as `Settings › This wallet › Linked devices`.
 - Product names: BT Wallet, one app for Windows, Linux, Android and the macOS and iOS previews
-  ("the desktop app" or "the phone app" where the difference matters); LEPIC (the Rust wallet core), lepic-flutter (its Flutter binding). "BT LABS" in
-  capitals when the company is named as a brand; "BT Labs" in running text is also fine.
+  ("the desktop app" or "the phone app" where the difference matters); LEPIC (the Rust wallet
+  core), lepic-flutter (its Flutter binding). "BT LABS" in capitals when the company is named as
+  a brand; "BT Labs" in running text is also fine.
+- The old names, Epic Cash Desktop and Epic Cash Mobile (up to 26.10.24), only for moving from an
+  old install. `tools/check-doc-names.py` fails the build on any other use.
+- Epic node and epic-wallet versions: say "the latest release" and link
+  [its releases page](https://github.com/EpicCash/epic/releases). Where a pin matters, link the
+  file that holds it instead of copying the number.
 - No personal names, no private hostnames, IP addresses, home-directory paths or machine names.
   Public service addresses the app itself uses (for example `node.btlabs.uk`,
   `epicbox.epiccash.com`) are fine.

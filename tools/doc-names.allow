@@ -1,0 +1,18 @@
+# tools/check-doc-names.py: where the app's old names (Epic Cash Desktop, Epic Cash Mobile, their
+# file names and app ids, up to 26.10.24) may stay, and how many lines name them. Everywhere else
+# the app is BT Wallet. Each entry has its reason above it.
+
+scan *.md
+scan tools/*.py
+scan site/src/*
+scan site/*.js
+versions site/docs/*.md
+
+# WRITING.md's rule on the old names.
+WRITING.md 1
+# The Overview's one line on the old names, linking Install's section on moving.
+site/docs/users/index.md 2
+# Install: the section on moving from Epic Cash Desktop or Epic Cash Mobile, and its link.
+site/docs/users/install.md 8
+# Updates: the old Android app is offered no update; how to move.
+site/docs/users/updates.md 2
