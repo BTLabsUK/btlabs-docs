@@ -52,7 +52,7 @@ on disk. To delete the folder:
 3. To tell them apart, open an ID folder, then its `mainnet` folder, and read `WALLET.txt`.
 4. Make sure you have that wallet's recovery phrase written down, or that it holds no EPIC you want
    to keep.
-5. Close Epic Cash Desktop and delete that one ID folder. Leave `mainnet`, `wallets.json` and
+5. Close BT Wallet and delete that one ID folder. Leave `mainnet`, `wallets.json` and
    everything else as it is.
 
 :::warning

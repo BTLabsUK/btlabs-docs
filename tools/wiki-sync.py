@@ -67,10 +67,10 @@ NAMES = {
 # Each wiki: what its Home says, and its sidebar sections with the pages in order.
 WIKIS = {
     'wallet-for-epic': {
-        'title': 'Epic Cash Desktop and Epic Cash Mobile',
+        'title': 'BT Wallet',
         'intro': (
-            'Epic Cash Desktop (Windows, Linux, macOS preview) and Epic Cash Mobile (Android, iOS '
-            'preview): the Flutter app on top of the [LEPIC]({wiki:lepic}) wallet core.'
+            'BT Wallet for Windows, Linux, Android and the macOS and iOS previews: the Flutter '
+            'app on top of the [LEPIC]({wiki:lepic}) wallet core.'
         ),
         'sections': [
             ('Use the wallet', [
@@ -96,9 +96,8 @@ WIKIS = {
     'lepic': {
         'title': 'LEPIC',
         'intro': (
-            'LEPIC is the Epic Cash wallet core in Rust behind Epic Cash Desktop and Epic Cash '
-            'Mobile: a library that runs inside the app, with its FFI API for the '
-            '[Flutter binding]({wiki:lepic-flutter}).'
+            'LEPIC is the Epic Cash wallet core in Rust behind BT Wallet: a library that runs '
+            'inside the app, with its FFI API for the [Flutter binding]({wiki:lepic-flutter}).'
         ),
         'sections': [
             ('The core', [
@@ -117,7 +116,7 @@ WIKIS = {
         'intro': (
             'The Flutter binding of [LEPIC]({wiki:lepic}): the Dart API over the Rust '
             'wallet core, and the build hook that bundles its native library. Used by '
-            '[Epic Cash Desktop and Epic Cash Mobile]({wiki:wallet-for-epic}).'
+            '[BT Wallet]({wiki:wallet-for-epic}).'
         ),
         'sections': [
             ('The binding', [

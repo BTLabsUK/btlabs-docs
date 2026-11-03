@@ -14,10 +14,13 @@ A detailed comparison for reviewers will be linked here when it is published.
 
 ## How compatibility is kept
 
-- **One target release.** LEPIC targets [`epic-wallet`](https://github.com/EpicCash/epic-wallet)
-  and the [Epic node](https://github.com/EpicCash/epic) `v4.1.0`, pinned to exact commits
-  (ADR 0020). Moving to a new release means new pins, new test data and a review of every
+- **One target release.** LEPIC targets the latest release of
+  [`epic-wallet`](https://github.com/EpicCash/epic-wallet/releases) and of the
+  [Epic node](https://github.com/EpicCash/epic/releases), pinned to exact commits: [ADR 0020](https://github.com/BTLabsUK/lepic/blob/main/docs/adr/0020-reference-epic-wallet-4-1.md) names
+  them, and [`interop/pins.env`](https://github.com/BTLabsUK/lepic/blob/main/interop/pins.env) holds the tags the interop suite builds. Moving to a new release means new pins, new test data and a review of every
   upstream change, module by module.
+- **The built-in node.** The desktop app bundles the latest
+  [Epic node release](https://github.com/EpicCash/epic/releases) as its built-in node.
 - **Port, not depend.** LEPIC ports the behaviour it needs into its own crates instead of linking
   the Epic crates, which would bring mining and chain-storage code into a phone build (ADR 0001).
   The one Epic library it links is
@@ -27,8 +30,8 @@ A detailed comparison for reviewers will be linked here when it is published.
   must reproduce them byte for byte, without access to the reference code (ADR 0009). Where a
   vector and a document disagree, the vector wins.
 - **Differential tests** run the reference code and LEPIC side by side on the same inputs.
-- **Interop suite.** `interop/` builds the public Epicbox relay, the node `v4.1.0` and
-  `epic-wallet` `v4.1.0` from source and runs LEPIC against them on a private Docker network with
+- **Interop suite.** `interop/` builds the public Epicbox relay, the node and
+  `epic-wallet` from source at the pinned tags and runs LEPIC against them on a private Docker network with
   no route out.
 - **Upstream drift job.** `upstream.toml` records, for each ported module, the upstream files and
   commit it came from. `cargo xtask upstream-drift` lists upstream commits that touched those

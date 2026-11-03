@@ -15,7 +15,7 @@ The terms as the app writes them, in alphabetical order.
 - **Confirming**: In a block, but with fewer confirmations than the setting. Not spendable yet.
 - **Consolidate**: A payment to yourself that merges every spendable output into one.
 - **Direct · File Transfer**: Paying with a transaction file (`.tx`) and a response file (`.response`) passed by hand.
-- **Direct · QR Payment**: Paying phone to phone with an animated QR code. Epic Cash Mobile only.
+- **Direct · QR Payment**: Paying phone to phone with an animated QR code. Phone app only.
 - **Epicbox**: The server that carries payment messages between wallets and holds them while the other wallet is offline. See [Epicbox](epicbox.md).
 - **EPIC**: The coin of Epic Cash.
 - **Export wallet data**: Saves history, notes, contacts, invoices and settings in an encrypted wallet data file (`.wfeh`). See [Backups and wallet data](backups.md).

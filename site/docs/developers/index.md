@@ -1,11 +1,11 @@
 ---
 title: Developer guide
-description: The three repositories behind Epic Cash Desktop and Epic Cash Mobile, and where to start reading.
+description: The three repositories behind BT Wallet, and where to start reading.
 ---
 
 # Developer guide
 
-Epic Cash Desktop and Epic Cash Mobile are one Flutter app on top of LEPIC, a wallet core written in
+BT Wallet is one Flutter app, for desktop and phone, on top of LEPIC, a wallet core written in
 Rust. Three repositories, all under the Apache License 2.0:
 
 | Repository | Language | What it is |
@@ -15,7 +15,7 @@ Rust. Three repositories, all under the Apache License 2.0:
 | [lepic](https://github.com/BTLabsUK/lepic) | Rust | LEPIC: the wallet engine, its crates, the `lepic` CLI and the FFI API |
 
 ```text
- Epic Cash Desktop / Epic Cash Mobile   (wallet-for-epic, Flutter)
+ BT Wallet, desktop and phone   (wallet-for-epic, Flutter)
                  |
                  |  package:lepic
                  v

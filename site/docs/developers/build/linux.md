@@ -1,6 +1,6 @@
 ---
 title: Build for Linux
-description: Build the Epic Cash Desktop AppImage in an Ubuntu 22.04 container.
+description: Build the BT Wallet AppImage in an Ubuntu 22.04 container.
 ---
 
 # Build for Linux
@@ -9,7 +9,7 @@ description: Build the Epic Cash Desktop AppImage in an Ubuntu 22.04 container.
 scripts/build-linux.sh
 ```
 
-The output is `build-linux/EpicCashDesktop-<version>-x86_64.AppImage`.
+The output is `build-linux/bt-wallet-<version>-linux-x86_64.AppImage`.
 
 Linux release builds always run in an Ubuntu 22.04 container, never on the host. A binary needs the
 glibc it was linked against, so building on the oldest supported system gives an app that starts on
@@ -64,7 +64,7 @@ The AppImage runtime is a static binary with libfuse3 built in. It needs no `lib
 `fusermount3` helper, which a default Ubuntu desktop has. Without FUSE:
 
 ```bash
-./EpicCashDesktop-<version>-x86_64.AppImage --appimage-extract-and-run
+./bt-wallet-<version>-linux-x86_64.AppImage --appimage-extract-and-run
 ```
 
 glibc, GTK and the other system libraries are not bundled. The system must provide GTK 3,

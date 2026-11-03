@@ -34,7 +34,7 @@ block height or a date.
 
 ## From other Epic Cash wallets
 
-A recovery phrase from any Epic Cash wallet restores in Epic Cash Desktop and Epic Cash Mobile.
+A recovery phrase from any Epic Cash wallet restores in BT Wallet.
 
 On the desktop, **Import wallets** on the first screen also reads wallets of the older Epic Wallet
 apps and wallet folders, including their transaction history. The import only reads the old wallets

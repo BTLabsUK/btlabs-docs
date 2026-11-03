@@ -5,7 +5,7 @@ description: How the app, LEPIC and lepic-flutter fit together for a build, and 
 
 # Build from source
 
-Epic Cash Desktop and Epic Cash Mobile are built from three repositories:
+BT Wallet is built from three repositories:
 
 | Repository | What it is |
 | --- | --- |

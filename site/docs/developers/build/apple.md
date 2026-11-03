@@ -5,7 +5,7 @@ description: Build the macOS and iOS previews on a Mac with tools/build-apple.sh
 
 # Build for macOS and iOS
 
-macOS (Epic Cash Desktop) and iOS (Epic Cash Mobile) are previews. The build runs on a Mac and
+BT Wallet for macOS and iOS is a preview. The build runs on a Mac and
 needs no Apple developer account.
 
 ```bash
@@ -13,7 +13,8 @@ tools/build-apple.sh                          # doctor, sources, lepic, macos, d
 tools/build-apple.sh doctor sources lepic     # or name the steps you want
 ```
 
-Minimum systems: macOS 12 and iOS 15.
+Minimum systems: macOS 12 on Apple silicon, and iOS 15. macOS builds are arm64 only: the
+built-in node has no Intel build.
 
 ## Needs
 
@@ -45,10 +46,10 @@ A failing step writes a `FAIL` line to `results.txt` before the script exits.
 
 Everything goes to `build-apple/` at the repository root, or to `APPLE_OUT`:
 
-- `Epic Cash Desktop.app`
-- `EpicCashDesktop-<version>-macos.dmg`
-- `EpicCashMobile-<version>-ios-simulator.zip`
-- `EpicCashMobile-<version>-ios-unsigned.ipa`
+- `BT Wallet.app`
+- `bt-wallet-<version>-macos.dmg`
+- `bt-wallet-<version>-ios-simulator.zip`
+- `bt-wallet-<version>-ios-unsigned.ipa`
 - logs and `results.txt`, one `PASS` or `FAIL` line per step
 
 With `WFE_TOR=0` the names have `-notor` after the version; see [Build variants](variants.md).
@@ -65,8 +66,8 @@ team first. None of the steps above needs one.
 | --- | --- |
 | `APPLE_OUT` | Output folder. |
 | `LEPIC_REPO`, `LEPIC_FLUTTER_REPO` | Where `sources` clones from. |
-| `WFE_NODE_BIN_MAC_ARM64`, `WFE_NODE_BIN_MAC_X64` | `epic` node binaries (version 4.1 or newer) to bundle as the built-in node, one per architecture. Without them the app has no built-in node. |
-| `WFE_NODE_FETCH=1` | Download the pinned arm64 node release instead. |
+| `WFE_NODE_BIN_MAC_ARM64` | An `epic` node binary (4.1 or newer) to bundle as the built-in node. Without it the script downloads the node release pinned in [`tools/build-apple.sh`](https://github.com/BTLabsUK/wallet-for-epic/blob/main/tools/build-apple.sh) and checks its SHA-256. |
+| `WFE_NODE_FETCH=0` | No download: without `WFE_NODE_BIN_MAC_ARM64` the app has no built-in node. |
 | `WFE_TOR=0` | Build without Tor. |
 | `SIM_DEVICE` | Simulator name or UDID. Default: the first available iPhone. |
 | `CARGO_TARGET_DIR` | LEPIC's cargo output folder. |

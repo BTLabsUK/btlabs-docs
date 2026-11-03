@@ -28,7 +28,7 @@ builds with Tor and, in a section of its own, the builds without Tor; each build
 
 - **Android:** the app downloads the APK for the phone, checks its size and SHA-256, and hands it to
   Android's installer, which also insists on the same app, a higher version and the same signing
-  key. The first time, Android asks you to allow installs from Epic Cash Mobile.
+  key. The first time, Android asks you to allow installs from BT Wallet.
 - **Desktop:** when a newer version is out, the sidebar says so. Where the app can install the
   update by itself, a click downloads it, checks it, and offers **Restart to update**; otherwise it
   opens the download page. On Windows, an update that did not finish is offered again at the next
@@ -36,6 +36,9 @@ builds with Tor and, in a section of its own, the builds without Tor; each build
   the old one.
 
 Updates keep your wallets and settings.
+
+Epic Cash Mobile, the Android app up to 26.10.24, is offered no update: BT Wallet is a separate
+Android app. [Install](install.md#from-epic-cash-desktop-or-epic-cash-mobile) says how to move.
 
 ## Versions
 

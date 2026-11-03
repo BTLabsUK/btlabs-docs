@@ -1,11 +1,11 @@
 ---
 title: Architecture
-description: How Epic Cash Desktop and Mobile, the lepic-flutter binding and the LEPIC wallet core fit together.
+description: How BT Wallet, the lepic-flutter binding and the LEPIC wallet core fit together.
 ---
 
 # Architecture
 
-Epic Cash Desktop and Epic Cash Mobile are one Flutter app. The wallet itself is LEPIC, a Rust
+BT Wallet is one Flutter app for desktop and phone. The wallet itself is LEPIC, a Rust
 library that runs inside the app's own process. The app reaches it through lepic-flutter, a Dart
 package generated with flutter_rust_bridge. There is no separate wallet program and no wallet API
 server to start.
@@ -47,9 +47,9 @@ server to start.
 | Binding | The Dart API, the generated Dart half of the bridge, the build hook that bundles the native library | [lepic-flutter](lepic-flutter.md) |
 | Core | The FFI API, the wallet engine and every crate below it | [LEPIC](lepic.md) |
 
-The app has two entry points on one codebase: `lib/main.dart` starts the phone app (Epic Cash
-Mobile) and `lib/main_desktop.dart` the desktop interface (Epic Cash Desktop). Both run on the
-same wallet core through the binding.
+The app has two entry points on one codebase: `lib/main.dart` starts the phone app
+and `lib/main_desktop.dart` the desktop interface. Both run on the same wallet core through the
+binding.
 
 ## Layers inside LEPIC
 

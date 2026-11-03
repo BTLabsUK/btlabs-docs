@@ -35,7 +35,7 @@ reachable over Tor.
 
 ## The built-in node (desktop)
 
-Epic Cash Desktop can run its own Epic Cash node on this computer. Turn on **Built-in node** in
+The desktop app can run its own Epic Cash node on this computer. Turn on **Built-in node** in
 [Advanced](advanced.md), then choose **Local node** under **Settings › Node**.
 
 The local node first downloads the whole blockchain, which needs disk space, and then it is yours.
@@ -53,7 +53,7 @@ How to run a node is on the
 
 ### Owner access (desktop)
 
-For a node on this computer, your home network or a VPN, or one you mark as yours, Epic Cash Desktop
+For a node on this computer, your home network or a VPN, or one you mark as yours, the desktop app
 asks the node directly and offers **Owner access** under **Settings › Node**: the node's sync stage
 and peers, and banning a peer. Owner access uses the node's API secret, so the node must have one
 set:

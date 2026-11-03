@@ -14,9 +14,9 @@ every script; the Dart code reads it as `--dart-define=WFE_TOR=false`.
 
 | Platform | Command | Output |
 | --- | --- | --- |
-| Linux | `WFE_TOR=0 scripts/build-linux.sh` | `EpicCashDesktop-<version>-notor-x86_64.AppImage` |
-| Windows | `build_windows_release.ps1 ... -NoTor` | `epic-cash-desktop-<version>-notor-windows-x64-setup.exe` |
-| Android | `WFE_TOR=0 app/tool/build_android_release.sh` | `epic-cash-mobile-<version>-notor-arm64-v8a.apk` |
+| Linux | `WFE_TOR=0 scripts/build-linux.sh` | `bt-wallet-<version>-notor-linux-x86_64.AppImage` |
+| Windows | `build_windows_release.ps1 ... -NoTor` | `bt-wallet-<version>-notor-windows-x64-setup.exe` |
+| Android | `WFE_TOR=0 app/tool/build_android_release.sh` | `bt-wallet-<version>-notor-android-arm64-v8a.apk` |
 | Dev run | `WFE_TOR=0 tools/lepic.sh build linux`, then `flutter run --dart-define=WFE_TOR=false` | |
 
 What changes:
@@ -46,7 +46,7 @@ the switch.
 | In-app updater | yes | no | no |
 | QR scanner | `mobile_scanner` (Google ML Kit) | `mobile_scanner` (Google ML Kit) | `camera` and `flutter_zxing` |
 | Tor | Tor Project binary | Tor Project binary | built from source |
-| File name | `epic-cash-mobile-<v>-arm64-v8a.apk` | `epic-cash-mobile-<v>-play.aab` | `epic-cash-mobile-<v>-fdroid-arm64-v8a.apk` |
+| File name | `bt-wallet-<v>-android-arm64-v8a.apk` | `bt-wallet-<v>-play-android.aab` | `bt-wallet-<v>-fdroid-android-arm64-v8a.apk` |
 
 No build contains Firebase or other Google push code. The app id and signing key are the same in all
 three. `tools/dist-check.sh` runs on every output of `build_android_release.sh` and fails a build
@@ -85,7 +85,7 @@ The F-Droid recipe is prepared but not yet submitted.
 pwsh -NoProfile -File app\tool\build_windows_release.ps1 -Dist msstore -Lepic <LEPIC> -LepicFlutter <lepic-flutter> -NodeBin <epic.exe> -TorBundle <folder>
 ```
 
-This builds `epic-cash-desktop-<version>-msstore-x64.msix`, an unsigned package that the Store
+This builds `bt-wallet-<version>-msstore-windows-x64.msix`, an unsigned package that the Store
 signs. It has no in-app updater and no installer, and it cannot be combined with `-NoTor`.
 `-MsixName`, `-MsixPublisher` and `-MsixPublisherDisplayName` set the package identity, which must
 match the one the Store assigned to the app.

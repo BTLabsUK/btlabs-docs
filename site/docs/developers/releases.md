@@ -7,7 +7,7 @@ description: How the app and LEPIC are versioned and what cutting a release invo
 
 ## Versioning
 
-**The app** (Epic Cash Desktop and Epic Cash Mobile share one version) uses calendar versions,
+**The app** (BT Wallet, one version on every platform) uses calendar versions,
 `YY.MM.patch`:
 
 - `YY.MM` is the year and month of the release. A new month's release is `YY.MM.0`.
@@ -28,7 +28,7 @@ writes it. Everything else is derived.
 | Build number | `YY·1000000 + MM·10000 + patch·100 + rebuild` | `26100000` | `26100100` |
 | Android | versionName `YY.MM.patch`, versionCode = build number | `26100000` | `26100100` |
 | Windows | file and installer version `YY.MM.patch.0` | `26.10.0.0` | `26.10.1.0` |
-| Linux | `EpicCashDesktop-YY.MM.patch-x86_64.AppImage` | `26.10.0` | `26.10.1` |
+| Linux | `bt-wallet-YY.MM.patch-linux-x86_64.AppImage` | `26.10.0` | `26.10.1` |
 | iOS | `YY.MM.patch` | `26.10.0` | `26.10.1` |
 
 `rebuild` (0 to 99, normally 0) numbers a second build of the same version:

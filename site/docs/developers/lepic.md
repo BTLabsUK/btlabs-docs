@@ -7,7 +7,7 @@ description: The crates of LEPIC, the Rust wallet core, how they depend on each 
 
 LEPIC (light Epic) is the Epic Cash wallet core in Rust. It runs as a library inside the app's
 process: it creates and restores wallets, scans the chain through an Epic node, and sends and
-receives transactions with the standard `epic-wallet`. Epic Cash Desktop and Epic Cash Mobile use
+receives transactions with the standard `epic-wallet`. BT Wallet uses
 it through [lepic-flutter](lepic-flutter.md).
 
 Repository: [github.com/BTLabsUK/lepic](https://github.com/BTLabsUK/lepic).

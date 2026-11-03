@@ -1,6 +1,6 @@
 ---
 title: Build for Android
-description: Build the signed Epic Cash Mobile APK, or the App Bundle, with the release script.
+description: Build the signed BT Wallet APK, or the App Bundle, with the release script.
 ---
 
 # Build for Android
@@ -16,9 +16,9 @@ and verifies the result.
 
 Outputs:
 
-- `epic-cash-mobile-<version>-arm64-v8a.apk`
+- `bt-wallet-<version>-android-arm64-v8a.apk`
 - `SHA256SUMS`
-- with `WFE_EMULATOR_X86_64=1`, also `emulator/epic-cash-mobile-<version>-x86_64.apk` for emulator
+- with `WFE_EMULATOR_X86_64=1`, also `emulator/bt-wallet-<version>-android-x86_64.apk` for emulator
   tests; it is not in `SHA256SUMS`.
 
 ## Needs

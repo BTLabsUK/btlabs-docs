@@ -1,6 +1,6 @@
 ---
 title: Build for Windows
-description: Build the Epic Cash Desktop installer on Windows with PowerShell.
+description: Build the BT Wallet installer on Windows with PowerShell.
 ---
 
 # Build for Windows
@@ -57,8 +57,8 @@ and says so; Windows SmartScreen then warns on a first install.
 
 In the output folder:
 
-- `epic-cash-desktop-<version>-windows-x64-setup.exe`
-- `epic-cash-desktop-<version>-windows-x64-setup.exe.sha256`
+- `bt-wallet-<version>-windows-x64-setup.exe`
+- `bt-wallet-<version>-windows-x64-setup.exe.sha256`
 
 With `-NoTor` the name has `-notor` after the version. The installer and the exe carry the file
 version `YY.MM.patch.0`; see [Releases](../releases.md).

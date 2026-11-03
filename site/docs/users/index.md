@@ -1,18 +1,21 @@
 ---
-title: Epic Cash Desktop and Epic Cash Mobile
-description: What the two wallets are, what they run on, and where to start.
+title: BT Wallet
+description: What the wallet is, what it runs on, and where to start.
 sidebar_label: Overview
 ---
 
-# Epic Cash Desktop and Epic Cash Mobile
+# BT Wallet
 
-Two wallets for [Epic Cash](https://epiccash.com), made by BT LABS:
+A wallet for [Epic Cash](https://epiccash.com), made by BT LABS. One app for:
 
-- **Epic Cash Desktop** for Windows and Linux, with a preview for macOS.
-- **Epic Cash Mobile** for Android, with a preview for iPhone and iPad.
+- Windows and Linux, with a preview for macOS.
+- Android, with a preview for iPhone and iPad.
 
-Both are the same app with the same wallet core, so they use the same addresses, the same words
-and the same Help. A recovery phrase made in one opens the wallet in the other.
+The desktop app and the phone app use the same wallet core, the same addresses, the same words and
+the same Help. A recovery phrase made in one opens the wallet in the other.
+
+Up to 26.10.24 the app was called Epic Cash Desktop and Epic Cash Mobile.
+[Install](install.md#from-epic-cash-desktop-or-epic-cash-mobile) says how to move to BT Wallet.
 
 ## What the wallet does
 
@@ -37,5 +40,5 @@ If something does not work, read [Troubleshooting](troubleshooting.md). Words yo
 in the [Glossary](glossary.md).
 
 :::note
-The apps are new. Keep your recovery phrase written down, and start with small amounts.
+The app is new. Keep your recovery phrase written down, and start with small amounts.
 :::

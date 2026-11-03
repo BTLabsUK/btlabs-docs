@@ -1,6 +1,6 @@
 ---
 title: FAQ
-description: Short answers to common questions about Epic Cash Desktop and Epic Cash Mobile.
+description: Short answers to common questions about BT Wallet.
 ---
 
 # FAQ
@@ -40,7 +40,7 @@ Before the other wallet has answered, yes, for certain. After it is posted to th
 
 Yes. Epicbox, Link · HTTP, Link · Tor and transaction files work with the standard Epic Cash
 wallet and others. A recovery phrase from another Epic Cash wallet restores here. Pairing, invoices,
-QR Payment and Linked devices need Epic Cash Desktop or Epic Cash Mobile on both sides.
+QR Payment and Linked devices need BT Wallet on both sides.
 
 ## Do I need to run a node?
 

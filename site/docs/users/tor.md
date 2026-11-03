@@ -6,7 +6,7 @@ description: One switch routes the wallet's connections through Tor and gives it
 # Tor
 
 Tor hides the wallet's IP address from the servers it talks to. It is one switch, off by default,
-on Epic Cash Desktop and on Android. Tor runs inside the app: there is nothing to install. The
+on the desktop app and on Android. Tor runs inside the app: there is nothing to install. The
 iPhone app and the [builds without Tor](install.md#builds-without-tor) have no Tor.
 
 | App | Where |

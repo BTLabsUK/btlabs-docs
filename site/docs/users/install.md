@@ -1,6 +1,6 @@
 ---
 title: Install
-description: Download and install Epic Cash Desktop or Epic Cash Mobile on each platform.
+description: Download and install BT Wallet on each platform.
 ---
 
 # Install
@@ -9,32 +9,35 @@ Every release is on the download page:
 **[examples.btlabs.uk/epic-cash-wallets](https://examples.btlabs.uk/epic-cash-wallets/)**.
 Each file has its SHA-256 checksum under it, and `SHA256SUMS` sits next to the files.
 
-| Device | App | Needs |
-| --- | --- | --- |
-| Windows | Epic Cash Desktop | Windows 10 or 11, 64-bit |
-| Linux | Epic Cash Desktop | x86-64, Ubuntu 22.04 or newer |
-| Android | Epic Cash Mobile | Android 7 or newer, arm64 |
-| macOS (preview) | Epic Cash Desktop | macOS 12 or newer |
-| iPhone, iPad (preview) | Epic Cash Mobile | iOS 15 or newer |
+| Device | Needs |
+| --- | --- |
+| Windows | Windows 10 or 11, 64-bit |
+| Linux | x86-64, Ubuntu 22.04 or newer |
+| Android | Android 7 or newer, arm64 |
+| macOS (preview) | macOS 12 or newer, Apple silicon |
+| iPhone, iPad (preview) | iOS 15 or newer |
+
+Coming from Epic Cash Desktop or Epic Cash Mobile, the app's names up to 26.10.24? See
+[From Epic Cash Desktop or Epic Cash Mobile](#from-epic-cash-desktop-or-epic-cash-mobile).
 
 ## Windows
 
-1. Download `epic-cash-desktop-<version>-windows-x64-setup.exe`.
+1. Download `bt-wallet-<version>-windows-x64-setup.exe`.
 2. Run it. It installs for your user only; no administrator rights are needed.
 
 Windows may warn that the publisher is unknown. Check the checksum, then choose to run it.
 
 ## Linux
 
-1. Download `EpicCashDesktop-<version>-x86_64.AppImage`.
+1. Download `bt-wallet-<version>-linux-x86_64.AppImage`.
 2. Allow it to run, either way:
    - In the file manager: right-click the file › Properties › Permissions › tick
      **Allow executing file as program**, then double-click it.
    - In a terminal, from the download folder (put in the version you downloaded):
 
      ```bash
-     chmod +x EpicCashDesktop-26.10.21-x86_64.AppImage
-     ./EpicCashDesktop-26.10.21-x86_64.AppImage
+     chmod +x bt-wallet-26.11.0-linux-x86_64.AppImage
+     ./bt-wallet-26.11.0-linux-x86_64.AppImage
      ```
 
 The AppImage needs `fusermount3`, which default Ubuntu desktops have. Without FUSE, start it with
@@ -43,31 +46,25 @@ desktop installs have.
 
 ## Android
 
-1. Download `epic-cash-mobile-<version>-arm64-v8a.apk` on the phone.
+1. Download `bt-wallet-<version>-android-arm64-v8a.apk` on the phone.
 2. Open the file. Allow installs from this source when Android asks.
 
 A newer APK installs over an older one and keeps the wallets.
 
-**Google Play:** Epic Cash Mobile is in testing on Google Play. The store page will be linked here
+**Google Play:** BT Wallet is in testing on Google Play. The store page will be linked here
 when it opens to everyone. The Play build and the APK are the same app with the same app data,
 so a phone can move between them without a restore.
 
 ## macOS (preview)
 
-1. Download `EpicCashDesktop-<version>-macos.dmg`.
-2. Open it and drag **Epic Cash Desktop** to Applications.
-3. The first start is blocked, because the app is not signed by an Apple developer. Open
-   **System Settings › Privacy & Security** and click **Open Anyway**. Or, in Terminal:
+1. Download `bt-wallet-<version>-macos.dmg`.
+2. Open it, drag **BT Wallet** to Applications and open it. The disk image and the app are signed
+   by BT LABS and notarised by Apple.
+3. When macOS asks whether the app may use its saved data in the keychain, enter your Mac login
+   password and choose **Always Allow**.
 
-   ```bash
-   xattr -dr com.apple.quarantine "/Applications/Epic Cash Desktop.app"
-   ```
-
-4. When macOS asks whether the app may use its saved data in the keychain, enter your Mac login
-   password and choose **Always Allow**. A new version asks again.
-
-Apple silicon and Intel Macs are both supported; the built-in node runs on Apple silicon only.
-From 26.10.23 the app checks for updates and opens the new disk image; drag the app over the old one.
+The app runs on Macs with Apple silicon (M1 or newer); an Intel Mac cannot run it. It checks for
+updates and opens the new disk image; drag the app over the old one.
 
 ## iPhone and iPad (preview)
 
@@ -77,6 +74,20 @@ ID the app stops opening after a while and has to be installed again the same wa
 stays on the phone.
 
 The iPhone app has no Tor.
+
+## From Epic Cash Desktop or Epic Cash Mobile
+
+Up to 26.10.24 the app was called Epic Cash Desktop on computers and Epic Cash Mobile on phones.
+It is the same wallet; what to do depends on the device.
+
+- **Windows, Linux:** install BT Wallet over the old app, or let the old app update itself. The
+  wallets and settings stay. On Windows the old shortcuts are replaced by **BT Wallet**.
+- **macOS:** drag BT Wallet to Applications. The wallets and settings stay. On its first start
+  BT Wallet offers to move the old **Epic Cash Desktop** to the Bin.
+- **Android:** BT Wallet is a new app. It installs beside Epic Cash Mobile and starts empty, and
+  Epic Cash Mobile is offered no update. Restore each wallet in BT Wallet from its
+  [recovery phrase](restore.md), import its [wallet data file](backups.md#export-wallet-data) if
+  you have one, then uninstall Epic Cash Mobile, so that two apps never use one Epicbox address.
 
 ## Builds without Tor
 

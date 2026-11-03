@@ -27,8 +27,8 @@ lepic-flutter by `tools/wiki-sync.py`. Write it so both work.
   Link · Tor, Direct · File Transfer, Direct · QR Payment, recovery phrase, Recheck balance,
   Export wallet data, Linked devices, Pair, Advanced, Network modes (Standard, Tor only,
   Offline). Places in the app as `Settings › This wallet › Linked devices`.
-- Product names: Epic Cash Desktop (Linux, Windows, macOS preview), Epic Cash Mobile (Android,
-  iOS preview), LEPIC (the Rust wallet core), lepic-flutter (its Flutter binding). "BT LABS" in
+- Product names: BT Wallet, one app for Windows, Linux, Android and the macOS and iOS previews
+  ("the desktop app" or "the phone app" where the difference matters); LEPIC (the Rust wallet core), lepic-flutter (its Flutter binding). "BT LABS" in
   capitals when the company is named as a brand; "BT Labs" in running text is also fine.
 - No personal names, no private hostnames, IP addresses, home-directory paths or machine names.
   Public service addresses the app itself uses (for example `node.btlabs.uk`,

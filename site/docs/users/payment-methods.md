@@ -60,7 +60,7 @@ response file never comes, [cancel the send](cancel.md) to unlock the outputs.
 ## Direct · QR Payment
 
 Two phones next to each other pay with an animated QR code, with no connection between them.
-Each phone needs only its node. Epic Cash Mobile only; the desktop has no camera scanning.
+Each phone needs only its node. Phone app only; the desktop app has no camera scanning.
 
 1. **Sender:** on Send, choose **Direct · QR Payment**, enter the amount and tap **Show QR**. The
    code stays hidden until you show it, counts 3, 2, 1, and hides itself again.

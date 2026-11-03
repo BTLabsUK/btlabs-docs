@@ -1,6 +1,6 @@
 ---
 title: Report a security issue
-description: How to report a vulnerability in Epic Cash Desktop, Epic Cash Mobile, LEPIC or lepic-flutter.
+description: How to report a vulnerability in BT Wallet, LEPIC or lepic-flutter.
 ---
 
 # Report a security issue
@@ -19,7 +19,7 @@ or a very small amount, is enough to show almost anything.
 
 ## In scope
 
-Anything in Epic Cash Desktop, Epic Cash Mobile, LEPIC or lepic-flutter that can:
+Anything in BT Wallet, LEPIC or lepic-flutter that can:
 
 - lose or lock funds;
 - leak keys, the recovery phrase or wallet data;

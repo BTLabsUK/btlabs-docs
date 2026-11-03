@@ -14,7 +14,7 @@ crates of LEPIC, the main Dart packages of the app, and the third-party pieces t
 |---|---|
 | [LEPIC](lepic.md) | Apache-2.0 |
 | [lepic-flutter](lepic-flutter.md) | Apache-2.0 |
-| wallet-for-epic (Epic Cash Desktop and Mobile) | Apache-2.0 |
+| wallet-for-epic (BT Wallet) | Apache-2.0 |
 
 Parts of LEPIC are ported from the Epic Cash node and wallet, which are Apache-2.0 and descend
 from Grin. Parts of the app are ported from the Epic Cash desktop wallet, also Apache-2.0. Each

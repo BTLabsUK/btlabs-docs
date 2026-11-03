@@ -30,8 +30,9 @@ superseded by 0020.* A separate workspace runs the reference code to write golde
 differential tests; the product crates test against the committed vectors without the reference
 code.
 
-**0020 Reference wallet and node move to epic-wallet v4.1.0.** *Accepted.* The reference code,
-golden vectors and interop images are pinned to `epic-wallet` and the Epic node `v4.1.0`.
+**0020 Reference wallet and node move to the latest epic-wallet release.** *Accepted.* The
+reference code, golden vectors and interop images are pinned to the latest release of `epic-wallet`
+and the Epic node; [ADR 0020](https://github.com/BTLabsUK/lepic/blob/main/docs/adr/0020-reference-epic-wallet-4-1.md) names the tags and commits.
 
 **0010 Latest stable crates and toolchain, banned list, update bots.** *Accepted.* Latest stable
 Rust and crates, set once in the workspace; `cargo deny` checks advisories, licences, sources and

@@ -26,7 +26,7 @@ over Epicbox keep working as before.
 2. Choose a way: **Spoken**, **Invite by message** or **In person**.
 3. Verify together, then **They match**.
 
-Pairing needs Epic Cash Desktop or Epic Cash Mobile on both sides. A contact that is not paired
+Pairing needs BT Wallet on both sides. A contact that is not paired
 still gets ordinary transaction files and Epicbox payments.
 
 ### Three ways to pair

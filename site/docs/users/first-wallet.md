@@ -16,7 +16,7 @@ you already have, see [Restore](restore.md).
 3. **Reveal phrase** and write the words on paper, in order. Make sure nobody can see the screen.
 4. Confirm that you have written down all 24 words.
 
-Epic Cash Desktop can hold several wallets: **Add a wallet** on the unlock screen, or
+The desktop app can hold several wallets: **Add a wallet** on the unlock screen, or
 **Settings › All wallets**.
 
 The first screen also picks the app data folder. The folder can be changed only before the first
