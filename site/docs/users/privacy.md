@@ -1,6 +1,6 @@
 ---
 title: Privacy
-description: What is on the blockchain, what the wallet sends and to whom, and what never leaves the device.
+description: What is on the blockchain, what the wallet sends and to whom, and what stays on the device.
 ---
 
 # Privacy
@@ -18,36 +18,42 @@ and history. On Epic Cash:
 
 ## What leaves the device
 
-| To | What | Why |
+The full list, with the servers and how long BT LABS keeps logs, is the
+[privacy policy](https://btlabs.uk/privacy/). In short, the wallet talks to these:
+
+| To | What | When |
 | --- | --- | --- |
-| The node (default `node.btlabs.uk`) | which outputs the wallet asks about, transactions to post; the IP address | balance, confirmations, sending |
-| The Epicbox server | encrypted payment messages; the IP address | Epicbox payments |
-| The other wallet | the payment messages, and your note if you add one | every payment |
-| `status.btlabs.uk` | a request for the list of nodes and Epicbox servers and their state | the server lists; a switch in **Settings › Privacy** turns it off |
-| CoinGecko (`api.coingecko.com`), or BT LABS' copy | a request for the EPIC price in your currency | the fiat value; a setting turns prices off |
-| The update feed | a request for the signed update information | in-app updates; not in store builds or builds without Tor |
-| `support.btlabs.uk` | a problem report, only when you send one | **Report a problem** shows exactly what is sent |
-| Linked devices' servers | encrypted notices between your own devices | only with [Linked devices](linked-devices.md) on |
+| A node (the default is `node.epiccash.com`) | which outputs the wallet asks about, transactions to post; the IP address | always, for balance, confirmations and sending |
+| An Epicbox server (the default is `epicbox.epiccash.com`) | encrypted payment messages; the IP address | Epicbox payments |
+| The other wallet | the payment messages, and your note if you add one | each payment |
+| `status.btlabs.uk` | the server list and its state, the EPIC price, and on the desktop the public IP address and port check for receiving over HTTP | the status switch and the price switch in **Settings** turn the first two off |
+| CoinGecko (`api.coingecko.com`) | a request for the EPIC price in your currency | only when the BT LABS copy gives no price and the Tor switch is off |
+| The update feed (`epiccash.btlabs.uk`, GitHub) | a request for the signed update information | in-app updates; not in store builds |
+| A signed settings file from BT LABS | a request for donation and server details | when the app checks for settings |
+| `support.btlabs.uk` | a problem report | only when you send one; **Report a problem** shows what is sent |
+| Linked devices' servers | encrypted notices between your own devices | with [Linked devices](linked-devices.md) on |
 
-On the desktop, the HTTP receiving check asks `api.ipify.org` for the public IP address and
-`portchecker.io` whether the port is reachable, only when you run that check.
+Receiving over HTTP on the desktop used `api.ipify.org` and `portchecker.io` in versions up to
+26.10.23. Later versions ask `status.btlabs.uk`.
 
-With [Tor](tor.md) on, all of the above except a node on this computer go through Tor, so they do
-not see your IP address. In [Offline](network-modes.md) mode the wallet reaches only the node you
-give it.
+With [Tor](tor.md) on, these requests go through Tor, so the servers do not see your IP address.
+Requests to a node or Epicbox server on this computer or your local network stay direct. In
+[Offline](network-modes.md) mode the wallet reaches only the node you give it.
 
-## What never leaves the device
+## What stays on the device
 
 - The recovery phrase and the keys. They are kept in the Android Keystore, the iOS Keychain, or on
-  the desktop in a vault file encrypted under the wallet password.
+  the desktop in a vault file encrypted under the wallet password. The wallet does not send them.
 - Contacts, wallet names, labels and notes. They are in the [wallet data file](backups.md) only
   when you export one.
-- The clipboard. The wallet reads it only for pairing links, only while Pairing is on, and never
-  stores or logs it.
+- The clipboard. The wallet reads it when you press Paste or use a paste action, and does not store
+  or log it.
 
-The apps have no analytics, no tracking and no push notifications.
+The apps contain no advertising or analytics code. Android builds up to 26.10.23 from Google Play
+and the BT LABS website used Google ML Kit to read QR codes; see the policy.
 
 ## Logs and problem reports
 
-Logs stay on the device. **Report a problem** in Help sends a description and cleaned logs: the
-report screen shows exactly what leaves before you send it.
+Logs stay on the device. **Report a problem** in Help sends a description and the newest part of the
+app log, cleaned of secrets by pattern matching: the report screen shows what is sent before you
+send it. The log can be turned off for a report.

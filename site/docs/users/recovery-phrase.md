@@ -19,7 +19,7 @@ be restored on any phone or computer, and anyone else who has it can take the EP
 | Desktop | **Settings › Recovery phrase**, then the wallet password |
 | Phone | **Settings › Security › Back up recovery phrase**, then your PIN |
 
-The app never sends the words anywhere. Better not to copy them: if you do, the wallet clears the
+The app does not send the words anywhere. Better not to copy them: if you do, the wallet clears the
 clipboard after a short while, and when the wallet locks or closes.
 
 ## The phrase is not the password

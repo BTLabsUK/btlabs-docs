@@ -40,4 +40,4 @@ does not connect.
 ## Tor only
 
 **Tor only**, a [network mode](network-modes.md) in Advanced, keeps the switch on and locked.
-Nothing goes over the open internet, and node failover moves only to nodes reachable over Tor.
+Internet connections go through Tor, local network connections stay direct, and node failover moves only to nodes reachable over Tor.

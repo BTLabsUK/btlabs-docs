@@ -12,8 +12,8 @@ which goes to the miners.
 
 ## Who holds my coins?
 
-You do. The keys are made and kept on your device, and nobody else can spend the EPIC without your
-recovery phrase. BT LABS cannot see or move your coins and cannot recover a lost phrase.
+You do. The keys are made and kept on your device. Whoever has the recovery phrase, or the unlocked wallet,
+can spend the EPIC. BT LABS cannot see or move your coins and cannot recover a lost phrase.
 
 ## Can I use the same wallet on my phone and my computer?
 

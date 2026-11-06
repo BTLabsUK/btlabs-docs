@@ -178,7 +178,7 @@ const config = {
           },
         ],
         copyright:
-          'An independent, open-source wallet by <span class="epicFooterBy">BT LABS</span>. Not made by the Epic Cash project. Use it within the law where you live.',
+          'An open-source wallet by <span class="epicFooterBy">BT LABS LTD</span>. Not made by the Epic Cash project. <a href="https://btlabs.uk/privacy/#company">Company details</a>. Use it within the law where you live.',
       },
       prism: {
         theme: darkPrismTheme,

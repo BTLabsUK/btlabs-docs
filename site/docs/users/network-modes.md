@@ -11,7 +11,7 @@ Network.
 | Mode | What it does |
 | --- | --- |
 | **Standard** | Connects directly. [Tor](tor.md) is its own switch. The default. |
-| **Tor only** | Tor is always on and its switch is locked. Nothing goes over the open internet. |
+| **Tor only** | Tor is always on and its switch is locked. Internet connections go through Tor; connections to this computer and your local network stay direct. |
 | **Offline** | No Epicbox, no Link beyond local addresses, no Tor, no status checks. |
 
 ## Tor only
