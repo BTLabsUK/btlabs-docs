@@ -29,12 +29,12 @@ Anything in BT Wallet, LEPIC or lepic-flutter that can:
 ## Out of scope
 
 Issues in the Epic Cash node, the reference `epic-wallet` or the Epicbox relay belong to those
-projects. If you find one through these apps, report it to them privately and tell us only what we
-need to protect our users.
+projects. If you find one through these apps, report it to them privately and send
+support@btlabs.uk only what is needed to protect users of these apps.
 
 ## Supported versions
 
-The apps and LEPIC are pre-1.0. Only the latest release receives fixes.
+LEPIC is pre-1.0. Only the latest release of BT Wallet and of LEPIC receives fixes.
 
 How the wallet protects keys and handles untrusted input is described in the
 [Security model](developers/security-model.md).

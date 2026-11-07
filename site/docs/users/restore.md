@@ -8,7 +8,7 @@ description: Restore from the recovery phrase, bring back wallet data, and impor
 ## Restore from the recovery phrase
 
 1. Open **Restore from phrase**:
-   - **Desktop:** on the first screen, **Unlock › Add a wallet**, or **Settings › All wallets**.
+   - **Desktop:** on the first screen, **Unlock › Add a wallet**, or **Settings › Wallets**.
    - **Phone:** on the first screen, or under **Settings › This wallet**.
 2. Enter the words. If every word is in the word list but the phrase does not check out, a word is
    wrong or out of order.
@@ -27,7 +27,7 @@ restore, when the wallet offers it.
 
 ## Recheck balance
 
-When the balance looks wrong, run **Recheck balance** (desktop: **Settings › Recheck balance**;
+When the balance looks wrong, run **Recheck balance** (desktop: **Settings › Wallet › Recheck balance**;
 phone: **Settings › This wallet › Recheck balance**). It reads the whole blockchain again for this
 wallet's outputs. With **Recheck from a height** on in [Advanced](advanced.md), it can start from a
 block height or a date.
@@ -36,8 +36,8 @@ block height or a date.
 
 A recovery phrase from any Epic Cash wallet restores in BT Wallet.
 
-On the desktop, **Import wallets** on the first screen also reads wallets of the older Epic Wallet
-apps and wallet folders, including their transaction history. The import only reads the old wallets
+On the desktop, **Import wallets** on the first screen also reads wallets of older apps and wallet
+folders, including their transaction history. The import only reads the old wallets
 and files and never deletes or changes them.
 
 :::warning
@@ -48,5 +48,5 @@ keep them. You import at your own risk.
 ## The same wallet on two devices
 
 Restoring the same phrase on a second device works; both see the same balance. Payments made on one
-show on the other as **Sent from another wallet** once confirmed. To keep them in step, see
+show on the other as **Sent from another device** once confirmed. To keep them in step, see
 [Linked devices](linked-devices.md).

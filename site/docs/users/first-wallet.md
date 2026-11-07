@@ -17,7 +17,7 @@ you already have, see [Restore](restore.md).
 4. Confirm that you have written down all 24 words.
 
 The desktop app can hold several wallets: **Add a wallet** on the unlock screen, or
-**Settings › All wallets**.
+**Settings › Wallets**.
 
 The first screen also picks the app data folder. The folder can be changed only before the first
 wallet is added.

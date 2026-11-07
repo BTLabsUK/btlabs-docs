@@ -21,7 +21,8 @@ on paper. See [Recovery phrase](recovery-phrase.md).
 
 ## Export wallet data
 
-**Settings › This wallet › Export wallet data** saves the rest in one file, for example
+**Settings › Wallet › Export wallet data** on the desktop, **Settings › This wallet › Export wallet
+data** on the phone, saves the rest in one file, for example
 `epic-history-mainnet-20260930.wfeh`. On the phone, share it or save it to the device, and keep a
 copy off the phone, such as in email or cloud storage.
 
@@ -37,16 +38,16 @@ The wallet offers that right after a restore.
 ## The wallet's files on the desktop
 
 The app keeps its wallets in its data folder: `.epic_cash_desktop` in your home folder (on Windows
-`C:\Users\<name>\.epic_cash_desktop`). **Settings › This wallet › Wallet folder** opens it. A copy
+`C:\Users\<name>\.epic_cash_desktop`). **Settings › Files & logs › Wallet folder** opens it. A copy
 of the folder is not a substitute for the recovery phrase: the phrase works when the files are
 lost.
 
 ### Clean up old wallet folders
 
-**Remove from list** in **Settings › All wallets** takes a wallet off the list but leaves its folder
+**Remove from list** in **Settings › Wallets** takes a wallet off the list but leaves its folder
 on disk. To delete the folder:
 
-1. Open the data folder: **Open folder** next to **Settings › This wallet › App files**.
+1. Open the data folder: **Open folder** next to **Settings › Files & logs › App files**.
 2. Open `wallets`. Each added wallet has its own folder named by a long ID; the first wallet's folder
    is `mainnet`.
 3. To tell them apart, open an ID folder, then its `mainnet` folder, and read `WALLET.txt`.

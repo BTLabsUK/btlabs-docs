@@ -7,7 +7,7 @@ description: What an Epicbox, HTTP or Tor address looks like, and how to check o
 
 | Kind | Looks like | Goes by |
 | --- | --- | --- |
-| Epicbox | `es` + about 50 characters, `@`, the server: `es…@epicbox.epiccash.com` | Epicbox |
+| Epicbox | about 52 characters starting with `es`, `@`, the server: `es…@epicbox.epiccash.com` | Epicbox |
 | HTTP | a web address of the other wallet, such as `http://host:3415` | Link · HTTP |
 | Tor | 56 characters ending in `.onion` | Link · Tor |
 
@@ -17,6 +17,8 @@ Send picks the method from the address pasted into the To field.
   The recipient can be offline.
 - An **HTTP** or **Tor** address is the recipient's own wallet, which must be open when you send.
 - Some wallets show a Tor address without `.onion`; both are the same address.
+- A **Paired address** is made when you [pair](pairing.md#after-pairing) with a contact. It is not
+  shown, and nothing is pasted for it.
 
 ## Checking an address
 

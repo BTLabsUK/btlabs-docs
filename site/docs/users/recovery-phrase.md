@@ -16,11 +16,11 @@ be restored on any phone or computer, and anyone else who has it can take the EP
 
 | App | Where |
 | --- | --- |
-| Desktop | **Settings › Recovery phrase**, then the wallet password |
+| Desktop | **Settings › Security › Recovery phrase**, then the wallet password |
 | Phone | **Settings › Security › Back up recovery phrase**, then your PIN |
 
-The app never sends the words anywhere. Better not to copy them: if you do, the wallet clears the
-clipboard after a short while, and when the wallet locks or closes.
+The app never sends the words anywhere. Better not to copy them: if you do, the clipboard is cleared in
+60 seconds, and when the wallet locks or closes.
 
 ## The phrase is not the password
 
@@ -29,11 +29,14 @@ clipboard after a short while, and when the wallet locks or closes.
 | Unlocks the wallet on this device | yes | no |
 | Restores the wallet elsewhere | no | yes |
 | Can be changed | yes | no: it is the wallet |
-| If lost | restore with a new one | the EPIC cannot be recovered |
+| If lost | set a new one with the phrase | the EPIC cannot be recovered |
 
 ## Forgotten password or PIN
 
-- **Desktop:** restore the wallet from its recovery phrase and choose a new password.
+- **Desktop:** **Forgot password?** on the unlock screen takes the wallet's recovery phrase and sets a
+  new password. History, notes and labels stay, and no scan is needed. A phrase of another wallet
+  changes nothing. If the files cannot confirm the phrase, the password stays: restore from the
+  phrase instead.
 - **Phone:** **Forgot PIN?** on the unlock screen deletes the wallet from the phone; then restore
   it from its recovery phrase with a new PIN.
 

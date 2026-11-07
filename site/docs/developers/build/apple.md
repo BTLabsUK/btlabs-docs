@@ -66,7 +66,7 @@ team first. None of the steps above needs one.
 | --- | --- |
 | `APPLE_OUT` | Output folder. |
 | `LEPIC_REPO`, `LEPIC_FLUTTER_REPO` | Where `sources` clones from. |
-| `WFE_NODE_BIN_MAC_ARM64` | An `epic` node binary (4.1 or newer) to bundle as the built-in node. Without it the script downloads the node release pinned in [`tools/build-apple.sh`](https://github.com/BTLabsUK/wallet-for-epic/blob/main/tools/build-apple.sh) and checks its SHA-256. |
+| `WFE_NODE_BIN_MAC_ARM64` | An `epic` node binary to bundle as the built-in node. Without it the script downloads the node release pinned in [`tools/build-apple.sh`](https://github.com/BTLabsUK/wallet-for-epic/blob/main/tools/build-apple.sh) and checks its SHA-256. |
 | `WFE_NODE_FETCH=0` | No download: without `WFE_NODE_BIN_MAC_ARM64` the app has no built-in node. |
 | `WFE_TOR=0` | Build without Tor. |
 | `SIM_DEVICE` | Simulator name or UDID. Default: the first available iPhone. |

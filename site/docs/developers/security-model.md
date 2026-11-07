@@ -1,6 +1,6 @@
 ---
 title: Security model
-description: How LEPIC and the Epic Cash apps protect keys, secrets and wallet data, and what they treat as untrusted.
+description: How LEPIC and BT Wallet protect keys, secrets and wallet data, and what they treat as untrusted.
 ---
 
 # Security model
@@ -14,7 +14,7 @@ The wallet's seed never sits on disk in the clear.
 
 - **The vault.** LEPIC encrypts the seed under the wallet password with XChaCha20-Poly1305, the key
   derived with Argon2id, and writes the result (`lepic.vault`) into a secret store the app provides.
-  A password set for a new wallet has at least eight characters.
+  The app requires at least eight characters for a new password.
 - **The secret store** is the platform's own:
 
 | Platform | Secret store |
@@ -22,19 +22,21 @@ The wallet's seed never sits on disk in the clear.
 | Android | Android Keystore-backed storage |
 | iOS | iOS Keychain, this device only |
 | Linux | The Secret Service (GNOME Keyring, KWallet) through libsecret |
+| macOS | The login keychain |
 | Windows | A DPAPI-encrypted file for the current user |
 | `lepic` CLI | A vault file on disk, the same encryption |
 
 - **PIN unlock.** LEPIC generates a random wallet password, seals it under the PIN together with a
   random PIN key that it writes into the secret store, and gives the app only the sealed text. The
   sealed text alone, or with the vault, does not reveal the PIN. A new PIN has at least six
-  characters. Failed password and PIN attempts are counted in the store, and after the third
-  failure each attempt waits first, longer after each further failure.
+  characters. Failed password and PIN attempts are counted in the store. After three failures each
+  attempt waits first: 30 seconds, doubling with each further failure, to at most one hour. These
+  are LEPIC's defaults (`PinSettings`).
 - **Recovery phrase.** Shown only after the password or PIN is checked, for the backup screen. It
   is the only way back to the funds if the device is lost.
-- **Key paths.** Keys are derived as `epic-wallet` derives them, so a restore from the phrase
-  brings back the same Epicbox address, payment-proof key and onion address. See
-  [Upstream compatibility](upstream.md).
+- **Key paths.** The Epicbox address is derived as `epic-wallet` derives it. The onion address has
+  its own key, derived from the seed under a label of its own (ADR 0044). A restore from the phrase
+  brings back both. See [Upstream compatibility](upstream.md).
 
 :::warning
 The PIN can be guessed offline, slowed only by Argon2id, by whoever holds both the sealed text
@@ -58,12 +60,17 @@ that crosses is deliberate and listed (ADR 0014):
 
 Rust copies what it receives into memory it wipes, and wipes its own copies of what it returns.
 It cannot wipe the Dart string, so the app passes a typed secret straight from the text field to
-the call and clears the field afterwards. Every function of the FFI API is checked against this
-list.
+the call and clears the field afterwards. LEPIC's rules let only what ADR 0014 lists cross the
+boundary.
 
 ## Wallet data at rest
 
-- **Database.** SQLite with a real schema and forward-only migrations.
+- **Database.** SQLite with a real schema and forward-only migrations. On Windows, Android and Linux
+  it is encrypted at rest with SQLite3 Multiple Ciphers: every 4 KiB page is sealed with
+  ChaCha20-Poly1305 under a key derived from the seed. The key never leaves Rust, so a password
+  change does not re-key the file (ADR 0032).
+- **Data folder.** On Linux and macOS it is readable only by its owner. On Windows it is restricted
+  to its owner.
 - **Private transaction context** (blinding factors and nonces of a transaction in progress) is
   sealed with XChaCha20-Poly1305 under a key derived from the wallet's root key. The slate id and
   participant are authenticated as associated data, so a sealed context copied to another row does
@@ -81,7 +88,8 @@ Everything from the network, a file, a peer, a node or the host app is untrusted
 
 - **Reject, do not panic.** Bad input becomes a typed error. `unwrap`, `expect`, `panic!`,
   unchecked indexing and unchecked arithmetic are denied by workspace lints outside tests, and
-  `unsafe` code is denied. Release builds keep overflow checks on.
+  `unsafe` code is denied, except in the glue `flutter_rust_bridge` generates and one call that
+  sets the store's key. Release builds keep overflow checks on.
 - **Bounded work.** Untrusted input may cause only bounded work, and only validated data becomes
   stored state. Frames, files, responses, counts and messages have size limits checked before
   parsing.
@@ -122,21 +130,32 @@ user guide's [Tor](../users/tor.md) page.
   of its own.
 - **TLS stays end to end.** With Epicbox or the node over Tor, only the byte stream changes: the
   TLS server name and certificate check stay the relay's or node's domain.
-- **Nothing unencrypted through an exit.** Plain `http` is refused for any host but loopback and
-  `.onion`.
+- **Nothing unencrypted through an exit.** LEPIC refuses a plain `http` node for any host but
+  loopback and `.onion`, and plain websockets to a remote relay. While Tor is on, the app's plain
+  `http://` sends to another device are off.
 
 ## Contacts, invoices and linked devices
 
-- **Pairing.** Two wallets pair by QR in person, or online with a one-time invite (a link or five
-  pairing words), then both sides compare four emoji with their names. Pairing keys come
-  from their own branch of the seed and are never the Epicbox, Tor or payment-proof key. See
+- **Pairing.** There is one pairing flow: a QR code, or a one-time invite (a link or five pairing
+  words). Then both sides compare four emoji with their names. Pairing keys come from their own
+  branch of the seed and are never the Epicbox, Tor or payment-proof key. See
   [Pairing](../users/pairing.md).
+- **Profile.** A wallet's profile travels in the feature word of its pairing messages, to paired
+  contacts only, and grants nothing (ADR 0041).
+- **Domain proof.** A contact can claim a domain. The domain's key signs the pairing's signing key,
+  and the app checks that against `https://<domain>/.well-known/epic-wallet.json`, over HTTPS with
+  no redirects, through the wallet's network setting (ADR 0043). A proven domain leaves the meaning
+  of "verified" unchanged.
+- **Relay moves.** LEPIC reports a contact's relay move and the app decides (ADR 0039). BT Wallet
+  follows a move to a public host on its own and shows it on the contact page. A contact with a
+  proven domain or a BT Labs key asks first: the user accepts or refuses.
 - **Sealed slates.** Between contacts, slates travel in an envelope sealed with HPKE (X25519,
   HKDF-SHA256, ChaCha20-Poly1305) and signed with Ed25519, so only the contact opens it and the
   sender is authenticated.
-- **Invoice trust only on paired contacts.** Invoices are accepted only from paired contacts.
-  Allowing a contact to send invoices is a per-contact switch, available once the contact is
-  verified. An invoice never pays itself: paying needs the user's action and the invoiced amount.
+- **Invoices.** A wallet accepts an invoice only from a verified, paired contact the user allowed,
+  through that contact's mailbox, sealed and signed by that contact. **Allow invoices** is a
+  per-contact switch on the paying side, off by default, available once the contact is verified.
+  An invoice never pays itself: paying needs the user's action and the invoiced amount.
 - **Linked devices.** Devices on one wallet exchange notices through a private pairing, sealed in
   HPKE PSK mode. A notice must come through the pairing of a linked device and name that device,
   is size-limited before parsing, deduplicated and applied in order. A notice can hold or release
@@ -163,6 +182,8 @@ shows that sender as trusted.
 ## Related pages
 
 - [Security](../security.md): how to report a vulnerability.
+- [Threat model](https://github.com/BTLabsUK/wallet-for-epic/blob/main/THREAT_MODEL.md) of the app.
 - [Architecture decisions](decisions.md): ADR 0014 (secrets), 0018, 0021, 0022 (Tor), 0024
-  (pairing).
+  (pairing), 0032 (database), 0039 (relay moves), 0041 (profile), 0043 (domain proof), 0044 (onion
+  key).
 - [Dependencies](dependencies.md): how dependencies are checked.

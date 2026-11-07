@@ -15,9 +15,14 @@ A payment is a handshake between two wallets. The messages between them travel o
 | **Direct · File Transfer** | no | none | both |
 | **Direct · QR Payment** | side by side | none | phone |
 
-Each method has a switch in **Settings › Transactions**. **Epicbox** is on by default. A method
-that is off does not appear on Send and Receive. **Send starts on** picks the method the Send
-screen opens with.
+Each method has a switch under **Settings › Payments** on the desktop and **Settings › Transactions**
+on the phone. **Epicbox** is on by default. A method that is off does not appear on Send and Receive.
+**Default method** picks the method Send opens with; you can still change it for one payment. On a
+phone, **Link · HTTP** has no switch: it only sends, to any http(s) address you paste. Direct · File
+Transfer on the phone needs its switch in [Advanced](advanced.md).
+
+A payment to a [paired contact](pairing.md#after-pairing) starts on the **Paired address**, over
+Epicbox and sealed.
 
 ## Epicbox
 
@@ -31,11 +36,12 @@ Straight to the other wallet, with no server in between. The other wallet must b
 reachable right now.
 
 - **Link · HTTP** sends to a web address such as `http://host:3415`. Receiving this way is on the
-  desktop only, and it is off until you turn it on under **Settings › Receiving**. To be paid from
-  outside your own network, the port has to be reachable from the internet.
+  desktop only, and it is off until you turn it on under **Settings › Payments**. The default port is
+  3415. To be paid from outside your own network, the router has to forward that port. Plain HTTP is
+  not encrypted.
 - **Link · Tor** sends to an address of 56 characters ending in `.onion`, over Tor. With
   [Tor](tor.md) on, the wallet has its own `.onion` address and can be paid at it, with nothing to
-  open on the router.
+  forward on the router.
 
 If a Link send cannot reach the other wallet, try again later or send the same payment as a file.
 
@@ -62,8 +68,9 @@ response file never comes, [cancel the send](cancel.md) to unlock the outputs.
 Two phones next to each other pay with an animated QR code, with no connection between them.
 Each phone needs only its node. Phone app only; the desktop app has no camera scanning.
 
-1. **Sender:** on Send, choose **Direct · QR Payment**, enter the amount and tap **Show QR**. The
-   code stays hidden until you show it, counts 3, 2, 1, and hides itself again.
+1. **Sender:** on Send, choose **Direct · QR Payment**, enter the amount and tap
+   **Make payment QR**, then **Show QR**. The code stays hidden until you show it, counts 3, 2, 1,
+   and hides itself after 40 seconds.
 2. **Receiver:** on **Receive › Direct · QR**, tap **Scan payment QR**, accept the payment, then
    show the reply code the same way.
 3. **Sender:** taps **Scan their reply**. The wallet posts the payment.
@@ -75,6 +82,7 @@ cancelled until you scan the reply.
 
 ## Send defaults
 
-With **Send options** on in [Advanced](advanced.md), **Settings › Transactions** also holds which
-outputs a send spends (**Smallest** or **All**) and whether its change is split. See
+With **Send options** on in [Advanced](advanced.md), the phone adds Strategy and Split change under
+**Settings › Transactions**, and the desktop adds a fold on Send: which outputs a send spends
+(**Smallest** or **All**) and whether its change is split. See
 [How Epic Cash works](how-it-works.md#smallest-or-all).

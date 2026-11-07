@@ -11,7 +11,8 @@ bundles the prebuilt native library into the app, so the app needs no Rust toolc
 at build time.
 
 Repository: [github.com/BTLabsUK/lepic-flutter](https://github.com/BTLabsUK/lepic-flutter).
-Licence: Apache-2.0. Version 0.1.0, versioned with SemVer on its own.
+Licence: Apache-2.0. Version 0.1.0, versioned with SemVer on its own. Status: beta. It needs
+Flutter 3.47 or later (the README pins 3.47.5).
 
 ## What is in the repository
 
@@ -20,7 +21,7 @@ Licence: Apache-2.0. Version 0.1.0, versioned with SemVer on its own.
 | `lepic.rev` | The LEPIC commit this package is generated from and builds |
 | `lib/` | The Dart API; `lib/src/rust/` is the generated Dart half of the bridge |
 | `hook/build.dart` | The build hook that bundles the native library into an app |
-| `tool/lepic.sh` | `sync`, `build`, `test`, `emulator-test`, `generate` and `check` against the pinned LEPIC |
+| `tool/lepic.sh` | `sync`, `build`, `test`, `emulator-test`, `generate`, `check` and `lib` against the pinned LEPIC |
 | `tool/generate.dart` | The codegen configuration and the patch applied after it |
 | `test/`, `emulator_test/` | Host tests, and an Android device test app with no UI |
 
@@ -49,8 +50,15 @@ final wallet = await EpicWallet.create(
     dataDir: dir.path,
     chain: Chain.mainnet,
     nodeUrl: 'https://node.example:3413',
-    epicboxDomain: 'epicbox.epiccash.com',
+    epicboxDomain: 'relay.example.org',
     epicboxPort: 443,
+    onionRoutes: const [], // [tor] onions of app-config.toml
+    tuning: appConfigTuning, // the tuning keys of app-config.toml
+    offline: false, // true for a cold wallet
+    torWanted: false, // true when the app starts tor for this wallet
+    hostFeatures: 0, // feature bits of the app's build
+    profile: 0, // the app's profile of its owner
+    policy: const HostPolicy(), // every field null: LEPIC's defaults
   ),
   store: store,
   password: password,
@@ -65,12 +73,17 @@ final wallet = await EpicWallet.create(
   meaning; `message` is English for logs and holds no secret.
 - A panic inside LEPIC arrives as a `WalletError` of kind `panic`; the runtime stays usable.
 - PIN unlock uses `EpicWallet.createWithPin` and `EpicWallet.openWithPin`. Failed password and
-  PIN attempts are counted in the store and delayed after the third failure.
+  PIN attempts are counted in the store. `PinSettings` sets the delay; by default the first three
+  failures cost nothing, then the wait starts at 30 seconds and doubles up to an hour.
+- LEPIC has no defaults for timeouts, retries and server limits: `WalletConfig.tuning` carries them
+  all, from the app's read-only `app-config.toml`. Limits and presets that are the app's to choose
+  are in `WalletConfig.policy`.
 - Only a short, fixed list of secrets crosses between Dart and Rust. See
   [Security model](security-model.md#secrets-at-the-flutter-boundary).
 
-The package README documents every call: direct transactions over HTTP and Tor, invoices,
-contact pairing, slates as QR codes, and the mapping from the app's earlier binding.
+The [usage guide](https://github.com/BTLabsUK/lepic-flutter/blob/main/doc/guide.md) in the
+repository covers the calls in detail: direct transactions over HTTP and Tor, invoices, contact
+pairing, slates as QR codes, offline sessions, and the mapping from the app's earlier binding.
 
 ## Native libraries
 
@@ -83,6 +96,8 @@ asset. The app needs no Gradle, Xcode or CMake changes.
 | iOS device and simulator, arm64 | `liblepic_ffi.dylib` | macOS with Xcode |
 | Linux x86_64 | `liblepic_ffi.so` | Linux x86_64 |
 | Windows x86_64 | `lepic_ffi.dll` | Windows with Visual Studio Build Tools (C++) |
+
+The hook bundles no library for macOS yet.
 
 Build them from the pinned LEPIC, from the package root, before building the app. Each runs
 LEPIC's `cargo xtask mobile --package --out native` for its targets:
@@ -117,7 +132,7 @@ Other points:
   oldest distribution the app supports.
 - A release app passes the bundled file to `RustLib.init(externalLibrary: ...)` by its place in
   the bundle.
-- Libraries kept elsewhere (for example CI artifacts) are used by setting `native_dir` in the
+- Libraries kept elsewhere (for example build artifacts) are used by setting `native_dir` in the
   app's `pubspec.yaml`:
 
 ```yaml
@@ -137,7 +152,7 @@ WFE_TOR=0 tool/lepic.sh build linux android
 ```
 
 The Dart API is the same for both builds. Without Tor, `startTor`, `refreshTor`, `onionAddress`,
-`sendTor` and `resendTor` fail with `unsupported`, and the relay and node are always reached
+`previousOnionAddress`, `sendTor` and `resendTor` fail with `unsupported`, and the relay and node are always reached
 directly. To make the app build fail when the wrong library is in place, set the `tor` user
 define; without it the hook bundles either:
 

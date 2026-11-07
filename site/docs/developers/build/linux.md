@@ -21,9 +21,9 @@ glibc it was linked against, so building on the oldest supported system gives an
 - `git`, `rsync` and `tar` on the host.
 - `curl` and `jq` on the host, unless you build without Tor: the script fetches the Tor bundle there
   (`tools/fetch-tor.sh`).
-- Clones of LEPIC and lepic-flutter that contain the pinned commits. The script reads them from
-  `LEPIC_REPO` and `LEPIC_FLUTTER_REPO` (default `$HOME/lepic` and `$HOME/lepic-flutter`; see
-  [Build from source](index.md)).
+- Nothing else for LEPIC and lepic-flutter. The script reads each pinned commit from `LEPIC_REPO`
+  or `LEPIC_FLUTTER_REPO` when set, else from `$HOME/lepic` or `$HOME/lepic-flutter` when it has
+  the commit, else from GitHub (see [Build from source](index.md)).
 
 ## What it does
 
@@ -56,7 +56,7 @@ Extra arguments are passed on to `flutter build linux`.
 - appimagetool 1.9.1 with the type2 runtime 20251108, both checked against pinned SHA-256 sums.
 
 Build caches are Docker volumes named `wfe-linux-pub`, `wfe-linux-cargo`, `wfe-linux-home`,
-`wfe-linux-build` and `wfe-linux-lepic-target`. The image is large, about 4 GB.
+`wfe-linux-build`, and `wfe-linux-lepic-target` (`wfe-linux-lepic-target-notor` without Tor).
 
 ## Running the AppImage
 

@@ -14,8 +14,8 @@ Repository: [github.com/BTLabsUK/lepic](https://github.com/BTLabsUK/lepic).
 Licence: Apache-2.0. Rust edition 2024, toolchain pinned in `rust-toolchain.toml`.
 
 :::warning
-LEPIC is pre-alpha (version 0.1.0). APIs still change. Use floonet, the test network, and do not
-put real funds in it yet.
+LEPIC is beta (version 0.3.1). Its APIs may still change before 1.0. The `lepic` command-line
+wallet is pre-alpha: use it on floonet, the test network.
 :::
 
 ## Crates
@@ -24,17 +24,17 @@ put real funds in it yet.
 |---|---|---|
 | `lepic-crypto` | Safe boundary over the pinned secp256k1-zkp library: commitments, Bulletproofs, aggregate signatures, ECDSA, ECDH | none |
 | `lepic-primitives` | Serialization, hashing, transaction types, weights and fees, per-network chain parameters | none |
-| `lepic-keychain` | Mnemonic to seed, BIP32, key paths, switch commitments, proof builders, seed vault formats | none |
+| `lepic-keychain` | Mnemonic to seed, BIP32, key paths, switch commitments, proof builders, seed vault formats, the app's data file format | none |
 | `lepic-slate` | Slate domain model, legacy V2 and V3 JSON codecs, codec registry, `ur:epic-slate` QR form | none |
 | `lepic-contact` | Contact pairing formats (RFC 0002): sealed envelope, cards, invites, the pairing words check | none |
 | `lepic-node` | Client for the node's foreign JSON-RPC API, with strict response checks | network |
-| `lepic-store` | SQLite storage behind repository traits, migrations, encrypted private context | disk |
+| `lepic-store` | SQLite storage behind repository traits, migrations, encrypted private context, the database file encrypted at rest | disk |
 | `lepic-transport` | Transport traits, registry, format policy, the file transport | disk |
 | `lepic-epicbox` | Epicbox addresses, message crypto, relay client and transport | network |
 | `lepic-foreign` | The wallet foreign API over HTTP: client, listener, `http` transport | network |
-| `lepic-tor` | Tor: onion v3 addresses, a tor child process per wallet, SOCKS5, the `tor` transport | network, process |
+| `lepic-tor` | Tor: onion v3 addresses and the wallet's onion key, a tor child process per wallet, SOCKS5, the `tor` transport | network, process |
 | `lepic-wallet` | The engine: accounts, selection, send, receive, finalize, cancel, scan, refresh, events | through ports |
-| `lepic-wallet-contacts` | Contacts on top of the engine: pairing, mailboxes, sealed slates, contact invoices | through ports |
+| `lepic-wallet-contacts` | Contacts on top of the engine: pairing, mailboxes, sealed slates, contact invoices, key checks, app payloads | through ports |
 | `lepic-telemetry` | `tracing` subscribers for the CLI and mobile, redaction helpers | stderr, files |
 | `lepic-cli` | The `lepic` binary | all |
 | `lepic-ffi` | The FFI API, built with flutter_rust_bridge; the library apps load as `liblepic_ffi` | all |
@@ -42,7 +42,8 @@ put real funds in it yet.
 `xtask` holds the build, check, vector and packaging commands (`cargo xtask check`,
 `cargo xtask mobile`, and others).
 
-Three folders sit outside the product workspace, each with its own `Cargo.lock`:
+Three folders sit outside the product workspace. `conformance/` and `fuzz/` each have their own
+`Cargo.lock`.
 
 - `conformance/` runs the reference `epic-wallet` and node code to generate golden test vectors
   and to run differential tests. It is the only place those crates appear.
@@ -56,7 +57,7 @@ Three folders sit outside the product workspace, each with its own `Cargo.lock`:
   `lepic-contact`) may not depend on Tokio or the filesystem, read a clock, or create their own
   randomness. Callers pass an RNG and the time in.
 - **Feature code kept out of the money core.** Contact pairing lives in `lepic-wallet-contacts`,
-  which drives the engine through its public calls and two hooks. Nothing in consensus, keys of
+  which drives the engine through its public calls and the hooks of `lepic_wallet::extension`. Nothing in consensus, keys of
   funds or the slates `epic-wallet` reads depends on it, so a review of the money core can leave
   it out.
 - **No Epic crates.** LEPIC ports the behaviour it needs from the Epic node and `epic-wallet`
@@ -65,7 +66,9 @@ Three folders sit outside the product workspace, each with its own `Cargo.lock`:
 ## Allowed dependency edges
 
 The edges below are the only ones allowed between LEPIC crates, for normal and build
-dependencies. `cargo xtask deps-check` enforces them; any other edge needs a new ADR.
+dependencies. `cargo xtask deps-check` reads the list from LEPIC's `docs/architecture.md` and
+enforces it; any other edge needs a new ADR. An edge is allowed, not required: `lepic-wallet`
+uses neither `lepic-foreign` nor `lepic-tor`.
 
 ```text
 lepic-crypto      -> (external only)
@@ -75,7 +78,7 @@ lepic-slate       -> crypto, primitives
 lepic-contact     -> (external only)
 lepic-node        -> primitives, crypto
 lepic-store       -> primitives
-lepic-transport   -> slate
+lepic-transport   -> slate, primitives
 lepic-epicbox     -> transport, slate,
                      crypto, primitives
 lepic-foreign     -> transport, slate
@@ -109,8 +112,8 @@ cargo xtask mobile --package --no-tor
 
 The API stays the same in both builds, so one generated binding serves both. Without Tor:
 
-- `start_tor`, `refresh_tor`, `onion_address`, `send_tor` and `resend_tor` fail with
-  `Unsupported`.
+- `start_tor`, `refresh_tor`, `onion_address`, `previous_onion_address`, `send_tor` and
+  `resend_tor` fail with `Unsupported`.
 - `tor_status` is `Off`; `epicbox_over_tor` and `node_over_tor` read `false` and their setters
   change nothing, so the relay and the node are always reached directly.
 - `validate_onion_address` is `false` for every address.
@@ -134,16 +137,21 @@ lepic --network floonet wallet info   # balances, from the node at 127.0.0.1:134
 
 | Command group | Examples |
 |---|---|
-| `wallet` | `init`, `restore`, `import-seed`, `import-history`, `info`, `address`, `scan` |
+| `wallet` | `init`, `restore` (with `--from-height`), `import-seed`, `import-history`, `info`, `address`, `scan` |
 | `tx` | `send`, `receive`, `finalize`, `post`, `list`, `show`, `cancel`, `resend`, `release` |
 | `invoice` | `issue`, `pay`, `list`, `decline` |
-| `epicbox` | `listen`, `drain` |
+| `epicbox` | `listen`, `drain`, `status`, `peer` |
 | `http`, `tor` | `listen`; `tor address` |
 | `node` | `status` |
+| `contact` | `invite`, `accept`, `list`, `check`, `move`, `move-home`, `allow-invoices`, `invoice`, `collect` |
+| `profile` | `show`, `set`, `domain` |
+| `serve` | Holds the wallet open and answers commands sent with `--service` |
 
 Settings come from a flag, an environment variable (`LEPIC_*`), the config file
-`~/.lepic/config.toml`, or the default, in that order. Passwords are never taken from command-line
-arguments: they come from `LEPIC_PASSWORD`, a hidden prompt, or one line of standard input. Plain
+`~/.lepic/config.toml`, or the default, in that order. Servers come from `~/.lepic/settings.toml`,
+written on first use; timeouts and limits are compiled in from `lepic-config.toml`. Passwords are
+never taken from command-line arguments: they come from the file `LEPIC_PASSWORD_FILE` names,
+`LEPIC_PASSWORD`, a hidden prompt, or one line of standard input. Plain
 `http://` and `ws://` are accepted only for a loopback host.
 
 The full guide is

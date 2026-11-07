@@ -26,7 +26,7 @@ transaction is the first confirmation, and every block after it adds one more an
 transaction harder to undo.
 
 The wallet treats a transaction as final after a set number of confirmations, **6 by default** (a
-setting in [Advanced](advanced.md), from 1 to 30). Until then it shows as **Confirming**, and
+setting from 1 to 30, see [Advanced](advanced.md)). Until then it shows as **Confirming**, and
 received outputs cannot be spent yet. The wallet sees new blocks only through its node: if
 confirmations do not move, check that the node is synced.
 
@@ -72,7 +72,7 @@ receive, both with this wallet.
 
 Every transaction pays a small network fee, shown as **Network fee** before sending. It goes to the
 miners. The fee depends on how many outputs the transaction spends and creates, not on the amount.
-**All**, next to the amount, fills in the whole spendable balance minus the exact fee, so no change
+**Max**, next to the amount, fills in the whole spendable balance minus the exact fee, so no change
 is left.
 
 More detail for developers is on the [Epic Cash Developer Hub](https://devdocs.btlabs.uk).

@@ -59,7 +59,7 @@ LEPIC is a Cargo workspace of small crates in layers:
    They do no I/O, read no clock and create no randomness of their own, so they are
    deterministic and can be fuzzed.
 2. **I/O crates** in the middle: the node client, SQLite storage, and the transports (file,
-   Epicbox, HTTP, Tor).
+   Epicbox, HTTP, Tor). The wallet database is encrypted at rest.
 3. **The engine**, `lepic-wallet`, above them, with contacts as a separate crate on top of it.
 4. **Front ends** on top: the `lepic` command-line wallet and `lepic-ffi`, the FFI API the
    binding wraps.
@@ -135,11 +135,32 @@ A phone suspends apps in the background, so the Epicbox client has two modes:
 | Mode | What it does | Used |
 |---|---|---|
 | `listen` | Keeps a connection open and receives as messages arrive | While the app is in the foreground |
-| `drain` | Connects, processes everything waiting, disconnects | Background work the app schedules |
+| `drain` | Connects, processes everything waiting, disconnects | When the app returns to the foreground, and for the desktop's invoice checks |
 
-The relay keeps every message until it is acknowledged, so nothing is lost while the app sleeps.
+The relay holds a message until it is acknowledged, for up to 7 days, so a wallet collects what
+arrived while the app slept. The limits are in LEPIC's
+[Epicbox notes](https://github.com/BTLabsUK/lepic/blob/main/docs/compat/epicbox.md).
+
 Events (balance, transaction stage, sync progress, transport state) stream from the engine to the
 app through the binding.
+
+## Configuration
+
+The rule is "All configuration in settings.toml (no hardcoded configuration)" (ADR 0030). The
+code of the app, LEPIC and lepic-flutter holds no host, URL, IP address, onion address, port or
+service path, and no server-related timeout, interval or limit.
+
+| File | Holds | Where |
+|---|---|---|
+| `settings.toml` | The user's choices: Node and Epicbox lists, on/off switches | The wallet's data folder |
+| `app-config.toml` | Operators, onions, service URLs, timeouts, intervals, ports, limits | Shipped read-only in `app/assets/config/` |
+| `lepic-config.toml` | The same for the `lepic` CLI | Compiled into the CLI |
+
+The first entry of each list is the one in use. The library crates take every value from the
+caller and hold no default. Protocol values stay in code, such as what an address without a port
+means, size limits, crypto parameters and consensus values. `tools/check-no-hosts.sh` fails the
+check when a host, URL, IPv4 literal, port or API path appears in source. The app's defaults are in
+[`app/assets/config/app-config.toml`](https://github.com/BTLabsUK/wallet-for-epic/blob/main/app/assets/config/app-config.toml).
 
 ## Related pages
 

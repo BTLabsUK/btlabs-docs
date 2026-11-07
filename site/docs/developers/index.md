@@ -50,5 +50,5 @@ BT LABS wallets and their core.
 
 ## Status
 
-Pre-release. LEPIC is `0.y.z`: its APIs still change. Report security issues privately; see
+Beta. LEPIC is `0.y.z`: its APIs still change. Report security issues privately; see
 [Security](../security.md).

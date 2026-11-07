@@ -1,35 +1,56 @@
 ---
-title: Network modes
-description: Standard, Tor only and Offline, and what each one lets the wallet reach.
+title: Connection modes
+description: Normal, Tor only, Node only and Kill switch, and what each one lets the wallet reach.
 ---
 
-# Network modes
+# Connection modes
 
-How the wallet reaches the network is one choice on the **Advanced** page in Settings, under
-Network.
+How much of the internet the wallet uses is one choice, **Connection mode**, under
+**Settings › Network & privacy**. Help calls these the network modes. The wallet remembers the
+choice. Off **Normal**, a mark on Home or the title bar names the mode: tap it to change it.
 
-| Mode | What it does |
+| Mode | What connects |
 | --- | --- |
-| **Standard** | Connects directly. [Tor](tor.md) is its own switch. The default. |
-| **Tor only** | Tor is always on and its switch is locked. Nothing goes over the open internet. |
-| **Offline** | No Epicbox, no Link beyond local addresses, no Tor, no status checks. |
+| **Normal** | Node, Epicbox, Link, the status site, price and update checks. The default. |
+| **Tor only** | The same, with every connection through [Tor](tor.md). |
+| **Node only** | Only the node in use. |
+| **Kill switch** | Nothing, the node included. |
+
+Services a mode turns off show as **Off (Node only)** in grey. Nothing is cancelled when you switch:
+a send waiting for its recipient over Epicbox continues when you leave the mode, or switch to Tor
+only.
 
 ## Tor only
 
-While Tor starts or has failed, the wallet says **Waiting for Tor**, and whatever needs the network
-waits, with the reason on the disabled action. On the desktop, Link · HTTP receiving is off, because
-a plain address would reveal the computer. Not in the iPhone app or the builds without Tor.
+Every connection goes through Tor, the node and Epicbox included. A node on this computer or your
+local network may stay direct. Until Tor is ready nothing connects, the status icons say
+**Waiting for Tor**, and nothing falls back to the open internet. Link · HTTP receiving stays off.
+Not in the iPhone app or the [builds without Tor](install.md#builds-without-tor).
 
-## Offline
+## Node only
 
-The balance and history stay as last seen. **Direct · File Transfer**, and on the phone
-**Direct · QR Payment**, still work: they use the node in use to read the chain and to post, a
-public one too, and the screen says so.
+The wallet reaches only the node in use, the first in the node list. Epicbox, Link, the status site,
+price and update checks, explorer links, problem reports, pairing and linked devices are off.
+**Direct · File Transfer**, and on the phone **Direct · QR Payment**, work. With Tor on, the node is
+reached over Tor.
 
-For the most privacy, use a node on this computer or on the local network: then the balance
-refreshes and Recheck balance runs as well. Give that node by its IP address, for example
-`192.168.1.20:3413`; names are not looked up. On the desktop, Link · HTTP can then receive over the
-local network, with HTTP receiving set to **From the internet**.
+The node in use sees every request. A node on this device or your own network keeps that to
+yourself and answers fast. Any node works.
 
-The sidebar (desktop) or Home (phone) says when the wallet is offline or waiting for Tor. Setting
-the mode back to **Standard** brings everything back.
+## Kill switch
+
+Nothing connects, the node included. The wallet opens with the last known balance and history. You
+can make, sign and finish a payment by **Direct · File Transfer**, and on the phone by
+**Direct · QR Payment**, show your address, back up and export. Sends that are waiting pause, and
+continue when you leave the mode.
+
+### Paying from Kill switch
+
+1. Make the payment, and finish it when the reply comes back.
+2. It shows as **Finished, not posted**.
+3. Choose **Save file**, on the phone also **Show QR**; on the desktop you can **Copy** the text.
+4. On an online device open **Post a finished payment**: on the phone in the Activity menu, on the
+   desktop under **Receive › Transaction files**. Load the file, scan the code or paste the text,
+   then press **Post**. Any Epic Cash wallet can do this; it needs no key.
+5. The payment shows as **To be posted elsewhere**, then **Confirming** once it is seen on the chain
+   after you leave Kill switch.

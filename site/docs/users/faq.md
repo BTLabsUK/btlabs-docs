@@ -12,12 +12,12 @@ which goes to the miners.
 
 ## Who holds my coins?
 
-You do. The keys are made and kept on your device, and nobody else can spend the EPIC without your
-recovery phrase. BT LABS cannot see or move your coins and cannot recover a lost phrase.
+You do. The keys are made and kept on your device. Whoever has the recovery phrase, or the unlocked
+wallet, can spend the EPIC. BT LABS cannot recover a lost phrase.
 
 ## Can I use the same wallet on my phone and my computer?
 
-Yes: restore the same recovery phrase on both. To keep them in step, turn on
+Yes: restore the same recovery phrase on both. To keep them in step, use
 [Linked devices](linked-devices.md).
 
 ## Does the other person need to be online when I pay?
@@ -53,8 +53,8 @@ No. Tor is off by default and optional. There are also builds with Tor left out.
 
 ## What does the app send to BT LABS?
 
-Only what is listed on [Privacy](privacy.md): requests to the default node and status site, the
-update check, and a problem report when you send one. No analytics.
+Only what is listed on [Privacy](privacy.md): requests to the status site, the update check, the
+signed settings file, and a problem report when you send one. The app contains no analytics code.
 
 ## Can I test without real money?
 

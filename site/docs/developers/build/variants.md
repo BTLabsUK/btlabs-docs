@@ -26,7 +26,7 @@ What changes:
 - No Tor binary is fetched or packed.
 - The app has no Tor switch, no Link · Tor method and no Tor only network mode, and cannot send to
   `.onion` addresses.
-- The in-app updater reads the `notor` section of the same signed update.json (since 26.10.23), so
+- The in-app updater reads the `notor` section of the same signed manifest, so
   it is only ever offered builds without Tor.
 - The file names carry `-notor`, so the build cannot be mistaken for the standard one.
 

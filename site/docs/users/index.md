@@ -28,6 +28,7 @@ Up to 26.10.24 the app was called Epic Cash Desktop and Epic Cash Mobile.
   (**Direct · QR Payment**).
 - Connects to the Epic Cash network through a node: a public one by default, or your own.
 - Optional Tor, on the desktop and on Android.
+- [Pairs with contacts](pairing.md): sealed payments, files and invoices between two wallets.
 
 ## Where to start
 

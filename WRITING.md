@@ -25,8 +25,8 @@ lepic-flutter by `tools/wiki-sync.py`. Write it so both work.
   how long it takes. Block counts are fine (a block is a fact, a minute is a guess).
 - The app's own words for its parts, exactly as the app shows them: Epicbox, Link · HTTP,
   Link · Tor, Direct · File Transfer, Direct · QR Payment, recovery phrase, Recheck balance,
-  Export wallet data, Linked devices, Pair, Advanced, Network modes (Standard, Tor only,
-  Offline). Places in the app as `Settings › This wallet › Linked devices`.
+  Export wallet data, Linked devices, Pair, Advanced, Connection mode (Normal, Tor only,
+  Node only, Kill switch). Places in the app as `Settings › This wallet › Linked devices`.
 - Product names: BT Wallet, one app for Windows, Linux, Android and the macOS and iOS previews
   ("the desktop app" or "the phone app" where the difference matters); LEPIC (the Rust wallet
   core), lepic-flutter (its Flutter binding). "BT LABS" in capitals when the company is named as

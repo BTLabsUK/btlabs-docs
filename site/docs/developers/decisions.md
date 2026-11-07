@@ -1,6 +1,6 @@
 ---
 title: Architecture decisions
-description: A summary of LEPIC's architecture decision records (ADRs 0001 to 0029), grouped by theme.
+description: A summary of LEPIC's architecture decision records (ADRs 0001 to 0049), grouped by theme.
 ---
 
 # Architecture decisions
@@ -23,20 +23,25 @@ was made, and what it costs. The full records are in
 **0001 Port the node and wallet logic; no Epic crates in the product graph.** *Accepted.* LEPIC
 ports the behaviour it needs from the Epic node and `epic-wallet` into its own crates, because
 depending on them would compile mining and chain-storage code into a phone app. The only Epic
-code it links is the secp256k1-zkp library, pinned to a commit.
+code it links is the secp256k1-zkp library, vendored from a pinned commit.
 
 **0009 Separate conformance workspace on public pins, golden vectors.** *Accepted; version table
 superseded by 0020.* A separate workspace runs the reference code to write golden vectors and run
 differential tests; the product crates test against the committed vectors without the reference
 code.
 
-**0020 Reference wallet and node move to the latest epic-wallet release.** *Accepted.* The
+**0020 Reference wallet and node move to the latest epic-wallet release.** *Accepted; node row
+for interop and `upstream.toml` superseded by 0038.* The
 reference code, golden vectors and interop images are pinned to the latest release of `epic-wallet`
 and the Epic node; [ADR 0020](https://github.com/BTLabsUK/lepic/blob/main/docs/adr/0020-reference-epic-wallet-4-1.md) names the tags and commits.
 
+**0038 The reference node moves for interop and `upstream.toml`.** *Accepted.* The interop images
+and `upstream.toml` follow a later Epic node release. The conformance workspace and golden vectors
+stay on the node that `epic-wallet` links.
+
 **0010 Latest stable crates and toolchain, banned list, update bots.** *Accepted.* Latest stable
 Rust and crates, set once in the workspace; `cargo deny` checks advisories, licences, sources and
-a banned list in CI. See [Dependencies](dependencies.md).
+a banned list. See [Dependencies](dependencies.md).
 
 **0011 No process-global state; network and settings are parameters.** *Accepted; `ChainParams`
 contents superseded by 0013.* The network, runtime, clock, RNG and paths are passed in, so two
@@ -49,6 +54,20 @@ bytes.
 **0008 tracing everywhere, host-installed subscribers, typed errors.** *Accepted.* Libraries emit
 `tracing` events and never install a subscriber; errors are typed per crate, and the binding
 exposes one error enum with stable numeric codes.
+
+**0030 All configuration in settings.toml.** *Accepted.* Configuration comes from settings files,
+not from code. See [Architecture](architecture.md#configuration).
+
+**0036 Policy values are host parameters.** *Accepted.* A value that is policy becomes a parameter
+the host may pass, with LEPIC's earlier value as its default. The password length and the cap on
+minimum confirmations move to the hosts.
+
+**0033 One registry of seed-derived keys and signature domains.** *Proposed.* Every new key that
+is not a funds key is a keyed BLAKE2b-256 hash of the seed under a label of its own, with one
+function and one label constant in the crate that owns it.
+
+**0034 Trust, versioning and probing between Epic wallets.** *Proposed.* What the software behind
+a key has shown and what the user has with a contact are kept as two separate axes.
 
 ## Slates and formats
 
@@ -79,18 +98,30 @@ the method is offered on mobile only.
 suspended phone. A message is acknowledged only after its effect is stored.
 
 **0016 LEPIC notices over Epicbox, sent only to proven peers.** *Accepted.* Short notices
-(`declined`, `withdrawn`, `posted`) tell each side of an invoice what the other did. They go only
+(`declined`, `withdrawn`, `posted`, `cancelled`) tell each side of a payment what the other did. They go only
 to peers that proved they run LEPIC.
 
 **0017 The wallet foreign API over HTTP in its own crate.** *Accepted.* `lepic-foreign` sends and
-listens over the HTTP foreign API, compatible with `epic-wallet`. The listener serves only
-`check_version` and `receive_tx` and binds to loopback unless the user chooses otherwise.
+listens over the HTTP foreign API, compatible with `epic-wallet`. The listener serves
+`check_version` and `receive_tx`, and binds to loopback unless the user chooses otherwise.
+
+**0046 A wallet for a mining node.** *Accepted.* The wallet can build a coinbase on a node's
+request. A restore from the phrase finds the output.
+
+**0048 Block rewards are for this computer unless the host opens them.** *Accepted.* `build_coinbase`
+is off by default. Turned on, it answers loopback callers unless the host opens it to others. Tor's
+listeners never serve it.
 
 ## Tor
 
-**0018 Tor on desktop through a bundled tor child process.** *Accepted.* The app bundles a `tor`
-binary and LEPIC runs one per open wallet, driven over its control port. The onion address is the
-one `epic-wallet` derives, published ephemerally; its key is never written to disk.
+**0018 Tor on desktop through a bundled tor child process.** *Accepted; the onion key superseded
+by 0044.* The app bundles a `tor` binary and LEPIC runs one per open wallet, driven over its
+control port. The onion is published ephemerally; its key is never written to disk.
+
+**0044 The onion has its own key.** *Accepted.* The onion key is derived from the seed under a
+label of its own, so the onion address and the Epicbox address no longer share a key. The earlier
+address stays available as `previous_onion_address`, and publishing it is the host's choice.
+BT Wallet does not publish it.
 
 **0021 Epicbox over Tor.** *Accepted.* With Tor on, the relay connection goes through tor, to the
 relay's onion when known, else through an exit. TLS still checks the relay's domain.
@@ -108,6 +139,9 @@ database-import bullet superseded by 0019.* SQLite with a real schema, private t
 encrypted at rest, seeds in the platform keystore or an Argon2id vault, and read-only import of an
 `epic-wallet` `wallet.seed`.
 
+**0032 Wallet database encrypted at rest with SQLite3 Multiple Ciphers.** *Accepted.* Amends 0005
+and 0010. The database file is encrypted page by page under a key derived from the seed.
+
 **0006 rustls with ring, hyper for HTTP, tokio-tungstenite for websockets.** *Accepted.* TLS is
 rustls with the ring provider, chosen for small mobile builds that need only a C compiler.
 
@@ -119,8 +153,19 @@ goes only to the app's secret store. See [Security model](security-model.md).
 database is copied and read, never opened in place or written. History is imported and checked
 against the seed and the chain scan, which stays the only source of spendable funds.
 
-**0027 Minimum confirmations is a per-wallet setting, default 6.** *Accepted.* Received outputs
-and change become spendable after 6 confirmations by default, adjustable per wallet from 1 to 30.
+**0027 Minimum confirmations is a per-wallet setting, default 6.** *Accepted; the cap of 30
+superseded by 0036.* Received outputs and change become spendable after 6 confirmations by
+default, adjustable per wallet. LEPIC requires at least 1; BT Wallet allows 1 to 30.
+
+**0035 Restore from a start height.** *Accepted.* A restore may start its scan at a height the
+caller picks. LEPIC holds no default height.
+
+**0037 One send-to-self primitive.** *Accepted.* `send_to_self` replaces the separate calls that
+moved a wallet's own coins. A send makes 1 to 10 outputs.
+
+**0031 An offline session for cold wallets.** *Accepted.* A session opened offline refuses every
+network call before any name lookup. Payment stages use the highest tip a refresh confirmed, and
+the finished transaction is saved or shown as a code for another device to post.
 
 **0028 Per-transaction state lives in tables that cascade with the transaction.** *Accepted.*
 Per-transaction records move from key-value settings into typed tables that are deleted with
@@ -147,3 +192,29 @@ specified in RFC 0002.
 **0029 Contacts are a crate on top of the engine.** *Accepted.* Contact code moves into
 `lepic-wallet-contacts`, which drives the engine from outside, so the money core can be reviewed
 without it.
+
+**0039 The host applies a contact's relay move.** *Accepted.* LEPIC reports a contact's move and
+the app decides whether to apply it.
+
+**0040 The contact check and moving one's own home relay.** *Accepted.* A signed, empty message
+asks a paired contact for its current card; answers are paced by host parameters.
+
+**0041 The owner's profile in the feature word.** *Accepted.* Bits 16 to 31 of the feature word
+are the owner's profile. It goes to paired contacts only and grants nothing.
+
+**0042 Draining the old home after moving one's own.** *Accepted.* After a move, the old mailboxes
+can be read for a set number of days, at most a year.
+
+**0043 Domain proof for paired contacts.** *Accepted.* A contact can prove a domain with a file
+that domain serves. See [Security model](security-model.md#contacts-invoices-and-linked-devices).
+
+**0045 Refusing slates nobody asked for.** *Proposed.* Two policy switches, off by default, refuse
+unsolicited payments and invoices.
+
+**0047 The mailbox is the default between paired contacts.** *Accepted.* The host picks the route
+of a send. BT Wallet sends through the pairing when it can carry payments, and keeps the payments
+address as the fallback.
+
+**0049 Keeping messages that cannot be taken yet.** *Accepted.* A notice that arrives before its
+slate waits for it. A message from a contact that would otherwise be dropped can be kept in a
+local quarantine, off unless the host sets a size.

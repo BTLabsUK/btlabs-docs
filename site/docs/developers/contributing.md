@@ -5,7 +5,8 @@ description: "How to propose a change to the app, LEPIC or lepic-flutter: commit
 
 # Contributing
 
-Contributions to LEPIC, lepic-flutter and the app follow the same rules.
+Contributions to LEPIC, lepic-flutter and the app follow the same rules, except for the commit
+format of the app (see [Commit messages](#commit-messages)).
 
 ## Before you start
 
@@ -20,7 +21,7 @@ Contributions to LEPIC, lepic-flutter and the app follow the same rules.
 
 ## Making a change
 
-- One branch per task, named `<type>/<slug>`, for example `feat/legacy-v3-codec`.
+- In LEPIC, one branch per task, named `<type>/<slug>`, for example `feat/legacy-v3-codec`.
 - Each commit holds one logical change. Keep formatting, renames and refactors apart from changes in
   behaviour, and stage files by name.
 - Every commit builds and passes the checks below.
@@ -36,19 +37,26 @@ LEPIC, from a git checkout:
 cargo xtask check
 ```
 
-The app:
+lepic-flutter, from the package root after `tool/lepic.sh sync`:
 
 ```bash
-cd app
+tool/lepic.sh check
 flutter analyze
-flutter test
+tool/lepic.sh test
 ```
 
-`tools/check.sh` runs the full app gate. See [Testing](testing.md).
+The app, from the repository root:
+
+```bash
+tools/check.sh
+```
+
+It checks LEPIC at the pin and runs the analyzer and the tests the change reaches. See
+[Testing](testing.md).
 
 ## Commit messages
 
-Commits follow Conventional Commits:
+LEPIC and lepic-flutter follow Conventional Commits:
 
 ```text
 <type>(<scope>)[!]: <description>
@@ -71,6 +79,9 @@ Signed-off-by: Full Name <email>
   footer.
 - Describe the correction, never an attack. No exploit detail.
 
+The app uses one or two plain sentences in the present tense that say what changed and why, for
+example `Send: the fee line shows before the amount is typed`.
+
 ### Commit-message hook
 
 LEPIC ships a `commit-msg` hook that rejects malformed messages. Enable it once per clone:
@@ -79,7 +90,7 @@ LEPIC ships a `commit-msg` hook that rejects malformed messages. Enable it once 
 git config core.hooksPath .githooks
 ```
 
-CI runs the same check, so a skipped hook only moves the failure later.
+Maintainers run the same check before a merge, so a skipped hook only moves the failure later.
 
 ## Sign-off
 

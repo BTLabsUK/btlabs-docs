@@ -20,21 +20,20 @@ and history. On Epic Cash:
 
 | To | What | Why |
 | --- | --- | --- |
-| The node (default `node.btlabs.uk`) | which outputs the wallet asks about, transactions to post; the IP address | balance, confirmations, sending |
-| The Epicbox server | encrypted payment messages; the IP address | Epicbox payments |
+| The node (default `node.epiccash.com`) | which outputs the wallet asks about, transactions to post; the IP address | balance, confirmations, sending |
+| The Epicbox server (default `epicbox.epiccash.com`) | encrypted payment messages; the IP address | Epicbox payments |
 | The other wallet | the payment messages, and your note if you add one | every payment |
-| `status.btlabs.uk` | a request for the list of nodes and Epicbox servers and their state | the server lists; a switch in **Settings › Privacy** turns it off |
-| CoinGecko (`api.coingecko.com`), or BT LABS' copy | a request for the EPIC price in your currency | the fiat value; a setting turns prices off |
-| The update feed | a request for the signed update information | in-app updates; not in store builds or builds without Tor |
-| `support.btlabs.uk` | a problem report, only when you send one | **Report a problem** shows exactly what is sent |
+| `status.btlabs.uk` | a request for the server list and its state, and the EPIC price; on the desktop also your public IP address and a port check for HTTP receiving | the server lists and the fiat value; a status switch and a price switch turn the first two off |
+| CoinGecko (`api.coingecko.com`) | a request for the EPIC price | only when BT LABS' copy gives no price and Tor is off |
+| The update feed (`epiccash.btlabs.uk`, GitHub) | a request for the signed update information | in-app updates; not in store builds |
+| GitHub (`btlabs.json`) | a request for the signed settings file from BT LABS | donation and server details |
+| `support.btlabs.uk` | a problem report, only when you send one | **Report a problem** shows what is sent |
 | Linked devices' servers | encrypted notices between your own devices | only with [Linked devices](linked-devices.md) on |
 
-On the desktop, the HTTP receiving check asks `api.ipify.org` for the public IP address and
-`portchecker.io` whether the port is reachable, only when you run that check.
-
-With [Tor](tor.md) on, all of the above except a node on this computer go through Tor, so they do
-not see your IP address. In [Offline](network-modes.md) mode the wallet reaches only the node you
-give it.
+With [Tor](tor.md) on, these requests go through Tor, so they do not see your IP address. Requests
+to a node or Epicbox server on this computer or your local network stay direct. In
+[Node only](network-modes.md#node-only) the wallet reaches only the node in use; in
+[Kill switch](network-modes.md#kill-switch) it reaches nothing.
 
 ## What never leaves the device
 
@@ -42,12 +41,13 @@ give it.
   the desktop in a vault file encrypted under the wallet password.
 - Contacts, wallet names, labels and notes. They are in the [wallet data file](backups.md) only
   when you export one.
-- The clipboard. The wallet reads it only for pairing links, only while Pairing is on, and never
-  stores or logs it.
+- The clipboard. The wallet reads it when you press Paste or use a paste action, and does not store
+  or log it.
 
-The apps have no analytics, no tracking and no push notifications.
+The apps contain no advertising or analytics code, and no push notifications.
 
 ## Logs and problem reports
 
-Logs stay on the device. **Report a problem** in Help sends a description and cleaned logs: the
-report screen shows exactly what leaves before you send it.
+Logs stay on the device. **Report a problem** sends a description. Logs go along only if you attach
+them, with the recovery phrase, PIN and other secrets removed first. The report screen shows what is
+sent before you send it.

@@ -35,7 +35,7 @@ Their wallet has not answered yet. Ask them to open it. If they never will,
 Tor could not reach its network. **Retry**, or turn Tor off; nothing goes out over Tor meanwhile.
 Tor is blocked in some countries. See [Tor](tor.md).
 
-## "Port 3415 is used by another program" (desktop)
+## "Port 3415 is in use by another program" (desktop)
 
 Another program, often another Epic wallet, uses the port for Link · HTTP payments. Close it, then
 press **Try again** on Receive. Epicbox, Link · Tor and Direct · File Transfer keep working
@@ -47,25 +47,26 @@ Another Epic wallet or node has the same files open. Close it and try again.
 
 ## "Wrong password" or a forgotten PIN
 
-- **Desktop:** check Caps Lock and the keyboard layout. A forgotten password: restore the wallet
-  from its recovery phrase and choose a new one.
+- **Desktop:** check Caps Lock and the keyboard layout. A forgotten password: **Forgot password?** on
+  the unlock screen sets a new one with the recovery phrase. See
+  [Recovery phrase](recovery-phrase.md).
 - **Phone:** **Forgot PIN?** deletes the wallet on the unlock screen; restore it from its recovery
   phrase with a new PIN. Without the phrase the EPIC cannot be recovered.
 
-## An action is greyed out: "Offline mode" or "Waiting for Tor"
+## An action is greyed out and names a mode, or says "Waiting for Tor"
 
-Offline or Tor only is on in Advanced. Set the mode back to Standard there, or wait for Tor to
-connect. See [Network modes](network-modes.md).
+A [connection mode](network-modes.md) is on under **Settings › Network & privacy**. Set the mode back
+to Normal there, or wait for Tor to connect.
 
 ## The balance looks wrong
 
-Run **Recheck balance** (desktop: **Settings › Recheck balance**; phone:
+Run **Recheck balance** (desktop: **Settings › Wallet › Recheck balance**; phone:
 **Settings › This wallet › Recheck balance**). It reads the whole blockchain again for this wallet's
 outputs.
 
 ## Payments by another wallet
 
-A row called **Sent from another wallet** or **Received by another wallet** is a payment of another
+A row called **Sent from another device** or **Received by another device** is a payment of another
 wallet that uses the same recovery phrase. The chain shows these coins spent or received, so this
 wallet lists it with the amount only.
 

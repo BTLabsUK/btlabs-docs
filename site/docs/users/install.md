@@ -6,7 +6,7 @@ description: Download and install BT Wallet on each platform.
 # Install
 
 Every release is on the download page:
-**[examples.btlabs.uk/epic-cash-wallets](https://examples.btlabs.uk/epic-cash-wallets/)**.
+**[epiccash.btlabs.uk/releases](https://epiccash.btlabs.uk/releases/)**.
 Each file has its SHA-256 checksum under it, and `SHA256SUMS` sits next to the files.
 
 | Device | Needs |
@@ -36,8 +36,8 @@ Windows may warn that the publisher is unknown. Check the checksum, then choose 
    - In a terminal, from the download folder (put in the version you downloaded):
 
      ```bash
-     chmod +x bt-wallet-26.11.0-linux-x86_64.AppImage
-     ./bt-wallet-26.11.0-linux-x86_64.AppImage
+     chmod +x bt-wallet-26.11.4-linux-x86_64.AppImage
+     ./bt-wallet-26.11.4-linux-x86_64.AppImage
      ```
 
 The AppImage needs `fusermount3`, which default Ubuntu desktops have. Without FUSE, start it with
@@ -95,8 +95,7 @@ Every platform also has a file with `-notor` in its name: the same app with Tor 
 completely, for places where Tor is unwanted or blocked.
 
 - It cannot send to Tor (`.onion`) addresses, and has no Tor settings or Tor help.
-- From 26.10.23 it updates itself like the normal app (**Settings › About**). A build without Tor
-  from 26.10.21 or older has no updater: install 26.10.23 from the download page once.
+- It updates itself like the normal app (**Settings › About**).
 - It installs over the normal app, and the normal app over it. Wallets and settings stay; Tor
   settings read as off.
 

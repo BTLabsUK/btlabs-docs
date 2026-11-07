@@ -14,8 +14,8 @@ Epic Cash wallets use Epicbox too, and two wallets can use different servers.
 
 ## Change the server
 
-- **Desktop:** **Settings › Transactions › Epicbox**.
-- **Phone:** tap the Epicbox icon on the Wallet tab, or **Settings › Privacy & network › Epicbox**.
+- **Desktop:** **Settings › Payments › Epicbox**.
+- **Phone:** tap the Epicbox icon on the Wallet tab, or **Settings › Network & privacy › Epicbox**.
 
 The servers are listed with their state. Pick one and confirm, or type an address to filter the
 list or add a server. Choosing another server changes the part after `@`, so give the new address
@@ -26,15 +26,16 @@ another server.
 
 ## Servers in the list
 
-The list holds public Epicbox servers, among them `epicbox.epiccash.com` and the BT LABS server
-`epicbox.btlabs.uk`. The BT LABS server is in the list but is not the default. It is also reached
-over Tor at its onion address when [Tor](tor.md) is on. Its former name, `flooepicbox.btlabs.uk`,
+The list holds `epicbox.epiccash.com`, which is the default, then `epicbox.stackwallet.com`,
+`epicbox.epicnet.us` and the BT LABS server `epicbox.btlabs.uk`. The BT LABS server is reached over
+Tor at its onion address when [Tor](tor.md) is on. Its former name, `flooepicbox.btlabs.uk`,
 is retired and takes no payments: a wallet that still has an address ending in it needs to switch
 to a current server and share the new address.
 
 ## Turn Epicbox off
 
-Epicbox is a switch under **Settings › Transactions**. Off, the wallet connects to no Epicbox
+Epicbox is a switch under **Settings › Payments** on the desktop and **Settings › Transactions** on
+the phone. Off, the wallet connects to no Epicbox
 server: no Epicbox payments or invoices, and Receive shows no Epicbox address. Payments sent to the
 address wait on the server until it is on again.
 
