@@ -32,7 +32,7 @@ The script stops at once when `flutter`, `rustup`, `cargo`, `cmake` or `git` is 
 2. Builds `lepic_ffi.dll` with a static C runtime, so the library needs no runtime DLLs of its own.
 3. Runs `flutter build windows --release`, with the version from `app\pubspec.yaml`, and checks the
    exe's version information.
-4. Copies the Visual C++ runtime DLLs next to `epic_wallet.exe`.
+4. Copies the Visual C++ runtime DLLs next to `btwallet.exe`.
 5. Signs the exe, builds the installer with Inno Setup, and signs the installer.
 
 ## Options
@@ -67,5 +67,5 @@ The app keeps its data in `%USERPROFILE%\.epic_cash_desktop`. Uninstalling leave
 
 ## Portable zip
 
-`app\tool\build_windows.ps1` builds a portable folder with `epic_wallet.exe`, zipped as
-`build\epic_wallet-windows-x64-<version>.zip`, without an installer.
+`app\tool\build_windows.ps1` builds a portable folder with `btwallet.exe`, zipped as
+`app\build\bt-wallet-<version>-windows-x64-portable.zip`, without an installer.

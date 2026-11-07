@@ -35,7 +35,7 @@ Source it, do not run it:
 ```
 
 It sets user-space paths only; nothing needs `sudo`. Edit the paths at the top of the file if your
-tools live elsewhere, or set a variable again after sourcing.
+tools live elsewhere, or set a variable before sourcing.
 
 | Variable | Default |
 | --- | --- |

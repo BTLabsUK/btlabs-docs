@@ -80,6 +80,7 @@ WIKIS = {
                 'users/pairing.md', 'users/linked-devices.md', 'users/nodes.md',
                 'users/epicbox.md', 'users/tor.md', 'users/network-modes.md', 'users/privacy.md',
                 'users/backups.md', 'users/restore.md', 'users/updates.md', 'users/advanced.md',
+                'users/settings-file.md',
                 'users/how-it-works.md', 'users/troubleshooting.md', 'users/faq.md',
                 'users/glossary.md',
             ]),

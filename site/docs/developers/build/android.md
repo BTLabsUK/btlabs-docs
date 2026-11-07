@@ -60,7 +60,7 @@ Use the APK for your own testing, and do not publish it as an official release.
 ## What the script checks
 
 It checks the package name, the version name and code, the app label, the LEPIC library in the APK,
-that the native libraries are 16 KB aligned for Android 15 and newer, and that no Firebase or other
+Tor's library and licence in a build with Tor, that the native libraries are 16 KB aligned for Android 15 and newer, and that no Firebase or other
 Google push code is present. Build numbers are explained in [Releases](../releases.md).
 
 ## Variants
@@ -69,7 +69,7 @@ Google push code is present. Build numbers are explained in [Releases](../releas
 | --- | --- |
 | `WFE_TOR=0 app/tool/build_android_release.sh` | build without Tor |
 | `WFE_DIST=play app/tool/build_android_release.sh` | App Bundle for Google Play |
-| `WFE_DIST=fdroid app/tool/build_android_release.sh` | APK for F-Droid, from a prepared checkout |
+| `WFE_DIST=fdroid app/tool/build_android_release.sh` | APK for F-Droid |
 
 See [Build variants](variants.md).
 

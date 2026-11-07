@@ -28,7 +28,7 @@ const sidebars = {
     {
       type: 'category',
       label: 'Wallet care',
-      items: ['users/backups', 'users/restore', 'users/updates', 'users/advanced'],
+      items: ['users/backups', 'users/restore', 'users/updates', 'users/advanced', 'users/settings-file'],
     },
     'users/how-it-works',
     'users/troubleshooting',

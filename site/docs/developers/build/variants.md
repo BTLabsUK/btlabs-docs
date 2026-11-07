@@ -37,18 +37,18 @@ the switch.
 ## Distribution: WFE_DIST
 
 `WFE_DIST` picks where the build is meant to be installed from. It is `web` (the default), `play` or
-`fdroid` on Android, and `web` or `msstore` on Windows.
+`fdroid` on Android, `web` or `msstore` on Windows, and `appstore` on iOS.
 
 | | `web` | `play` | `fdroid` |
 | --- | --- | --- | --- |
 | For | direct download | Google Play | F-Droid |
 | Output | arm64-v8a APK | App Bundle (arm64-v8a) | arm64-v8a APK |
 | In-app updater | yes | no | no |
-| QR scanner | `mobile_scanner` (Google ML Kit) | `mobile_scanner` (Google ML Kit) | `camera` and `flutter_zxing` |
+| QR scanner | `camera` and `flutter_zxing` | `camera` and `flutter_zxing` | `camera` and `flutter_zxing` |
 | Tor | Tor Project binary | Tor Project binary | built from source |
 | File name | `bt-wallet-<v>-android-arm64-v8a.apk` | `bt-wallet-<v>-play-android.aab` | `bt-wallet-<v>-fdroid-android-arm64-v8a.apk` |
 
-No build contains Firebase or other Google push code. The app id and signing key are the same in all
+No build contains Google ML Kit, Play services, Firebase or other Google push code. The app id and signing key are the same in all
 three. `tools/dist-check.sh` runs on every output of `build_android_release.sh` and fails a build
 that has what its distribution must not have.
 
@@ -62,20 +62,15 @@ Add `WFE_EMULATOR_X86_64=1` to also build an x86_64 APK for emulator tests.
 
 ### F-Droid
 
-The F-Droid build swaps the QR scanner for one without Google libraries, so the checkout has to be
-prepared first. Do this in a fresh clone, never in a working tree: the preparation edits files.
-
 ```bash
-git clone <wallet-for-epic repository> build-copy
-cd build-copy && git checkout <tag or commit>
-tools/dist-prep.sh fdroid                 # add --dry-run to list the edits only
+tools/dist-prep.sh fdroid
 WFE_DIST=fdroid app/tool/build_android_release.sh <out dir>
 ```
 
-`dist-prep.sh fdroid` replaces `mobile_scanner` with `camera` and `flutter_zxing` in
-`app/pubspec.yaml`, switches the scanner screens to the free backend, installs
-`pubspec.fdroid.lock`, and fails if anything still names Firebase, Play services or ML Kit. The
-build script then builds Tor from source with `tools/build-tor-android.sh`.
+`dist-prep.sh fdroid` changes no files. It fails if `app/pubspec.yaml`, `app/pubspec.lock`,
+`app/lib` or `app/android` still names Firebase, Play services or ML Kit. The build script then
+gets the packages `app/pubspec.lock` pins and builds Tor from source with
+`tools/build-tor-android.sh`.
 
 The F-Droid recipe is prepared but not yet submitted.
 
