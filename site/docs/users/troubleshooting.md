@@ -13,7 +13,7 @@ busy port.
 Sending opens when the node has caught up. Wait, or choose another node: **Settings › Node** on the
 desktop, the node icon on the Wallet tab on the phone. See [Nodes](nodes.md).
 
-## "Epicbox not answering"
+## "Epicbox not connected" or "Epicbox server not answering"
 
 The wallet cannot reach its Epicbox server. If it stays like this, check the connection or pick
 another server ([Epicbox](epicbox.md)). Meanwhile **Direct · File Transfer** works.

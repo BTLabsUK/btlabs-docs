@@ -23,7 +23,7 @@ on paper. See [Recovery phrase](recovery-phrase.md).
 
 **Settings › Wallet › Export wallet data** on the desktop, **Settings › This wallet › Export wallet
 data** on the phone, saves the rest in one file, for example
-`epic-history-mainnet-20260930.wfeh`. On the phone, share it or save it to the device, and keep a
+`epic-wallet-data-20260930.wfeh`. On the phone, share it or save it to the device, and keep a
 copy off the phone, such as in email or cloud storage.
 
 - The file is encrypted under a key that comes from the wallet's recovery phrase. It can only be

@@ -8,13 +8,15 @@ description: Restore from the recovery phrase, bring back wallet data, and impor
 ## Restore from the recovery phrase
 
 1. Open **Restore from phrase**:
-   - **Desktop:** on the first screen, **Unlock › Add a wallet**, or **Settings › Wallets**.
+   - **Desktop:** on the first screen, or, from the Deeper view, **Unlock › Add a wallet** or
+     **Settings › Wallets**.
    - **Phone:** on the first screen, or under **Settings › This wallet**.
 2. Enter the words. If every word is in the word list but the phrase does not check out, a word is
    wrong or out of order.
 3. Choose a password (desktop) or a PIN (phone).
 4. The wallet opens and scans the blockchain for its outputs. The balance appears after that first
-   scan; the payments it finds are labelled **Restored**.
+   scan; the payments it finds are labelled **Restored** on the desktop, **Found on the chain** on the
+   phone.
 
 A restore can start the scan from a later block or date, which is faster when you know the wallet
 is newer than that.

@@ -79,7 +79,7 @@ commit. See [lepic-flutter](lepic-flutter.md).
   or IntelliJ with the Flutter plugin. Point the SDK path at the Flutter version above.
 - **Rust**: open the LEPIC folder with rust-analyzer. The repository's `.editorconfig` sets UTF-8,
   LF line endings, a final newline, four-space indents, and two for Markdown, YAML, JSON and TOML.
-- Format and lint before you commit: `cargo fmt` and `cargo clippy` for LEPIC, `dart format` and
-  `flutter analyze` for the app.
+- Format and lint before you commit: `cargo fmt` and `cargo clippy` for LEPIC, `flutter analyze` for
+  the app. Do not run `dart format` on the app.
 - Linux desktop runs need the GTK 3 and `libsecret` development packages, plus `clang`, `cmake`,
   `ninja-build` and `pkg-config`.
