@@ -14,7 +14,7 @@ The wallet's seed never sits on disk in the clear.
 
 - **The vault.** LEPIC encrypts the seed under the wallet password with XChaCha20-Poly1305, the key
   derived with Argon2id, and writes the result (`lepic.vault`) into a secret store the app provides.
-  The app requires at least eight characters for a new password.
+  LEPIC checks no password length; the app sets its own rule (ADR 0036).
 - **The secret store** is the platform's own:
 
 | Platform | Secret store |
@@ -27,9 +27,8 @@ The wallet's seed never sits on disk in the clear.
 | `lepic` CLI | A vault file on disk, the same encryption |
 
 - **PIN unlock.** LEPIC generates a random wallet password, seals it under the PIN together with a
-  random PIN key that it writes into the secret store, and gives the app only the sealed text. The
-  sealed text alone, or with the vault, does not reveal the PIN. A new PIN has at least six
-  characters. Failed password and PIN attempts are counted in the store. After three failures each
+  random PIN key that it writes into the secret store, and gives the app only the sealed text. A
+  PIN has at least six characters by default. Failed password and PIN attempts are counted in the store. After three failures each
   attempt waits first: 30 seconds, doubling with each further failure, to at most one hour. These
   are LEPIC's defaults (`PinSettings`).
 - **Recovery phrase.** Shown only after the password or PIN is checked, for the backup screen. It
@@ -65,12 +64,13 @@ boundary.
 
 ## Wallet data at rest
 
-- **Database.** SQLite with a real schema and forward-only migrations. On Windows, Android and Linux
-  it is encrypted at rest with SQLite3 Multiple Ciphers: every 4 KiB page is sealed with
-  ChaCha20-Poly1305 under a key derived from the seed. The key never leaves Rust, so a password
-  change does not re-key the file (ADR 0032).
-- **Data folder.** On Linux and macOS it is readable only by its owner. On Windows it is restricted
-  to its owner.
+- **Database.** SQLite with forward-only schema migrations. The database file and its write-ahead
+  log are encrypted page by page with SQLite3 Multiple Ciphers: every 4 KiB page is sealed with
+  ChaCha20-Poly1305 under a key derived from the seed (`wallet.enc.sqlite3`). The key stays in
+  Rust, so a password or PIN change does not re-key the file. A wrong key or an altered page reads
+  as "not a database" (ADR 0032). File sizes and change times stay visible.
+- **Files.** On Unix the database and its key check file are created with mode 0600. Temporary
+  tables and sorts stay in memory.
 - **Private transaction context** (blinding factors and nonces of a transaction in progress) is
   sealed with XChaCha20-Poly1305 under a key derived from the wallet's root key. The slate id and
   participant are authenticated as associated data, so a sealed context copied to another row does
@@ -93,13 +93,14 @@ Everything from the network, a file, a peer, a node or the host app is untrusted
 - **Bounded work.** Untrusted input may cause only bounded work, and only validated data becomes
   stored state. Frames, files, responses, counts and messages have size limits checked before
   parsing.
-- **The node is treated as hostile.** Response sizes are capped and every field is validated.
-  Commitments that were not requested or appear twice are refused, as are heights above the tip.
-  An output is marked spent only after two answers agree it is missing.
+- **The node is treated as hostile.** Response sizes are capped (8 MiB) and every field is
+  validated. Commitments that were not requested or appear twice are refused, as are heights above
+  the tip. An output the node does not hold is marked spent only after a second request misses it
+  too.
 - **Slates.** Decoding is strict: exact hex lengths, valid curve points, bounded counts and sizes.
-  Finalize compares every field the sender set with the stored S1 and accepts exactly one added
-  output, then validates the whole transaction before storing it. Payment proofs are verified with
-  strict ed25519 checks.
+  Finalize compares the fields the sender set with the stored S1 and validates the whole
+  transaction before storing it. Payment proof signatures are verified with strict ed25519
+  checks.
 - **Fuzzing.** The parsers of slates, Epicbox messages, node responses, vault files and QR codes
   are fuzzed.
 
@@ -110,18 +111,19 @@ Everything from the network, a file, a peer, a node or the host app is untrusted
 - **Acknowledge after store.** A message is acknowledged to the relay only after its effect is
   stored, or after it was rejected for good. A crash between receive and store loses nothing: the
   relay delivers it again.
-- Inbound processing is idempotent: a redelivered or repeated slate is not a second payment.
-- LEPIC notices (non-slate messages about invoices) go only to peers that proved they run LEPIC.
+- LEPIC notices (JSON messages about declined, withdrawn, posted and cancelled transactions) go
+  only to a peer proven to run LEPIC (ADR 0016).
 
-Protocol detail is on the [Epic Cash developer docs](https://devdocs.btlabs.uk).
+The message format is in LEPIC's
+[Epicbox protocol page](https://github.com/BTLabsUK/lepic/blob/main/docs/protocols/epicbox.md).
 
 ## Tor
 
 On desktop and Android each open wallet runs its own tor process (ADR 0018). See also the
 user guide's [Tor](../users/tor.md) page.
 
-- **Ephemeral onion.** The onion service is added over tor's control port with `ADD_ONION` and
-  `DiscardPK`. Its key is derived from the seed in memory, never written to disk and never logged.
+- **Ephemeral onion.** The onion service is added over tor's control port with `ADD_ONION
+  ED25519-V3` and the `DiscardPK` flag. Its key is derived from the seed in memory, never written to disk and never logged.
   No hidden-service directory exists.
 - **Control port** with `SAFECOOKIE` authentication, so the cookie never crosses the connection.
   Tor exits with the wallet process. No shell is involved in starting it.
@@ -131,7 +133,7 @@ user guide's [Tor](../users/tor.md) page.
 - **TLS stays end to end.** With Epicbox or the node over Tor, only the byte stream changes: the
   TLS server name and certificate check stay the relay's or node's domain.
 - **Nothing unencrypted through an exit.** LEPIC refuses a plain `http` node for any host but
-  loopback and `.onion`, and plain websockets to a remote relay. While Tor is on, the app's plain
+  loopback and an onion address reached through Tor (ADR 0006). While Tor is on, the app's plain
   `http://` sends to another device are off.
 
 ## Contacts, invoices and linked devices
