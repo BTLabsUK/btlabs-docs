@@ -1,146 +1,123 @@
 ---
 title: Upstream compatibility
-description: How LEPIC matches epic-wallet and the Epic node, where it is the same byte for byte, where it is stricter, and what it adds.
+description: How LEPIC stays compatible with epic-wallet and the Epic node, where it adds checks, and which formats it adds.
 ---
 
 # Upstream compatibility
 
-LEPIC is a new implementation of the Epic Cash wallet, not a fork of `epic-wallet`. It must
-still produce and accept exactly what `epic-wallet` and the Epic node produce and accept on every
-method it supports. This page explains how that is kept true, and where LEPIC deliberately
-differs.
+LEPIC is an implementation of the Epic Cash wallet written from scratch; it does not link `epic-wallet`
+or the Epic node. It reads and writes the formats of `epic-wallet` and the node, so a LEPIC wallet
+and a stock wallet can exchange slates, Epicbox messages and foreign API calls. This page explains
+how that is kept true, where LEPIC adds checks of its own, and which formats exist only between
+LEPIC wallets.
 
-Review notes for each upstream release are in LEPIC's
-[compatibility notes](https://github.com/BTLabsUK/lepic/tree/main/docs/compat).
+LEPIC's [compatibility notes](https://github.com/BTLabsUK/lepic/tree/main/docs/compat) write up
+each format and the review of each upstream release.
 
 ## How compatibility is kept
 
-- **One target release.** LEPIC targets the latest release of
+- **One reference release.** The reference is the latest release of
   [`epic-wallet`](https://github.com/EpicCash/epic-wallet/releases) and of the
-  [Epic node](https://github.com/EpicCash/epic/releases), pinned to exact commits: [ADR 0020](https://github.com/BTLabsUK/lepic/blob/main/docs/adr/0020-reference-epic-wallet-4-1.md) and [ADR 0038](https://github.com/BTLabsUK/lepic/blob/main/docs/adr/0038-reference-node-4-1-2.md) name
-  them, and [`interop/pins.env`](https://github.com/BTLabsUK/lepic/blob/main/interop/pins.env) holds the tags the interop suite builds. Moving to a new release means new pins, new test data and a review of every
-  upstream change, module by module.
-- **The built-in node.** The desktop app bundles the latest
-  [Epic node release](https://github.com/EpicCash/epic/releases) as its built-in node.
-- **Port, not depend.** LEPIC ports the behaviour it needs into its own crates instead of linking
-  the Epic crates, which would bring mining and chain-storage code into a phone build (ADR 0001).
-  The one Epic library it links is
-  [rust-secp256k1-zkp](https://github.com/EpicCash/rust-secp256k1-zkp), vendored from a pinned
-  commit with the changes listed in
+  [Epic node](https://github.com/EpicCash/epic/releases), pinned to exact commits. The tags and
+  commits are in [`interop/pins.env`](https://github.com/BTLabsUK/lepic/blob/main/interop/pins.env)
+  and in ADRs
+  [0020](https://github.com/BTLabsUK/lepic/blob/main/docs/adr/0020-reference-epic-wallet-4-1.md)
+  and [0038](https://github.com/BTLabsUK/lepic/blob/main/docs/adr/0038-reference-node-4-1-2.md).
+- **Port, do not depend.** LEPIC ports the behaviour it needs into its own crates (ADR 0001).
+  `Cargo.lock` holds no `epic_*` package. The one library of Epic origin it links is
+  `grin_secp256k1zkp`, vendored in `third_party/` with its changes listed in
   [`PATCHES.md`](https://github.com/BTLabsUK/lepic/blob/main/third_party/grin_secp256k1zkp/PATCHES.md).
-- **Golden vectors.** A separate conformance workspace runs the pinned reference code and writes
-  test vectors: keys, proofs, signatures, slates at every stage, Epicbox messages. LEPIC's tests
-  must reproduce them byte for byte, without access to the reference code (ADR 0009). Where a
-  vector and a document disagree, the vector wins.
-- **Differential tests** run the reference code and LEPIC side by side on the same inputs.
-- **Interop suite.** `interop/` builds the public Epicbox relay, the node and
-  `epic-wallet` from source at the pinned tags and runs LEPIC against them on a private Docker network with
-  no route out.
-- **Upstream drift check.** `upstream.toml` records, for each ported module, the upstream files and
-  commit it came from. `cargo xtask upstream-drift` lists upstream commits that touched those
-  files since. It runs every week and reports changes not yet reviewed.
+- **Golden vectors.** The `conformance/` workspace runs the pinned reference code and writes JSON
+  vectors under `testdata/vectors/<area>/`. The areas are `aggsig`, `app_data`, `engine`,
+  `epicbox`, `keys`, `pairing`, `primitives`, `slates`, `slates_native`, `smoke`, `store` and
+  `store_key`. LEPIC's tests reproduce them without the reference code (ADR 0009). Where sources disagree, golden vectors and
+  running code rank above ADRs, and ADRs above the compatibility notes.
+- **Differential tests.** The conformance workspace's `differential` member runs the reference
+  code and LEPIC on the same inputs.
+- **Interop stack.** `interop/` builds the reference node, `epic-wallet` and an Epicbox relay at
+  the pinned commits and runs LEPIC against them on a Docker private network with no route out.
+- **Drift check.** `upstream.toml` has one `[[module]]` entry per ported module with its `path`,
+  its upstream repository and files, and the upstream commit it follows.
+  `cargo xtask upstream-drift` lists the upstream commits that touched those files after that
+  commit and exits with code 2 when there are any. A scheduled CI job runs it.
 
 ```bash
 cargo xtask vectors verify    # replay every golden vector
-cargo xtask upstream-drift    # upstream commits since the recorded pins
+cargo xtask upstream-drift    # upstream commits after the recorded ones
 ```
 
-The formats LEPIC matches are written up in its
-[compatibility notes](https://github.com/BTLabsUK/lepic/tree/main/docs/compat):
-legacy slates, Epicbox, keys and proofs, the node API, the foreign API, transaction states, the
-`epic-wallet` database, the `ur:epic-slate` format, the `.wfeh` backup format and the secp256k1-zkp
-fork. Protocol-level documentation is on the
-[Epic Cash developer docs](https://devdocs.btlabs.uk).
+## Formats LEPIC matches
 
-## The same, byte for byte
-
-These are pinned by golden vectors from the reference code:
-
-| Area | What matches |
+| Area | What LEPIC matches |
 |---|---|
-| Seed and keys | BIP39 English, the entropy as the BIP32 input, the same master key, child derivation and identifier format |
-| Commitments and proofs | Switch commitments, both range-proof builders, tried in the same order on restore |
-| Kernels and fees | Kernel signature message and hash, fee and weight formula, body serialization and read-check order, kernel sums |
-| Signatures | Aggregate signature calls and argument order |
-| Addresses | Epicbox address and payment-proof key, so both survive a restore |
-| Epicbox | Message encryption, frames and signed texts, the same JSON |
-| Slates | Legacy V2 and V3 JSON, quirks included: integers as strings, nulls, version header, key order |
-| Wallet logic | Output selection, change splitting, the fee check on receive, confirmation counting |
-| Node API | The same foreign JSON-RPC calls and parameters |
-| Import | The `wallet.seed` file format, read-only |
+| Seed and keys | BIP-39 English phrases, BIP32 derivation, commitments, range proofs and the key identifier format |
+| Kernels and fees | Kernel message and signature, fee and weight rules, aggregate signatures |
+| Slates | V2 and V3 JSON, including the version header and the encoding of numbers |
+| Foreign API | JSON-RPC 2.0 at `/v2/foreign` with `check_version`, `receive_tx` and `build_coinbase` |
+| Epicbox | Relay frames, `key@domain` addresses and the message cipher |
+| Import | The `wallet.seed` file and the `epic.db` history, read-only |
 
-## Where LEPIC is stricter, and why
+The foreign listener answers `check_version` and `receive_tx`. `build_coinbase` is served only when
+the host turns it on, to this computer unless the host opens it further (ADR 0046, ADR 0048). Any
+other method answers JSON-RPC error `-32601`.
 
-None of these affect a slate, message or response that `epic-wallet` or the node produces.
+## Checks LEPIC adds
 
-- **Input.** LEPIC refuses data upstream would read but never writes: key paths deeper than the
-  format allows, malformed integer strings, a plain kernel with a lock height, kernel features
-  that disagree with the slate, commitments and public keys that are not curve points, range
-  proofs outside the size bounds, received participant messages over 256 bytes. Rejecting at
-  decode keeps bad data out of storage.
-- **Finalize.** Every field the sender set is compared with the stored S1, exactly one added
-  output is accepted, and the whole transaction is validated before it is stored. Payment proofs
-  are verified with strict ed25519 checks.
-- **Receive.** The TTL is checked against the node's tip, zero amounts and fees below the minimum
-  are refused, and a repeated S1 is answered with the stored S2 instead of an error. The receiver
-  keeps no private context.
-- **Cancel.** A posted transaction cannot be cancelled. When the other side could complete the
-  transaction alone, the node's pool and chain are asked for the kernel first, and a cancelled
-  send stays watched so its outputs come back if it is mined after all.
-- **Scan and refresh.** The same walk over the chain, but each page is checkpointed so a scan can
-  resume, an output is marked spent only after two missing answers, and heights above the tip are
-  refused. Node responses are size-capped and validated field by field.
-- **Epicbox.** Frames are size-limited before parsing, the signature is verified before the
-  content is parsed, and a message is acknowledged only after its effect is stored, so a crash
-  between receive and store does not lose a slate.
-- **Tor.** The onion service is published ephemerally over tor's control port, so its key is never
-  on disk; names resolve inside tor; TLS still checks the relay's or node's domain.
-- **Storage.** SQLite with a real schema instead of a key-value layout, the database encrypted at
-  rest (ADR 0032), private transaction context sealed on its own, seeds in the platform keystore
-  or an Argon2id vault.
-- **Transaction states.** Explicit states (sent, received, finalized, posted, confirmed,
-  cancelled, expired) with a checked transition table, mapped one to one onto upstream's types, so
-  an imported `epic-wallet` history reads back correctly.
+These checks apply to input and to storage. They do not change what a conforming wallet or node
+produces.
 
-## New, with no upstream equivalent
+- **Decoding.** Slates are decoded strictly and limited to `MAX_WIRE_SLATE_LEN` (8 MiB). Slate
+  messages are limited to `MAX_MESSAGE_LEN` (256 bytes) and an Epicbox message to 4 MiB.
+  Commitments and public keys must be curve points. Decoding rejects what it cannot encode back
+  (ADR 0002).
+- **Finalize and receive.** Finalize compares the sender's fields with the stored first message
+  and validates the whole transaction before storing it. Receive checks the time to live against
+  the node's tip.
+- **Cancel and release.** A posted transaction is not cancelled. A cancelled, released or expired
+  transaction stays watched, first by its kernel and then by its outputs, so its outputs return if
+  the peer completes it (`lepic-wallet/src/release.rs`).
+- **Refresh.** An unspent or locked output the node does not hold is marked spent once a second
+  request misses it too.
+- **Epicbox.** A message is acknowledged only after the store holds its effect, so a crash between
+  receipt and storage does not lose a slate (ADR 0004).
+- **Storage.** SQLite with one table per record kind (ADR 0028), the database encrypted at rest
+  (ADR 0032), and the private transaction context sealed on its own.
+- **Transaction states.** A transaction is Sent, Received, Finalized, Posted, Confirmed, Cancelled
+  or Expired, and `lepic-wallet/src/state.rs` allows only the listed transitions.
 
-All of these are additive: a stock `epic-wallet` never receives anything it cannot parse.
+## Formats only between LEPIC wallets
 
-- **Contact pairing and sealed slates** (RFC 0002): an HPKE envelope with Ed25519 signatures
-  between paired wallets, carried inside ordinary Epicbox messages or files. See
-  [Security model](security-model.md#contacts-invoices-and-linked-devices).
-- **Animated QR slates** in `ur:epic-slate`, which wrap the legacy slate text unchanged.
-- **A `lepic` marker** on legacy slates, which stock wallets ignore. It is a capability hint only;
-  no signature covers it.
-- **LEPIC notices** over Epicbox about invoices and cancelled payments, sent only to peers proven
-  to run LEPIC.
-- **Contact features:** the owner's profile (ADR 0041), domain proof (ADR 0043), the contact check
-  and relay moves (ADR 0039, 0040), all inside the pairing's own envelopes.
-- **Transaction history import** from an `epic-wallet` database, checked against the seed and the
-  chain scan.
+A stock wallet never receives one of these in a form it must parse.
 
-## Differences stated openly
+- **The LEPIC marker.** V2 and V3 slates may carry `"lepic":{"version":1}`, which stock wallets
+  ignore and drop. Over Epicbox it also holds the feature bits the wallet claims, inside the
+  encrypted message; a file or pasted slate may hold a reply key for a sealed answer.
+- **EPICTX native slates.** `lepic.v1` is a binary slate format with a 51-byte header
+  ([ADR 0012](https://github.com/BTLabsUK/lepic/blob/main/docs/adr/0012-native-slate-format.md),
+  [ADR 0052](https://github.com/BTLabsUK/lepic/blob/main/docs/adr/0052-legacy-at-the-edge-native-between-lepic-wallets.md)).
+  It is off unless the host turns it on (`WalletConfig::native_direct`).
+- **Contact pairing and sealed slates.** A sealed envelope (HPKE, Ed25519 signatures) between
+  paired wallets, carried inside Epicbox messages or files. The owner's profile (ADR 0041), the
+  domain proof (ADR 0043), the contact check (ADR 0040) and relay moves (ADR 0039) use the same
+  envelopes.
+- **Notices.** JSON messages over Epicbox about declined, withdrawn, posted and cancelled
+  transactions (ADR 0016).
+- **Animated QR slates.** BC-UR `epic-slate` parts (ADR 0025).
+- **History import.** The `epic.db` history of an `epic-wallet` wallet, checked against the seed and
+  the chain scan (ADR 0019).
 
-- **Minimum confirmations.** Outputs become spendable after 6 confirmations by default, a
-  per-wallet setting of at least 1 (BT Wallet allows 1 to 30). `epic-wallet`'s command line defaults to 10 (ADR 0027).
-- **Slate files are V3.** LEPIC writes every slate file in the V3 shape, which `epic-wallet` reads;
-  `epic-wallet` writes V2 unless the slate needs V3. Compatibility of files is shown by the
-  differential and interop suites, not by byte equality (ADR 0015).
-- **Foreign API.** The HTTP listener serves `check_version` and `receive_tx`. `build_coinbase` is
-  off unless the host turns it on, and then answers this computer only unless the host opens it
-  further; Tor's listeners never serve it (ADR 0046, 0048). Every other method is answered "method
-  not found". Invoices travel over Epicbox.
-- **Node status.** LEPIC uses only the node's foreign API and judges sync from the tip and the
-  version, because public nodes do not expose the owner API.
-- **Epicbox message encryption** is kept exactly as `epic-wallet` defines it, so the two can talk.
-  LEPIC's own sealed envelope is a separate layer for paired contacts.
-- **The onion has its own key.** In `epic-wallet` the onion address and the Epicbox address derive
-  from one key. LEPIC derives the onion key from the seed under a label of its own (ADR 0044), so
-  its onion address differs from what `epic-wallet` prints for the same phrase. The earlier address
-  stays available as `previous_onion_address`; BT Wallet does not publish it.
+## Where LEPIC chooses differently
+
+- **Slate files are V3.** The file method writes V3 and reads V2 or V3; a reply goes to
+  `<path>.response` (ADR 0015).
+- **Minimum confirmations.** The default is 6. It is a per-wallet setting of at least 1 (ADR 0027).
+- **The onion has its own key.** The onion key is derived from the seed under the label
+  `lepic-wallet onion key v1`, apart from the Epicbox key (ADR 0044).
+- **Epicbox.** The relay cipher follows `epic-wallet`. The sealed envelope for paired contacts is a
+  separate layer on top.
 
 ## Related pages
 
-- [Architecture decisions](decisions.md): ADR 0001, 0009 and 0020 in particular.
+- [Architecture decisions](decisions.md), in particular ADRs 0001, 0009, 0020 and 0038
 - [LEPIC](lepic.md)
 - [Testing](testing.md)
