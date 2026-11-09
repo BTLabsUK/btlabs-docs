@@ -41,6 +41,26 @@ To build from local checkouts of LEPIC or lepic-flutter instead, point `LEPIC_RE
 `build` refuses to run when a clone is not at its pin or has local changes. To work on LEPIC itself,
 see [Dev environment](../dev-environment.md) and [LEPIC](../lepic.md).
 
+## Building LEPIC on its own
+
+LEPIC builds without the app. In a LEPIC checkout, the pinned Rust from `rust-toolchain.toml` is
+all it needs:
+
+```bash
+cargo build --release                      # every crate and the lepic command-line wallet
+cargo xtask install                        # build lepic and copy it to ~/.local/bin
+cargo xtask install --dir ~/bin            # or to another directory
+cargo xtask mobile --package               # liblepic_ffi into dist/native/<rust triple>/
+```
+
+`cargo xtask mobile --package` builds release `lepic-ffi` for the mobile targets, and for the
+desktop target of a Linux or Windows host, or only for each `--target <triple>` you give. It writes
+a `SHA256SUMS` beside each library. `--no-tor` builds without Tor (default folder
+`dist/native-no-tor`), `--mock` adds the scripted node and relay (`dist/native-mock`), and
+`--out <dir>` names the folder. `tool/lepic.sh build` in lepic-flutter
+calls it. The Android targets need the NDK and `cargo-ndk`; see
+[Dev environment](../dev-environment.md).
+
 ## Quick dev run
 
 ```bash

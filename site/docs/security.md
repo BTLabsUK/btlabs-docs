@@ -26,6 +26,12 @@ Anything in BT Wallet, LEPIC or lepic-flutter that can:
 - make the wallet accept an invalid transaction;
 - crash it from untrusted input: node responses, Epicbox messages, slates, files, QR codes.
 
+For lepic-flutter, the scope is its boundary with the native library: a secret that crosses into
+Dart, the logs or the platform, and how `hook/build.dart` loads and verifies the library (the
+checksum, the pinned source and the feature checks). Wallet logic, keys, storage and parsing belong
+to LEPIC; you do not need to decide which repository a report belongs to, since one address covers
+all three.
+
 ## Out of scope
 
 Issues in the Epic Cash node, the reference `epic-wallet` or the Epicbox relay belong to those
@@ -34,7 +40,8 @@ support@btlabs.uk only what is needed to protect users of these apps.
 
 ## Supported versions
 
-LEPIC is pre-1.0. Only the latest release of BT Wallet and of LEPIC receives fixes.
+LEPIC and lepic-flutter are pre-1.0. Only the latest release of BT Wallet, LEPIC and lepic-flutter
+receives fixes.
 
 How the wallet protects keys and handles untrusted input is described in the
 [Security model](developers/security-model.md).
