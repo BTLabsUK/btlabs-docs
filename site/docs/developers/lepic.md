@@ -145,7 +145,7 @@ lepic --network floonet wallet info   # balances, from the node at 127.0.0.1:134
 | `node` | `status` |
 | `contact` | `invite`, `accept`, `list`, `check`, `move`, `move-home`, `allow-invoices`, `invoice`, `collect` |
 | `profile` | `show`, `set`, `domain` |
-| `serve` | Holds the wallet open and answers commands sent with `--service` |
+| `serve` | Holds the wallet open and answers the wallet API (`/api/v1`) on a local socket; other `lepic` commands on that wallet run through it |
 
 Settings come from a flag, an environment variable (`LEPIC_*`), the config file
 `~/.lepic/config.toml`, or the default, in that order. Servers come from `~/.lepic/settings.toml`,
