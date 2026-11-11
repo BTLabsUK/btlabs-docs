@@ -89,7 +89,9 @@ receive it.
 
 **0025 Slates as animated QR codes in `ur:epic-slate`.** *Accepted.* Two phones exchange a slate
 as a looping sequence of QR codes (BC-UR, deflated slate text). The codes are not encrypted, and
-the method is offered on mobile only.
+the method is offered on mobile only. Since ADR 0056 a payment file goes in the codes as its native
+`lepic.v1` bytes, about half the parts, with deflated text where those cannot carry it; readers
+take both.
 
 ## Epicbox and direct transactions
 
