@@ -151,7 +151,9 @@ lepic --network floonet wallet info   # balances, from the node at 127.0.0.1:134
 The interactive shell asks for the password once, keeps the wallet open and takes `lepic`
 commands without `lepic`. A status line under the input shows the wallet, balance, height,
 network, Tor and the API. Tab completes commands and options; a send shows a review and asks
-before it goes. The wallet locks after 15 minutes idle (`shell_idle_lock_minutes`). On Linux and
+before it goes. Addresses, epic1 links and invites are drawn as QR codes under their text
+(`--qr` outside the shell), and an epic1 payment ends with a short seal animation that never
+holds the send back. The wallet locks after 15 minutes idle (`shell_idle_lock_minutes`). On Linux and
 macOS, `serve start` and `serve stop` run the wallet API inside the session; on Windows the
 shell runs without serve.
 
