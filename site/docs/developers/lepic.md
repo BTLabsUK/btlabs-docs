@@ -146,6 +146,14 @@ lepic --network floonet wallet info   # balances, from the node at 127.0.0.1:134
 | `contact` | `invite`, `accept`, `list`, `check`, `move`, `move-home`, `allow-invoices`, `invoice`, `collect` |
 | `profile` | `show`, `set`, `domain` |
 | `serve` | Holds the wallet open and answers the wallet API (`/api/v1`) on a local socket; other `lepic` commands on that wallet run through it |
+| `shell` | Opens the interactive shell, which `lepic` with no command also opens at a terminal |
+
+The interactive shell asks for the password once, keeps the wallet open and takes `lepic`
+commands without `lepic`. A status line under the input shows the wallet, balance, height,
+network, Tor and the API. Tab completes commands and options; a send shows a review and asks
+before it goes. The wallet locks after 15 minutes idle (`shell_idle_lock_minutes`). On Linux and
+macOS, `serve start` and `serve stop` run the wallet API inside the session; on Windows the
+shell runs without serve.
 
 Settings come from a flag, an environment variable (`LEPIC_*`), the config file
 `~/.lepic/config.toml`, or the default, in that order. Servers come from `~/.lepic/settings.toml`,
