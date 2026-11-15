@@ -86,7 +86,7 @@ export default function Home() {
   return (
     <Layout
       title="BT Wallet documentation"
-      description="Documentation for BT Wallet for Epic Cash, desktop and mobile, and the LEPIC wallet core: install, use, build and review.">
+      description="Documentation for BT Wallet for Epic Cash, desktop and mobile, and LEPIC, the Epic Cash client library and CLI: install, use, build and review.">
       <main className="btw">
         <header className="btwHero">
           <div className="btwWrap btwHeroIn">

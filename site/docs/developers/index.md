@@ -5,14 +5,14 @@ description: The three repositories behind BT Wallet, and where to start reading
 
 # Developer guide
 
-BT Wallet is one Flutter app, for desktop and phone, on top of LEPIC, a wallet core written in
-Rust. Three repositories, all under the Apache License 2.0:
+LEPIC is an Epic Cash client library and command-line wallet written in Rust. BT Wallet, one
+Flutter app for desktop and phone, is built on it. Three repositories, all under the Apache License 2.0:
 
 | Repository | Language | What it is |
 | --- | --- | --- |
 | [wallet-for-epic](https://github.com/BTLabsUK/wallet-for-epic) | Dart, Flutter | The app: desktop and phone interfaces, build and release scripts |
 | [lepic-flutter](https://github.com/BTLabsUK/lepic-flutter) | Dart, Rust glue | The Flutter binding: the Dart API over LEPIC and the native build hook |
-| [lepic](https://github.com/BTLabsUK/lepic) | Rust | LEPIC: the wallet engine, its crates, the `lepic` CLI and the FFI API |
+| [lepic](https://github.com/BTLabsUK/lepic) | Rust | LEPIC: the wallet engine, its crates, the `lepic` CLI and service API, and the FFI API |
 
 ```text
  BT Wallet, desktop and phone   (wallet-for-epic, Flutter)
