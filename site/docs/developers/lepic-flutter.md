@@ -71,6 +71,13 @@ final wallet = await EpicWallet.create(
   and transport changes; `logs()` streams redacted log records.
 - Every failure is a thrown `WalletError` with a stable numeric `code`. Codes never change
   meaning; `message` is English for logs and holds no secret.
+- `EpicWallet.relayCancelTransaction(txId)` asks the Epicbox relay to cancel a transaction for
+  the other party and returns a `RelayCancelOutcome`: `Cancelled`, `NotFoundOrNotParticipant`,
+  `Unsupported` or `NoRelayId`. It does not cancel the transaction in the wallet; call `cancelTransaction`
+  afterwards, whatever the outcome. `TransactionDetails.relayCancellable` says whether the relay can be asked.
+- When the relay refuses a send or an invoice because the other party cancelled it, the call
+  throws a `WalletError` of kind `CancelledOnRelay` (code 115). The transaction is already
+  cancelled in the wallet.
 - A panic inside LEPIC arrives as a `WalletError` of kind `panic`; the runtime stays usable.
 - PIN unlock uses `EpicWallet.createWithPin` and `EpicWallet.openWithPin`. Failed password and
   PIN attempts are counted in the store. `PinSettings` sets the delay; by default the first three

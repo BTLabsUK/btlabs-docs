@@ -50,6 +50,16 @@ lepic --network floonet wallet info   # balances, from the node at 127.0.0.1:134
 | `serve` | Holds the wallet open and answers the wallet API (`/api/v1`) on a local socket; other `lepic` commands on that wallet run through it |
 | `shell` | Opens the interactive shell, which `lepic` with no command also opens at a terminal |
 
+`lepic tx cancel TX_ID` asks the Epicbox relay to cancel the transaction first, when it was
+posted through a relay that speaks protocol 3.1.0, and then always cancels it in the wallet.
+`--local-only` skips the relay. With `--json`, `relay` says what the relay answered:
+`cancelled`, `not_found_or_not_participant`, `no_relay_id`, `unsupported` or `failed` (with
+`relay_error`). When the other party cancels, `epicbox listen` and `epicbox drain` cancel the
+transaction here. A send the relay refuses because it was cancelled exits with code 7, and
+`lepic serve` reports it as the error code `cancelled_on_relay`. `POST /payments/{id}/cancel` in
+`lepic serve` cancels in the wallet only. The protocol is described in
+[docs/compat/epicbox.md](https://github.com/BTLabsUK/lepic/blob/main/docs/compat/epicbox.md).
+
 The interactive shell asks for the password once, keeps the wallet open and takes `lepic`
 commands without `lepic`. A status line under the input shows the wallet, balance, height,
 network, Tor and the API. Tab completes commands and options; a send shows a review and asks

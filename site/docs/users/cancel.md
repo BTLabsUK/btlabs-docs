@@ -21,6 +21,11 @@ network first and goes ahead only when the network does not have the payment.
 A payment that stays unanswered cancels by itself after 1,440 blocks (about a day), and the coins are free
 again. This holds for Epicbox, Link and Direct payments alike.
 
+When the payment went through Epicbox, Cancel also tells the Epicbox relay. A payment the other
+wallet has not opened yet is withdrawn there, and when that wallet next connects it shows the
+payment as cancelled. If the relay cannot be reached, or does not support this, the payment is
+still cancelled in your wallet, and the other wallet may keep showing it until it expires.
+
 **A send looks stuck.** Usually the other wallet is offline. Wait, or cancel it and send again; a
 cancelled payment cannot go through later.
 
@@ -29,6 +34,10 @@ cancelled payment cannot go through later.
 When a payment arrives, your wallet answers at once, and nothing of yours is locked. From then on
 the sender's wallet finishes and posts it, so Cancel is unavailable for 15 minutes, and longer while
 the sender reports it posted.
+
+If the sender cancels while your wallet is online, the payment shows as cancelled by the sender
+and nothing more is needed. A sender who has already finished and posted it cannot be stopped:
+a payment that is on the network stays, and cancelling it in your wallet does not undo it.
 
 After that, Cancel clears a payment the sender never posted. It is not certain: the wallet asks
 the network first and refuses when the payment is already there. A cancelled payment stays
