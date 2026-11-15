@@ -13,7 +13,7 @@ with other LEPIC wallets. There is no wallet server to start.
 | Use | Through |
 |---|---|
 | A Rust program | The crates, from git (see [LEPIC from Rust](#quick-start-lepic-from-rust)) |
-| A script or a service | The [`lepic` command-line wallet](#the-lepic-command-line-wallet) and `lepic serve`, its local wallet API (`/api/v1`) |
+| A script or a service | The [`lepic` command-line wallet](#the-lepic-command-line-wallet), including `lepic serve`, which holds the wallet open for other commands |
 | A desktop or mobile app | The FFI library `lepic-ffi`, through [lepic-flutter](lepic-flutter.md); BT Wallet is built this way |
 
 Repository: [github.com/BTLabsUK/lepic](https://github.com/BTLabsUK/lepic).
