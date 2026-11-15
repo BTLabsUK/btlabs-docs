@@ -1,5 +1,6 @@
 ---
 title: lepic command reference
+toc_max_heading_level: 4
 description: "Every lepic command and option, generated from the binary's own help."
 ---
 

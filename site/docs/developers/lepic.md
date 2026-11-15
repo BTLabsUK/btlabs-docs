@@ -47,12 +47,12 @@ lepic --network floonet wallet info   # balances, from the node at 127.0.0.1:134
 | `node` | `status` |
 | `contact` | `invite`, `accept`, `list`, `check`, `move`, `move-home`, `allow-invoices`, `invoice`, `collect` |
 | `profile` | `show`, `set`, `domain` |
-| `serve` | Holds the wallet open and answers the wallet API (`/api/v1`) on a local socket; other `lepic` commands on that wallet run through it |
+| `serve` | Holds the wallet open and answers the wallet API (`/api/v1`) on a local socket; many other `lepic` commands on that wallet go through it, the rest stop with exit code 5 |
 | `shell` | Opens the interactive shell, which `lepic` with no command also opens at a terminal |
 
 `lepic tx cancel TX_ID` asks the Epicbox relay to cancel the transaction first, when it was
 posted through a relay that speaks protocol 3.1.0, and then always cancels it in the wallet.
-`--local-only` skips the relay. With `--json`, `relay` says what the relay answered:
+`--local-only` skips the relay. With `--output json`, `relay` says what the relay answered:
 `cancelled`, `not_found_or_not_participant`, `no_relay_id`, `unsupported` or `failed` (with
 `relay_error`). When the other party cancels, `epicbox listen` and `epicbox drain` cancel the
 transaction here. A send the relay refuses because it was cancelled exits with code 7, and
@@ -64,15 +64,14 @@ The interactive shell asks for the password once, keeps the wallet open and take
 commands without `lepic`. A status line under the input shows the wallet, balance, height,
 network, Tor and the API. Tab completes commands and options; a send shows a review and asks
 before it goes. Addresses, epic1 links and invites are drawn as QR codes under their text
-(`--qr` outside the shell), and an epic1 payment ends with a short seal animation that never
-holds the send back. The wallet locks after 15 minutes idle (`shell_idle_lock_minutes`). On Linux and
+(`--qr` outside the shell), and an epic1 payment ends with a short seal animation that does not
+hold the send back. The wallet locks when it is idle (`shell_idle_lock_minutes`). On Linux and
 macOS, `serve start` and `serve stop` run the wallet API inside the session; on Windows the
 shell runs without serve.
 
 Settings come from a flag, an environment variable (`LEPIC_*`), the config file
 `~/.lepic/config.toml`, or the default, in that order. Servers come from `~/.lepic/settings.toml`,
-written on first use; timeouts and limits are compiled in from `lepic-config.toml`. Passwords are
-never taken from command-line arguments: they come from the file `LEPIC_PASSWORD_FILE` names,
+written on first use; timeouts and limits are compiled in from `lepic-config.toml`. There is no password argument: the password comes from the file `LEPIC_PASSWORD_FILE` names,
 `LEPIC_PASSWORD`, a hidden prompt, or one line of standard input. Plain
 `http://` and `ws://` are accepted only for a loopback host.
 
@@ -217,7 +216,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     codecs.register(Box::new(V3JsonCodec::new(base_fee)))?;
     codecs.register(Box::new(V2JsonCodec::new(base_fee)))?;
 
-    // A malformed slate is a typed error, never a panic.
+    // A malformed slate is meant to give a typed error, not a panic.
     let slate = codecs.decode(&WireSlate::text(MediaType::JSON, json))?;
     println!(
         "{} {:?}: amount {}, fee {} (base units)",

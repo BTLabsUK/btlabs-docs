@@ -41,7 +41,7 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Status`](#schema-status) |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 
 ### `GET /openapi.json` {#get-openapi-json}
 
@@ -54,7 +54,7 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: `object` |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 
 ## Wallet
 
@@ -69,7 +69,7 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Wallet`](#schema-wallet) |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 
 ### `PATCH /wallet` {#patch-wallet}
 
@@ -84,9 +84,9 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Wallet`](#schema-wallet) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 409 | Conflict with the object's state or an idempotency key (409). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 409 | Conflict with the object's state or an idempotency key |
 
 ### `PUT /wallet/password` {#put-wallet-password}
 
@@ -101,9 +101,9 @@ Role: `full`. Unix socket only.
 | Status | Meaning |
 |---|---|
 | 204 | No content |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 409 | Conflict with the object's state or an idempotency key (409). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 409 | Conflict with the object's state or an idempotency key |
 
 ### `POST /wallet/scan` {#post-wallet-scan}
 
@@ -118,10 +118,10 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 202 | Accepted: [`Wallet`](#schema-wallet) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 409 | Conflict with the object's state or an idempotency key |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
 
 ### `POST /sync` {#post-sync}
 
@@ -136,11 +136,11 @@ Role: `receive`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Wallet`](#schema-wallet) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 502 | The node or a relay failed (502). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
-| 504 | The node or a relay timed out (504). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 502 | The node or a relay failed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+| 504 | The node or a relay timed out |
 
 ### `POST /sync/boost` {#post-sync-boost}
 
@@ -157,8 +157,8 @@ Runs the poller at most every `interval_seconds` for `duration_seconds` from now
 | Status | Meaning |
 |---|---|
 | 201 | Created: [`Boost`](#schema-boost) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 
 ### `DELETE /sync/boost/{id}` {#delete-sync-boost-id}
 
@@ -177,8 +177,8 @@ The poller's window is then that of the boosts left, or its base interval.
 | Status | Meaning |
 |---|---|
 | 204 | No content |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
 
 ### `GET /accounts` {#get-accounts}
 
@@ -196,8 +196,8 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`AccountList`](#schema-accountlist) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 
 ### `POST /accounts` {#post-accounts}
 
@@ -212,9 +212,9 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 201 | Created: [`Account`](#schema-account) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 409 | Conflict with the object's state or an idempotency key (409). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 409 | Conflict with the object's state or an idempotency key |
 
 ## Payments
 
@@ -243,14 +243,16 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`PaymentList`](#schema-paymentlist) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 
 ### `POST /payments` {#post-payments}
 
 Start a payment: a send or an invoice.
 
-Role: `receive`.
+Role: at least `receive`.
+
+**Role depends on the request:** Issuing an invoice needs `receive`; a send needs `full`.
 
 Starts a send (`kind: send`, default) or an invoice (`kind: invoice`). Returns 201, or 200 with the stored payment on an idempotent repeat (same `id`, same body). A different body with the same `id` is 409 `idempotency_mismatch`; a repeat while the first call runs is 409 `in_progress`. Over owner TLS `id` is required.
 
@@ -262,15 +264,15 @@ Starts a send (`kind: send`, default) or an invoice (`kind: invoice`). Returns 2
 
 | Status | Meaning |
 |---|---|
-| 200 | Idempotent repeat: the stored payment; no money moved.: [`Payment`](#schema-payment) |
+| 200 | Idempotent repeat: the stored payment; no money moved: [`Payment`](#schema-payment) |
 | 201 | Created: [`Payment`](#schema-payment) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 422 | Valid but impossible, e.g. insufficient funds or invoice changed (422). |
-| 502 | The node or a relay failed (502). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
-| 504 | The node or a relay timed out (504). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 409 | Conflict with the object's state or an idempotency key |
+| 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
+| 502 | The node or a relay failed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+| 504 | The node or a relay timed out |
 
 ### `POST /payments/estimate` {#post-payments-estimate}
 
@@ -285,10 +287,10 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Estimate`](#schema-estimate) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 422 | Valid but impossible, e.g. insufficient funds or invoice changed (422). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
 
 ### `GET /payments/{id}` {#get-payments-id}
 
@@ -305,8 +307,8 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Payment`](#schema-payment) |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
 
 ### `PATCH /payments/{id}` {#patch-payments-id}
 
@@ -325,9 +327,9 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Payment`](#schema-payment) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
 
 ### `POST /payments/{id}/approve` {#post-payments-id-approve}
 
@@ -346,14 +348,14 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Payment`](#schema-payment) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 422 | Valid but impossible, e.g. insufficient funds or invoice changed (422). |
-| 502 | The node or a relay failed (502). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
-| 504 | The node or a relay timed out (504). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
+| 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
+| 502 | The node or a relay failed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+| 504 | The node or a relay timed out |
 
 ### `POST /payments/{id}/decline` {#post-payments-id-decline}
 
@@ -361,7 +363,7 @@ Refuse an invoice that waits for your approval, and tell the issuer.
 
 Role: `full`.
 
-Takes no body. The issuer's notice carries a fixed reason, never text of yours (no extra data is sent).
+Takes no body. The issuer's notice carries a fixed reason, not text of yours (no extra data is sent).
 
 | Parameter | In | Type | Description |
 |---|---|---|---|
@@ -372,10 +374,10 @@ Takes no body. The issuer's notice carries a fixed reason, never text of yours (
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Payment`](#schema-payment) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
-| 409 | Conflict with the object's state or an idempotency key (409). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
 
 ### `POST /payments/{id}/finalize` {#post-payments-id-finalize}
 
@@ -394,13 +396,13 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Payment`](#schema-payment) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 502 | The node or a relay failed (502). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
-| 504 | The node or a relay timed out (504). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
+| 502 | The node or a relay failed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+| 504 | The node or a relay timed out |
 
 ### `POST /payments/{id}/deliver` {#post-payments-id-deliver}
 
@@ -419,19 +421,21 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Payment`](#schema-payment) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 502 | The node or a relay failed (502). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
-| 504 | The node or a relay timed out (504). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
+| 502 | The node or a relay failed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+| 504 | The node or a relay timed out |
 
 ### `POST /payments/{id}/post` {#post-payments-id-post}
 
 Post a finished payment to the node again.
 
-Role: `receive`.
+Role: at least `receive`.
+
+**Role depends on the request:** Posting an invoice this wallet issued needs `receive`; posting a send needs `full`.
 
 | Parameter | In | Type | Description |
 |---|---|---|---|
@@ -444,19 +448,21 @@ Role: `receive`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Payment`](#schema-payment) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 502 | The node or a relay failed (502). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
-| 504 | The node or a relay timed out (504). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
+| 502 | The node or a relay failed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+| 504 | The node or a relay timed out |
 
 ### `POST /payments/{id}/cancel` {#post-payments-id-cancel}
 
 End a payment that is not on the chain and free its coins.
 
-Role: `receive`.
+Role: at least `receive`.
+
+**Role depends on the request:** Cancelling an invoice this wallet issued while it awaits its answer needs `receive`; every other cancel or release needs `full`.
 
 Covers today's `cancel` and `release`. Cancelling a cancelled payment returns it unchanged.
 
@@ -469,12 +475,12 @@ Covers today's `cancel` and `release`. Cancelling a cancelled payment returns it
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Payment`](#schema-payment) |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 502 | The node or a relay failed (502). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
-| 504 | The node or a relay timed out (504). |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
+| 502 | The node or a relay failed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+| 504 | The node or a relay timed out |
 
 ### `GET /payments/{id}/handoff` {#get-payments-id-handoff}
 
@@ -494,10 +500,10 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Handoff`](#schema-handoff) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
-| 409 | Conflict with the object's state or an idempotency key (409). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
 
 ## Inspect and open
 
@@ -514,17 +520,19 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Inspection`](#schema-inspection) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 502 | The node or a relay failed (502). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
-| 504 | The node or a relay timed out (504). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 502 | The node or a relay failed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+| 504 | The node or a relay timed out |
 
 ### `POST /open` {#post-open}
 
 Act on it: receive, finish, park an invoice, or advance a pairing. Never spends.
 
-Role: `receive`.
+Role: at least `receive`.
+
+**Role depends on the request:** Receiving a payment, parking an invoice or finishing an invoice this wallet issued needs `receive`; finishing your own send or advancing a pairing needs `full`.
 
 **Request body** (required, `application/json`): [`OpenRequest`](#schema-openrequest)
 
@@ -533,14 +541,14 @@ Role: `receive`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`OpenResult`](#schema-openresult) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 422 | Valid but impossible, e.g. insufficient funds or invoice changed (422). |
-| 502 | The node or a relay failed (502). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
-| 504 | The node or a relay timed out (504). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
+| 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
+| 502 | The node or a relay failed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+| 504 | The node or a relay timed out |
 
 ## Coins
 
@@ -562,8 +570,8 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`OutputList`](#schema-outputlist) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 
 ## Addresses and links
 
@@ -586,8 +594,8 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`AddressList`](#schema-addresslist) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 
 ### `POST /addresses` {#post-addresses}
 
@@ -601,12 +609,12 @@ Role: `receive`.
 
 | Status | Meaning |
 |---|---|
-| 200 | Idempotent repeat: the stored address.: [`Address`](#schema-address) |
+| 200 | Idempotent repeat: the stored address: [`Address`](#schema-address) |
 | 201 | Created: [`Address`](#schema-address) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 422 | Valid but impossible, e.g. insufficient funds or invoice changed (422). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 409 | Conflict with the object's state or an idempotency key |
+| 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
 
 ### `GET /links` {#get-links}
 
@@ -624,8 +632,8 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`LinkList`](#schema-linklist) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 
 ### `POST /links` {#post-links}
 
@@ -639,12 +647,12 @@ Role: `receive`.
 
 | Status | Meaning |
 |---|---|
-| 200 | Idempotent repeat: the stored link.: [`Link`](#schema-link) |
+| 200 | Idempotent repeat: the stored link: [`Link`](#schema-link) |
 | 201 | Created: [`Link`](#schema-link) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 422 | Valid but impossible, e.g. insufficient funds or invoice changed (422). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 409 | Conflict with the object's state or an idempotency key |
+| 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
 
 ### `POST /links/{id}/retire` {#post-links-id-retire}
 
@@ -661,8 +669,8 @@ Role: `receive`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Link`](#schema-link) |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
 
 ## Contacts
 
@@ -684,8 +692,8 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`ContactList`](#schema-contactlist) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 
 ### `POST /contacts` {#post-contacts}
 
@@ -699,15 +707,15 @@ Role: `full`.
 
 | Status | Meaning |
 |---|---|
-| 200 | Idempotent repeat: the stored contact.: [`Contact`](#schema-contact) |
+| 200 | Idempotent repeat: the stored contact: [`Contact`](#schema-contact) |
 | 201 | Created: [`Contact`](#schema-contact) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 422 | Valid but impossible, e.g. insufficient funds or invoice changed (422). |
-| 502 | The node or a relay failed (502). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
-| 504 | The node or a relay timed out (504). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 409 | Conflict with the object's state or an idempotency key |
+| 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
+| 502 | The node or a relay failed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+| 504 | The node or a relay timed out |
 
 ### `GET /contacts/{id}` {#get-contacts-id}
 
@@ -724,8 +732,8 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Contact`](#schema-contact) |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
 
 ### `PATCH /contacts/{id}` {#patch-contacts-id}
 
@@ -744,10 +752,10 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Contact`](#schema-contact) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
-| 409 | Conflict with the object's state or an idempotency key (409). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
 
 ### `DELETE /contacts/{id}` {#delete-contacts-id}
 
@@ -765,13 +773,13 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 204 | No content |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 502 | The node or a relay failed (502). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
-| 504 | The node or a relay timed out (504). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
+| 502 | The node or a relay failed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+| 504 | The node or a relay timed out |
 
 ### `POST /contacts/{id}/verify` {#post-contacts-id-verify}
 
@@ -790,10 +798,10 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Contact`](#schema-contact) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
-| 409 | Conflict with the object's state or an idempotency key (409). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
 
 ### `POST /contacts/{id}/check` {#post-contacts-id-check}
 
@@ -812,13 +820,13 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Contact`](#schema-contact) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 502 | The node or a relay failed (502). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
-| 504 | The node or a relay timed out (504). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
+| 502 | The node or a relay failed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+| 504 | The node or a relay timed out |
 
 ### `POST /contacts/{id}/keys` {#post-contacts-id-keys}
 
@@ -837,10 +845,10 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Contact`](#schema-contact) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
-| 409 | Conflict with the object's state or an idempotency key (409). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
 
 ### `POST /contacts/{id}/move` {#post-contacts-id-move}
 
@@ -848,7 +856,7 @@ Answer the contact's request to move relays: accept moves there, refuse records 
 
 Role: `full`.
 
-`host` is the relay the user was shown. If `requested_relay` has changed since, the call fails with 409 `relay_changed` and nothing moves. With `accept: false` the wallet clears `requested_relay`, sets `refused_relay` and tells nobody. The wallet never moves on its own.
+`host` is the relay the user was shown. If `requested_relay` has changed since, the call fails with 409 `relay_changed` and nothing moves. With `accept: false` the wallet clears `requested_relay`, sets `refused_relay` and tells nobody. The wallet does not move on its own.
 
 | Parameter | In | Type | Description |
 |---|---|---|---|
@@ -861,13 +869,13 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Contact`](#schema-contact) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 502 | The node or a relay failed (502). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
-| 504 | The node or a relay timed out (504). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
+| 502 | The node or a relay failed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+| 504 | The node or a relay timed out |
 
 ### `POST /contacts/{id}/payloads` {#post-contacts-id-payloads}
 
@@ -886,13 +894,13 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 204 | No content |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 502 | The node or a relay failed (502). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
-| 504 | The node or a relay timed out (504). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
+| 502 | The node or a relay failed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+| 504 | The node or a relay timed out |
 
 ### `POST /contacts/export` {#post-contacts-export}
 
@@ -905,7 +913,7 @@ Role: `full`. Unix socket only.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`ContactsBackup`](#schema-contactsbackup) |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 
 ### `POST /contacts/import` {#post-contacts-import}
 
@@ -920,9 +928,9 @@ Role: `full`. Unix socket only.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`ImportResult`](#schema-importresult) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 409 | Conflict with the object's state or an idempotency key (409). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 409 | Conflict with the object's state or an idempotency key |
 
 ## Pair requests
 
@@ -942,8 +950,8 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`PairRequestList`](#schema-pairrequestlist) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 
 ### `POST /pair-requests/{id}/accept` {#post-pair-requests-id-accept}
 
@@ -962,14 +970,14 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Contact`](#schema-contact) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 422 | Valid but impossible, e.g. insufficient funds or invoice changed (422). |
-| 502 | The node or a relay failed (502). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
-| 504 | The node or a relay timed out (504). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
+| 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
+| 502 | The node or a relay failed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+| 504 | The node or a relay timed out |
 
 ### `DELETE /pair-requests/{id}` {#delete-pair-requests-id}
 
@@ -986,8 +994,8 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 204 | No content |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
 
 ## Payloads
 
@@ -1007,8 +1015,8 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`PayloadList`](#schema-payloadlist) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 
 ### `DELETE /payloads/{id}` {#delete-payloads-id}
 
@@ -1025,8 +1033,8 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 204 | No content |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
 
 ## Quarantine
 
@@ -1046,8 +1054,8 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`QuarantinedList`](#schema-quarantinedlist) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 
 ### `POST /quarantine/{id}/retry` {#post-quarantine-id-retry}
 
@@ -1064,10 +1072,10 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Quarantined`](#schema-quarantined) |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 422 | Valid but impossible, e.g. insufficient funds or invoice changed (422). |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
+| 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
 
 ### `DELETE /quarantine/{id}` {#delete-quarantine-id}
 
@@ -1084,8 +1092,8 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 204 | No content |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
 
 ## Network
 
@@ -1100,7 +1108,7 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Relay`](#schema-relay) |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 
 ### `POST /relay/move` {#post-relay-move}
 
@@ -1115,13 +1123,13 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Relay`](#schema-relay) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 422 | Valid but impossible, e.g. insufficient funds or invoice changed (422). |
-| 502 | The node or a relay failed (502). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
-| 504 | The node or a relay timed out (504). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 409 | Conflict with the object's state or an idempotency key |
+| 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
+| 502 | The node or a relay failed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+| 504 | The node or a relay timed out |
 
 ### `GET /node` {#get-node}
 
@@ -1134,10 +1142,10 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Node`](#schema-node) |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 502 | The node or a relay failed (502). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
-| 504 | The node or a relay timed out (504). |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 502 | The node or a relay failed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+| 504 | The node or a relay timed out |
 
 ### `GET /peers` {#get-peers}
 
@@ -1155,8 +1163,8 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`PeerList`](#schema-peerlist) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 
 ### `DELETE /peers/{origin}` {#delete-peers-origin}
 
@@ -1173,8 +1181,8 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 204 | No content |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
 
 ## Profile
 
@@ -1189,7 +1197,7 @@ Role: `read`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Profile`](#schema-profile) |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 
 ### `PATCH /profile` {#patch-profile}
 
@@ -1204,10 +1212,10 @@ Role: `full`.
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Profile`](#schema-profile) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 409 | Conflict with the object's state or an idempotency key (409). |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 409 | Conflict with the object's state or an idempotency key |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
 
 ### `GET /profile/domain-file` {#get-profile-domain-file}
 
@@ -1223,10 +1231,10 @@ Role: `read`.
 
 | Status | Meaning |
 |---|---|
-| 200 | The file contents.: `string` |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
+| 200 | The file contents: `string` |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
 
 ## Events
 
@@ -1250,10 +1258,10 @@ As JSON, a page oldest first after `after`, with `next_cursor` as for any list. 
 
 | Status | Meaning |
 |---|---|
-| 200 | A page of events, or a live stream.: [`EventList`](#schema-eventlist) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 503 | Not ready: scan running or serve stopping (503). May set Retry-After. |
+| 200 | A page of events, or a live stream: [`EventList`](#schema-eventlist) |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
 
 ## Webhooks
 
@@ -1270,8 +1278,8 @@ The webhook is set in the settings (`webhook_url`), not here. 404 `not_found` wh
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Webhook`](#schema-webhook) |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
 
 ### `POST /webhook/resume` {#post-webhook-resume}
 
@@ -1288,9 +1296,9 @@ Clears the attempt count and the error and starts sending at once. `after` sets 
 | Status | Meaning |
 |---|---|
 | 200 | OK: [`Webhook`](#schema-webhook) |
-| 400 | Bad input (400). |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low. |
-| 404 | Not found (404). |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
 
 ## Errors
 
@@ -1315,7 +1323,7 @@ Errors are RFC 9457 problem documents (`application/problem+json`), the [`Proble
 |---|---|---|---|
 | `format` | one of `slate`, `epictx`, `sealed`, `plain`, `in_person_code` | yes |  |
 | `text` | `string` | yes | Paste, show as QR, or save as a file. |
-| `file_name` | `string` |  |  |
+| `file_name` | `string` (example "1a2b3c4d.tx") |  |  |
 | `qr_frames` | array of `string` |  |  |
 
 ### Payment {#schema-payment}
@@ -1360,9 +1368,9 @@ Errors are RFC 9457 problem documents (`application/problem+json`), the [`Proble
 | `expires_at_height` | `integer` |  |  |
 | `confirmations` | `integer` |  |  |
 | `confirmed_height` | `integer` |  |  |
-| `kernel_excess` | `string` |  | Hex. |
+| `kernel_excess` | `string` (pattern ^[0-9a-f]+$) |  | Hex. |
 | `source` | one of `wallet`, `imported`, `scan` | yes |  |
-| `metadata` | map of `string` |  | Local only, never sent. Up to 50 keys; keys up to 40 and values up to 500 characters. |
+| `metadata` | map of `string` (length 0..500) |  | Local only, never sent. Up to 50 keys; keys up to 40 and values up to 500 characters. |
 | `created_at` | `string` (date-time) | yes |  |
 | `updated_at` | `string` (date-time) | yes |  |
 | `handoff` | [`Handoff`](#schema-handoff) |  | In create and open responses, when you deliver by hand. |
@@ -1693,7 +1701,7 @@ Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unl
 | `allow_plain_http` | `boolean` |  |  |
 | `legacy` | `boolean` (default false) |  | true: give an http(s):// or onion payee the V2 or V3 slate every wallet takes, even when its listener offers native slates (today's `tx send --legacy`). |
 | `deliver` | `boolean` (default true) |  | false: create the payment and return the handoff only. |
-| `metadata` | map of `string` |  | Local notes, never sent. The bounds are input validation, not policy. |
+| `metadata` | map of `string` (length 0..500) |  | Local notes, never sent. The bounds are input validation, not policy. |
 
 ### Estimate {#schema-estimate}
 
@@ -1720,7 +1728,7 @@ Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unl
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `issues_addresses` | `boolean` | yes | Only `true` is accepted. |
+| `issues_addresses` | `boolean` (always true) | yes | Only `true` is accepted. |
 
 ### ChangePassword {#schema-changepassword}
 
@@ -1742,7 +1750,7 @@ Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unl
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `metadata` | map of `string` |  | A key set to the empty string is removed. |
+| `metadata` | map of `string` (length 0..500) |  | A key set to the empty string is removed. |
 
 ### ApprovePayment {#schema-approvepayment}
 
@@ -1835,7 +1843,7 @@ Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unl
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `data_base64` | `string` (byte) | yes | Up to 16 KiB of bytes, base64-encoded. |
+| `data_base64` | `string` (byte, length 0..21848) | yes | Up to 16 KiB of bytes, base64-encoded. |
 
 ### ContactsBackup {#schema-contactsbackup}
 
@@ -1916,7 +1924,7 @@ Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unl
 
 EPIC amount as a decimal string
 
-Type: `string`
+Type: `string` (pattern ^-?[0-9]+(\.[0-9]{1,8})?$, example "1.5")
 
 ### Delivery {#schema-delivery}
 

@@ -1,5 +1,5 @@
 ---
-title: Wallet API v1 guide
+title: "The wallet API v1: a guide for integrators"
 description: "How to connect to the lepic serve wallet API, its roles and conventions, and how payments, events and webhooks work."
 ---
 
@@ -30,7 +30,7 @@ curl --unix-socket ./w.sock http://lepic/api/v1/status
 ```
 
 The socket is `lepic.sock` in the data directory unless `--socket` says otherwise. The socket file is
-limited to the user that runs serve, so there are no tokens. The host in the URL is ignored; use `lepic`.
+created with owner-only permissions (mode 0600), so there are no tokens. The host in the URL is ignored; use `lepic`.
 The socket always has the `full` role. Every answer carries `x-lepic-version`.
 
 ### Owner TLS
@@ -47,8 +47,8 @@ The role limits what the client may call:
 
 | Role | May |
 |---|---|
-| `read` | Every call that changes nothing. The default. |
-| `receive` | Also create invoices, addresses and links, take payments, and finish the invoices this wallet issued: open the answer, post it, cancel one still waiting for its answer. It does not spend. |
+| `read` | The calls that read the wallet. The default. Each operation's role is in the reference. |
+| `receive` | Also create invoices, addresses and links, take payments, and finish the invoices this wallet issued: open the answer, post it, cancel one still waiting for its answer. A `receive` client is refused the calls that spend, with 403 `role_required`. |
 | `full` | Everything the TLS listener answers. |
 
 A call above the role answers 403 `role_required`. Three operations are socket-only and answer 403
@@ -67,7 +67,7 @@ The file format and the commands are in [cli.md](https://github.com/BTLabsUK/lep
   them as opaque.
 - **Amounts** are decimal strings in EPIC with up to 8 decimals: `"1.5"`, `"0.00000001"`. Never a
   number.
-- **Times** are RFC 3339 in UTC: `2026-11-11T01:51:28Z`.
+- **Times** are RFC 3339 in UTC: `2026-11-11T01:51:28.040280091Z`. The fraction of a second may have up to 9 digits.
 - **Optional fields** are left out when empty. They are never `null`.
 - **Bodies** are JSON with `content-type: application/json`. A field the document does not name is
   refused with 400 `invalid_body`.
@@ -87,7 +87,7 @@ curl --unix-socket ./w.sock http://lepic/api/v1/accounts
 
 A create (payment, address, link, contact) may carry an `id` you choose. Use a UUID for
 a payment. Serve records a digest of the body before it creates anything, so a retry after a
-timeout is meant to be safe:
+timeout is safe:
 
 | You send | Serve answers |
 |---|---|
@@ -104,7 +104,7 @@ object may exist: repeat the same body to find out.
 An `id` that already names a payment is refused with 409 `idempotency_mismatch`, `param`
 `/id`, for sends and invoices alike.
 
-Over TLS a payment must carry an `id`, so a client that loses the answer can always ask again.
+Over TLS a payment must carry an `id`, so a client that loses the answer can ask again.
 
 A real run. An invoice needs no funds, so it is the easy thing to try:
 
@@ -118,7 +118,7 @@ The first call answers `201 Created` with the payment. The same command again an
 `200 OK` with the same payment (the `handoff` is only in the 201). The same `id` with
 `"amount":"2"` answers:
 
-```
+```http
 HTTP/1.1 409 Conflict
 content-type: application/problem+json
 ```
@@ -208,6 +208,11 @@ wallet answers, serve finishes and posts the payment by itself; poll `GET /payme
 watch the [events](#events) for `posted`, then `confirmed`. A change in `actions` tells you when
 `cancel` is possible.
 
+A second send can fail with 422 `insufficient_funds` while the first is unconfirmed. A coin is
+spendable only after `min_confirmations` blocks, and the change of a send stays locked until its
+transaction confirms. Check `spendable` in `GET /accounts` (the amount plus the fee must fit
+in it) and send the next payment when it does.
+
 ### An invoice by file
 
 1. Issue it: `{"kind":"invoice","amount":"3","via":"file"}`. The answer holds a `handoff` with
@@ -229,7 +234,7 @@ to give back), `finished` (the answer to your payment arrived and it was posted)
 `already_done` hands back the answer stored the first time. An item given as `qr_frames` is
 answered with `qr_frames` too, on a repeat as well.
 
-Open never pays, which is the rule of ADR 0055 (D5).
+By design, open does not pay (ADR 0055, D5).
 
 A sealed file from a contact (`BEGINEPICSEALED.` text) is opened with this wallet's keys.
 `inspect` answers `type: "sealed"` with the amount, the `contact_id` when the contact signed it,
@@ -245,7 +250,7 @@ answers 409 `format_not_available`.
 
 ### An invoice that asks you to pay
 
-An invoice that is scanned or pasted is always held for approval. Money leaves in two calls:
+An invoice that is scanned or pasted is held for approval. Money leaves in two calls:
 
 ```sh
 curl --unix-socket ./w.sock -H 'content-type: application/json' \
@@ -294,6 +299,9 @@ left out. A link lists with its `text`, whether the CLI or the API issued it.
 
 ## Contacts
 
+<details>
+<summary>For advanced users: deleting a pairing and its clock rules</summary>
+
 `DELETE /contacts/{id}` on a contact whose pairing still waits cancels it: a request you sent is
 withdrawn, an invite of yours is cancelled. A late answer is then refused, and you can ask the
 same wallet again at once. On a paired contact it ends the pairing and tells the contact. With
@@ -310,6 +318,8 @@ Serve keeps a contact's `invite_link`, the `label` given while its pairing waite
 `refused_relay` beside the contact in the wallet. They go when the wallet removes the contact,
 whichever way it is removed: this API, `lepic contact remove`, the app, or a new pairing that
 replaces it.
+
+</details>
 
 ## Collect and refresh
 
@@ -424,7 +434,7 @@ Each request is one event, the body is the `GET /events` item, and the headers f
 [Standard Webhooks](https://www.standardwebhooks.com/):
 
 - `webhook-id`: `evt_<16 hex digits>_<event id>`. The hex part is drawn for each wallet store and
-  `webhook_url`, so two wallets, or one restored, never send the same id. A retry sends the same
+  `webhook_url`, so two wallets, or one restored, send different ids. A retry sends the same
   id; drop a duplicate by it.
 - `webhook-timestamp`: unix seconds of this attempt.
 - `webhook-signature`: `v1,<base64>` for each secret in the file, space-separated. The value is
@@ -455,11 +465,16 @@ same event again after 5 seconds, 5 minutes, 30 minutes, 2 hours, 5 hours, 10 ho
 each ±20 %, then stops with the state `disabled`. The cursor and the schedule are in the wallet
 store, so a restart carries on. A cursor the log has pruned gets an `events.skipped` event first.
 
-Serve resolves the host before each attempt and connects only to a public address: not loopback,
+<details>
+<summary>For advanced users: which addresses a webhook refuses</summary>
+
+Serve resolves the host before each attempt and refuses an address that is not public: loopback,
 private, link-local, shared (100.64.0.0/10), benchmarking (198.18.0.0/15), IETF protocol
 (192.0.0.0/24), reserved (240.0.0.0/4), NAT64 (64:ff9b::/32), 6to4 (2002::/16), Teredo
 (2001::/32), IPv4-compatible (::/96), site-local (fec0::/10), discard (100::/64), multicast,
 unspecified, documentation or broadcast. It follows no redirect and uses no proxy.
+
+</details>
 
 `GET /webhook` answers the `url`, `types`, `state` (`active`, `retrying`, `config_error` or
 `disabled`), `cursor`, `attempts`, `next_attempt_at` and `last_error`. `config_error` means serve
@@ -483,10 +498,10 @@ An error is an RFC 9457 problem document with `content-type: application/problem
 curl -i --unix-socket ./w.sock http://lepic/api/v1/nothing
 ```
 
-```
+```http
 HTTP/1.1 404 Not Found
 content-type: application/problem+json
-x-lepic-version: 0.4.0
+x-lepic-version: 0.5.0
 ```
 
 ```json
@@ -520,6 +535,7 @@ category unless the table says another; `Retry-After` is set on 502, 503 and 504
 | `body_too_large` | 413 | The body is over the limit. |
 | `role_required` | 403 | The TLS client's role is below what the call needs. |
 | `socket_only` | 403 | The call is answered on the Unix socket only. |
+| `serve_version_differs`, `serve_settings_differ` | 409 | A forwarded CLI command names another version or other settings than serve runs with. Only the CLI sends these headers. |
 | `client_not_listed` | 403 | The TLS client was removed from `api-clients` after it connected. |
 | `invalid_request` | 400 | The request is malformed. |
 | `invalid_body` | 400 | The body is not valid JSON for the operation, or names an unknown field. |
