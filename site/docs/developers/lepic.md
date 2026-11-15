@@ -1,126 +1,28 @@
 ---
 title: LEPIC
-description: The crates of LEPIC, the Rust wallet core, how they depend on each other, and the lepic command-line wallet.
+description: "LEPIC, the Epic Cash client library and command-line wallet in Rust: the lepic CLI, the service API, the crates and the FFI."
 ---
 
 # LEPIC
 
-LEPIC (light Epic) is the Epic Cash wallet core in Rust. It runs as a library inside the app's
-process: it creates and restores wallets, scans the chain through an Epic node, and sends and
-receives transactions with the standard `epic-wallet`. BT Wallet uses
-it through [lepic-flutter](lepic-flutter.md).
+LEPIC (light Epic) is an Epic Cash client library and command-line wallet in Rust. It runs as a
+library inside the process of the program that uses it: it creates and restores wallets, scans the
+chain through an Epic node, and sends and receives transactions with the standard `epic-wallet` and
+with other LEPIC wallets. There is no wallet server to start.
+
+| Use | Through |
+|---|---|
+| A Rust program | The crates, from git (see [LEPIC from Rust](#quick-start-lepic-from-rust)) |
+| A script or a service | The [`lepic` command-line wallet](#the-lepic-command-line-wallet) and `lepic serve`, its local wallet API (`/api/v1`) |
+| A desktop or mobile app | The FFI library `lepic-ffi`, through [lepic-flutter](lepic-flutter.md); BT Wallet is built this way |
 
 Repository: [github.com/BTLabsUK/lepic](https://github.com/BTLabsUK/lepic).
 Licence: Apache-2.0. Rust edition 2024, toolchain pinned in `rust-toolchain.toml`.
 
 :::warning
-LEPIC is beta (version 0.3.1). Its APIs may still change before 1.0. The `lepic` command-line
-wallet is pre-alpha: use it on floonet, the test network.
+LEPIC is beta (version 0.5.0). Its APIs may still change before 1.0. Try the `lepic` command-line
+wallet on floonet, the test network, before using it with real funds.
 :::
-
-## Crates
-
-| Crate | Role | I/O |
-|---|---|---|
-| `lepic-crypto` | Safe boundary over the pinned secp256k1-zkp library: commitments, Bulletproofs, aggregate signatures, ECDSA, ECDH | none |
-| `lepic-primitives` | Serialization, hashing, transaction types, weights and fees, per-network chain parameters | none |
-| `lepic-keychain` | Mnemonic to seed, BIP32, key paths, switch commitments, proof builders, seed vault formats, the app's data file format | none |
-| `lepic-slate` | Slate domain model, legacy V2 and V3 JSON codecs, codec registry, `ur:epic-slate` QR form | none |
-| `lepic-contact` | Contact pairing formats (RFC 0002): sealed envelope, cards, invites, the pairing words check | none |
-| `lepic-node` | Client for the node's foreign JSON-RPC API, with strict response checks | network |
-| `lepic-store` | SQLite storage behind repository traits, migrations, encrypted private context, the database file encrypted at rest | disk |
-| `lepic-transport` | Transport traits, registry, format policy, the file transport | disk |
-| `lepic-epicbox` | Epicbox addresses, message crypto, relay client and transport | network |
-| `lepic-foreign` | The wallet foreign API over HTTP: client, listener, `http` transport | network |
-| `lepic-tor` | Tor: onion v3 addresses and the wallet's onion key, a tor child process per wallet, SOCKS5, the `tor` transport | network, process |
-| `lepic-wallet` | The engine: accounts, selection, send, receive, finalize, cancel, scan, refresh, events | through ports |
-| `lepic-wallet-contacts` | Contacts on top of the engine: pairing, mailboxes, sealed slates, contact invoices, key checks, app payloads | through ports |
-| `lepic-telemetry` | `tracing` subscribers for the CLI and mobile, redaction helpers | stderr, files |
-| `lepic-cli` | The `lepic` binary | all |
-| `lepic-ffi` | The FFI API, built with flutter_rust_bridge; the library apps load as `liblepic_ffi` | all |
-
-`xtask` holds the build, check, vector and packaging commands (`cargo xtask check`,
-`cargo xtask mobile`, and others).
-
-Three folders sit outside the product workspace. `conformance/` and `fuzz/` each have their own
-`Cargo.lock`.
-
-- `conformance/` runs the reference `epic-wallet` and node code to generate golden test vectors
-  and to run differential tests. It is the only place those crates appear.
-- `fuzz/` holds the fuzz targets for parsers of untrusted input.
-- `interop/` runs LEPIC against real `epic-wallet` binaries, a node and an Epicbox relay on a
-  private test network.
-
-### Notes
-
-- **Pure crates** (`lepic-crypto`, `lepic-primitives`, `lepic-keychain`, `lepic-slate`,
-  `lepic-contact`) may not depend on Tokio or the filesystem, read a clock, or create their own
-  randomness. Callers pass an RNG and the time in.
-- **Feature code kept out of the money core.** Contact pairing lives in `lepic-wallet-contacts`,
-  which drives the engine through its public calls and the hooks of `lepic_wallet::extension`. Nothing in consensus, keys of
-  funds or the slates `epic-wallet` reads depends on it, so a review of the money core can leave
-  it out.
-- **No Epic crates.** LEPIC ports the behaviour it needs from the Epic node and `epic-wallet`
-  instead of depending on them. See [Upstream compatibility](upstream.md).
-
-## Allowed dependency edges
-
-The edges below are the only ones allowed between LEPIC crates, for normal and build
-dependencies. `cargo xtask deps-check` reads the list from LEPIC's `docs/architecture.md` and
-enforces it; any other edge needs a new ADR. An edge is allowed, not required: `lepic-wallet`
-uses neither `lepic-foreign` nor `lepic-tor`.
-
-```text
-lepic-crypto      -> (external only)
-lepic-primitives  -> crypto
-lepic-keychain    -> crypto, primitives
-lepic-slate       -> crypto, primitives
-lepic-contact     -> (external only)
-lepic-node        -> primitives, crypto
-lepic-store       -> primitives
-lepic-transport   -> slate, primitives
-lepic-epicbox     -> transport, slate,
-                     crypto, primitives
-lepic-foreign     -> transport, slate
-lepic-tor         -> foreign, transport,
-                     slate
-lepic-wallet      -> all crates above
-lepic-wallet-contacts
-                  -> all crates above
-lepic-telemetry   -> (external only)
-lepic-cli         -> wallet, wallet-contacts,
-                     telemetry, epicbox,
-                     foreign, tor, transport,
-                     node, store, keychain,
-                     primitives
-lepic-ffi         -> the same as lepic-cli
-```
-
-Any crate may take `lepic-telemetry` as a dev-dependency for log-capture test helpers, and
-`lepic-wallet` takes `lepic-wallet-contacts` as one so the contact tests run on the engine's
-test harness.
-
-## The `tor` feature
-
-`lepic-ffi` has a default cargo feature `tor`, which pulls in `lepic-tor` and everything that
-uses it. Built without it, no tor controller, SOCKS client, onion service or Tor transport is
-compiled in:
-
-```bash
-cargo xtask mobile --package --no-tor
-```
-
-The API stays the same in both builds, so one generated binding serves both. Without Tor:
-
-- `start_tor`, `refresh_tor`, `onion_address`, `previous_onion_address`, `send_tor` and
-  `resend_tor` fail with `Unsupported`.
-- `tor_status` is `Off`; `epicbox_over_tor` and `node_over_tor` read `false` and their setters
-  change nothing, so the relay and the node are always reached directly.
-- `validate_onion_address` is `false` for every address.
-
-`cargo xtask mobile --package` writes a `FEATURES` file next to each library so the binding's
-build hook can tell the two builds apart. `lepic-cli` always keeps Tor. The app's switch for this
-build is described on the [lepic-flutter](lepic-flutter.md#without-tor) page.
 
 ## The `lepic` command-line wallet
 
@@ -168,6 +70,115 @@ The full guide is
 [docs/cli.md](https://github.com/BTLabsUK/lepic/blob/main/docs/cli.md) in
 the repository.
 
+## Crates
+
+| Crate | Role | I/O |
+|---|---|---|
+| `lepic-crypto` | Checked boundary over the vendored secp256k1-zkp library: commitments, Bulletproofs, aggregate signatures, ECDSA, ECDH | none |
+| `lepic-primitives` | Serialization, hashing, transaction types, weights and fees, per-network chain parameters | none |
+| `lepic-keychain` | Mnemonic to seed, BIP32, key paths, switch commitments, the seed vault, the app data file format | none |
+| `lepic-slate` | The slate model and codec registry | none |
+| `lepic-legacy-slate` | The V2 and V3 JSON slate codecs `epic-wallet` reads and writes | none |
+| `lepic-native-slate` | The binary `lepic.v1` slate between LEPIC wallets | none |
+| `lepic-seal` | Sealed envelopes (HPKE) | none |
+| `lepic-contact` | Contact pairing formats (RFC 0002): invites, cards, the pairing words check | none |
+| `lepic-node` | Client for the node's foreign JSON-RPC API, with strict response checks | network |
+| `lepic-store` | SQLite storage behind repository traits, migrations, the database encrypted at rest | disk |
+| `lepic-transport` | Transport traits, registry, format policy, the file transport | disk |
+| `lepic-epicbox` | Epicbox addresses, message crypto, relay client, `mux/1` push sessions | network |
+| `lepic-epic1` | The epic1 address and payment link (RFC 0003) | none |
+| `lepic-peer` | The native direct endpoint between LEPIC wallets | network |
+| `lepic-legacy-rpc` | The `epic-wallet` foreign API over HTTP: client and listener | network |
+| `lepic-tor` | Tor: onion v3 addresses and the wallet's onion key, a tor child process per wallet, SOCKS5 | network, process |
+| `lepic-wallet` | The engine: accounts, selection, send, receive, finalize, cancel, scan, refresh, events | through ports |
+| `lepic-methods` | The file, http, tor and epicbox transaction methods | through ports |
+| `lepic-wallet-contacts` | Contacts on top of the engine: pairing, mailboxes, sealed slates, invoices, epic1 payments | through ports |
+| `lepic-telemetry` | `tracing` subscribers for the hosts, redaction helpers | stderr, files |
+| `lepic-cli` | The `lepic` binary | all |
+| `lepic-ffi` | The FFI API, built with flutter_rust_bridge; the library Flutter apps load as `liblepic_ffi` | all |
+
+`xtask` holds the build, check, vector and packaging commands (`cargo xtask check`,
+`cargo xtask mobile` for the FFI libraries, and others).
+
+Three folders sit outside the product workspace. `conformance/` and `fuzz/` each have their own
+`Cargo.lock`.
+
+- `conformance/` runs the reference `epic-wallet` and node code to generate golden test vectors
+  and to run differential tests. It is the only place those crates appear.
+- `fuzz/` holds the fuzz targets for parsers of untrusted input.
+- `interop/` runs LEPIC against real `epic-wallet` binaries, a node and an Epicbox relay on a
+  private test network.
+
+### Notes
+
+- **Pure crates** (`lepic-crypto`, `lepic-primitives`, `lepic-keychain`, `lepic-slate`,
+  `lepic-contact`) may not depend on Tokio or the filesystem, read a clock, or create their own
+  randomness. Callers pass an RNG and the time in.
+- **Feature code kept out of the money core.** Contact pairing lives in `lepic-wallet-contacts`,
+  which drives the engine through its public calls and the hooks of `lepic_wallet::extension`. Nothing in consensus, keys of
+  funds or the slates `epic-wallet` reads depends on it, so a review of the money core can leave
+  it out.
+- **No Epic crates.** LEPIC ports the behaviour it needs from the Epic node and `epic-wallet`
+  instead of depending on them. See [Upstream compatibility](upstream.md).
+
+## Allowed dependency edges
+
+The edges below are the only ones allowed between LEPIC crates, for normal and build
+dependencies. `cargo xtask deps-check` reads the list from LEPIC's `docs/architecture.md` and
+enforces it; any other edge needs a new ADR. An edge is allowed, not required: `lepic-wallet`
+uses neither `lepic-legacy-rpc` nor `lepic-tor`.
+
+```text
+lepic-crypto      -> (external only)
+lepic-primitives  -> lepic-crypto
+lepic-keychain    -> lepic-crypto, lepic-primitives
+lepic-slate       -> lepic-crypto, lepic-primitives
+lepic-native-slate -> lepic-slate, lepic-crypto, lepic-primitives
+lepic-seal        -> (external only)
+lepic-contact     -> lepic-seal
+lepic-node        -> lepic-primitives, lepic-crypto
+lepic-store       -> lepic-primitives
+lepic-legacy-slate -> lepic-slate, lepic-crypto, lepic-primitives
+lepic-transport   -> lepic-legacy-slate, lepic-slate, lepic-primitives, lepic-crypto
+lepic-epicbox     -> lepic-transport, lepic-slate, lepic-crypto, lepic-primitives
+lepic-epic1       -> lepic-contact, lepic-epicbox, lepic-crypto, lepic-primitives
+lepic-peer        -> lepic-primitives
+lepic-legacy-rpc  -> lepic-peer, lepic-transport, lepic-slate
+lepic-tor         -> lepic-legacy-rpc
+lepic-wallet      -> lepic-contact, lepic-store, lepic-node, lepic-transport, lepic-legacy-slate, lepic-slate, lepic-keychain, lepic-crypto, lepic-primitives
+lepic-methods     -> lepic-wallet, lepic-transport, lepic-epicbox, lepic-legacy-rpc, lepic-peer, lepic-legacy-slate, lepic-tor, lepic-node, lepic-slate, lepic-keychain, lepic-crypto, lepic-primitives
+lepic-wallet-contacts -> all crates above
+lepic-telemetry   -> (external only)
+lepic-cli         -> lepic-wallet, lepic-wallet-contacts, lepic-methods, lepic-telemetry, lepic-epicbox, lepic-transport, lepic-node, lepic-store, lepic-keychain, lepic-primitives
+lepic-ffi         -> lepic-wallet, lepic-wallet-contacts, lepic-methods, lepic-telemetry, lepic-epicbox, lepic-tor, lepic-transport, lepic-node, lepic-store, lepic-keychain, lepic-primitives
+```
+
+Any crate may take `lepic-telemetry` as a dev-dependency for log-capture test helpers, and
+`lepic-wallet` takes `lepic-wallet-contacts` as one so the contact tests run on the engine's
+test harness.
+
+## The `tor` feature
+
+`lepic-ffi` has a default cargo feature `tor`, which pulls in `lepic-tor` and everything that
+uses it. Built without it, no tor controller, SOCKS client, onion service or Tor transport is
+compiled in:
+
+```bash
+cargo xtask mobile --package --no-tor
+```
+
+The API stays the same in both builds, so one generated binding serves both. Without Tor:
+
+- `start_tor`, `refresh_tor`, `onion_address`, `previous_onion_address`, `send_tor` and
+  `resend_tor` fail with `Unsupported`.
+- `tor_status` is `Off`; `epicbox_over_tor` and `node_over_tor` read `false` and their setters
+  change nothing, so the relay and the node are always reached directly.
+- `validate_onion_address` is `false` for every address.
+
+`cargo xtask mobile --package` writes a `FEATURES` file next to each library so the binding's
+build hook can tell the two builds apart. `lepic-cli` always keeps Tor. The app's switch for this
+build is described on the [lepic-flutter](lepic-flutter.md#without-tor) page.
+
 ## Quick start: LEPIC from Rust
 
 LEPIC needs Rust and a C compiler. It is not on crates.io yet, so take it from git:
@@ -207,8 +218,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-Apps use the full wallet (create or restore, scan, send and receive) through
-[lepic-flutter](lepic-flutter.md).
+The full wallet (create or restore, scan, send and receive) is the `lepic-wallet` engine with its
+ports. A Flutter app uses it through [lepic-flutter](lepic-flutter.md).
 
 ## Related pages
 
