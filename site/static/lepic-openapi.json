@@ -2328,7 +2328,7 @@
       "post": {
         "operationId": "retryQuarantined",
         "x-role": "full",
-        "summary": "Try to open one again.",
+        "summary": "Retry opening a quarantined item.",
         "tags": [
           "Quarantine"
         ],

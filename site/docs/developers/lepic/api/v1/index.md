@@ -9,8 +9,9 @@ description: "How to connect to the lepic serve wallet API, its roles and conven
 
 Every endpoint is listed in the [reference](reference.md).
 
-`lepic serve` holds one wallet open and answers an HTTP API under `/api/v1`. Use it from a shop, a
-bot or a payment page. This page says how to connect and what the conventions are. The contract
+This page documents the wallet API of LEPIC 0.5.0, API version 1.
+
+`lepic serve` holds one wallet open and answers an HTTP API under `/api/v1`. This page says how to connect and what the conventions are. The contract
 is [openapi.json](pathname:///lepic-openapi.json); `GET /api/v1/openapi.json` returns the same document from a
 running serve. [ADR 0055](https://github.com/BTLabsUK/lepic/blob/main/docs/adr/0055-the-wallet-api-v1.md) says why it is built this way.
 
@@ -54,7 +55,7 @@ The role limits what the client may call:
 A call above the role answers 403 `role_required`. Three operations are socket-only and answer 403
 `socket_only` over TLS: `PUT /wallet/password`, `POST /contacts/export` and `POST /contacts/import`.
 Each operation's role is its `x-role` in the document. A payment created over TLS must carry an
-`id` (see [Creating safely twice](#creating-safely-twice)). Over TLS, a send or a `deliver` to an
+`id` (see [Repeating a create](#repeating-a-create)). Over TLS, a send or a `deliver` to an
 address of the computer serve runs on answers 400 `invalid_request`.
 
 The file format and the commands are in [cli.md](https://github.com/BTLabsUK/lepic/blob/main/docs/cli.md#owner-api-over-tls).
@@ -83,11 +84,11 @@ curl --unix-socket ./w.sock http://lepic/api/v1/accounts
 {"items":[{"label":"default","index":0,"balance":{"spendable":"0.00000000","confirming":"0.00000000","pending":"0.00000000","maturing":"0.00000000","locked":"0.00000000","total":"0.00000000"}}]}
 ```
 
-## Creating safely twice
+## Repeating a create
 
-A create (payment, address, link, contact) may carry an `id` you choose. Use a UUID for
-a payment. Serve records a digest of the body before it creates anything, so a retry after a
-timeout is safe:
+A create (payment, address, link, contact) may carry an `id` the caller chooses; for a
+payment it is a UUID. Serve records a digest of the body before it creates anything, so a repeat
+of the call does not create a second object:
 
 | You send | Serve answers |
 |---|---|
@@ -106,7 +107,7 @@ An `id` that already names a payment is refused with 409 `idempotency_mismatch`,
 
 Over TLS a payment must carry an `id`, so a client that loses the answer can ask again.
 
-A real run. An invoice needs no funds, so it is the easy thing to try:
+Example, creating an invoice:
 
 ```sh
 curl -i --unix-socket ./w.sock -H 'content-type: application/json' \
@@ -129,10 +130,9 @@ content-type: application/problem+json
 
 A send keeps your `id` as the payment's `id`, and so does an invoice whose `id` is a version-4
 UUID. An invoice under any other UUID gets an `id` of the wallet's own choosing, and your `id`
-stays an alias: `GET /payments/{your id}` returns the same payment. Read `id` from the answer,
-not from your request.
+stays an alias: `GET /payments/{your id}` returns the same payment. The answer's `id` is the payment's id.
 
-A create is meant to be repeatable after serve stopped while answering it: a payment, an address or a
+A create can be repeated after serve stopped while answering it: a payment, an address or a
 link that was made is answered with 200 on the repeat, not made a second time.
 
 ## Payments
@@ -401,7 +401,7 @@ Events are kept for 30 days by default. A client that falls behind, or asks from
 pruned, gets an `events.skipped` event with the count and a `reason` of `lagged` or `pruned`.
 Read the object again with a `GET`, then carry on from the new id.
 
-A real run: this stream was open while an invoice was created (the `data` is cut here, and
+Example: the stream while an invoice is created (the `data` is cut here, and
 `data.object` holds the payment).
 
 ```sh
@@ -546,7 +546,7 @@ category unless the table says another; `Retry-After` is set on 502, 503 and 504
 | `internal` | 500 | A bug in serve. |
 | `interrupted`, `cancelled` | 503 | Serve is stopping, or the scan was cancelled. |
 
-**Creating safely twice**
+**Repeating a create**
 
 | Code | Status | Meaning |
 |---|---|---|

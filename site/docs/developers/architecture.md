@@ -81,8 +81,8 @@ The engine depends on traits ("ports"), not on implementations:
 
 The engine owns no runtime and no global state. `lepic-cli` and `lepic-ffi` create the Tokio
 runtime and pass it in. Because the node, storage, keys, network and clock are all passed in, one
-test can run several wallets side by side, and one process can hold a mainnet and a floonet
-wallet.
+test can run several wallets side by side, and one process can hold wallets on
+different networks.
 
 ## Slates, codecs and transports
 

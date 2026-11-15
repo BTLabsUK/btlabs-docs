@@ -1059,7 +1059,7 @@ Role: `read`.
 
 ### `POST /quarantine/{id}/retry` {#post-quarantine-id-retry}
 
-Try to open one again.
+Retry opening a quarantined item.
 
 Role: `full`.
 

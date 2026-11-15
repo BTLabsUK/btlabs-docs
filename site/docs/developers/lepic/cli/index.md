@@ -5,14 +5,9 @@ description: "Install lepic, create or restore a wallet, receive, send and run t
 
 # The lepic command-line wallet
 
-`lepic` is the command-line wallet of [LEPIC](../../lepic.md). It is for a terminal, a script or a
-service. This page shows the common tasks. [Every command and option](reference.md) is listed in
-the reference, which is generated from the program's own help.
-
-:::warning
-LEPIC is beta software. Try it on floonet, the test network, with `--network floonet` before using
-it on mainnet. Keep the recovery phrase and test restores before relying on a wallet.
-:::
+`lepic` is the command-line wallet of [LEPIC](../../lepic.md). This page documents `lepic 0.5.0`
+and shows the common tasks. [Every command and option](reference.md) is listed in the reference,
+which is generated from the program's own help.
 
 ## Install
 
@@ -24,8 +19,7 @@ cargo xtask install
 lepic --version
 ```
 
-`cargo xtask install` builds `lepic` and copies it to `~/.local/bin`. If `lepic` is not found
-afterwards, add that directory to `PATH`.
+`cargo xtask install` builds `lepic` and copies it to `~/.local/bin`.
 
 ```text
 lepic 0.5.0
@@ -35,7 +29,7 @@ lepic 0.5.0
 
 - **Network.** `--network mainnet` (the default) or `--network floonet`.
 - **Data directory.** One wallet per directory. Without `--data-dir` it is `~/.lepic/<network>`,
-  for example `~/.lepic/floonet`. Two `lepic` processes cannot open the same directory at once.
+  for example `~/.lepic/mainnet`. Two `lepic` processes cannot open the same directory at once.
 - **Password.** Commands that open the wallet read it from the file `LEPIC_PASSWORD_FILE` names
   (the file must be owner-only, or the command stops with exit code 3), else from `LEPIC_PASSWORD`, else from a hidden prompt, else from
   one line of standard input. There is no password argument.
@@ -43,10 +37,10 @@ lepic 0.5.0
   The node and Epicbox servers are in `~/.lepic/settings.toml`, written on first use.
 - **Output.** Text by default. `--output json` prints JSON, and the exit code says what happened
   (the [table](reference.md#exit-codes) is in the reference).
-- **Node.** Commands that read the chain need an Epic node. Floonet uses `http://127.0.0.1:13413`
-  unless `node_url` says otherwise. Without a node they stop with exit code 9.
+- **Node.** Commands that read the chain need an Epic node. `node_url` sets its address; on mainnet the default is the first of `[node] servers` in
+  `settings.toml`. Without a node they stop with exit code 9.
 
-The examples below read the password from a file:
+The password can be given as a file:
 
 ```bash
 printf '%s\n' 'a long password' > ./pw && chmod 600 ./pw
@@ -56,11 +50,11 @@ export LEPIC_PASSWORD_FILE=$PWD/pw
 ## Create a wallet
 
 ```bash
-lepic --network floonet --data-dir ./wallet wallet init
+lepic wallet init
 ```
 
 ```text
-Wallet created on floonet in /home/user/wallet.
+Wallet created on mainnet in /home/user/.lepic/mainnet.
 Write down the recovery phrase. It is not shown again:
 
     <24 words>
@@ -69,15 +63,15 @@ To receive, give the sender the address `lepic wallet address` prints, or
 answer their slate file with `lepic tx receive <FILE>`.
 ```
 
-`--words 12` (or 15, 18, 21) makes a shorter phrase. The phrase restores the wallet; whoever has
-it can spend the funds, so it is written down on paper and kept off the computer.
+`--words 12` (or 15, 18, 21) makes a shorter phrase. The phrase restores the wallet and is shown
+once.
 
 ## Restore a wallet
 
 The phrase is read from standard input or a hidden prompt, then the new password is read as above:
 
 ```bash
-printf '%s\n' "$PHRASE" | lepic --network floonet --data-dir ./restored wallet restore
+printf '%s\n' "$PHRASE" | lepic wallet restore
 ```
 
 `wallet restore` scans the chain for the wallet's outputs and needs a node. `--from-height H`
@@ -92,61 +86,56 @@ A wallet restored from its phrase has the same Epicbox address as the original. 
 Show the address to give to the sender:
 
 ```bash
-lepic --network floonet --data-dir ./wallet wallet address
+lepic wallet address
 ```
 
 ```text
 zzNE34Wsc89PPDUGr4gwFUwAt1SYF1rtEkevpfSSFr9ZjDEZ6mzN@epicbox.btlabs.uk
 ```
 
-The host after `@` is the Epicbox relay the wallet uses; the default, `epicbox.btlabs.uk`, comes from `settings.toml`. A payment sent to the address waits at
-the relay until the wallet connects:
+The host after `@` is the Epicbox relay the wallet uses; the default, `epicbox.btlabs.uk`, comes
+from `settings.toml`. A payment sent to the address waits at the relay until the wallet connects:
 
 ```bash
-lepic --network floonet --data-dir ./wallet epicbox listen   # stays connected and handles slates as they arrive
-lepic --network floonet --data-dir ./wallet epicbox drain    # handles what is waiting once, then exits
+lepic epicbox listen   # stays connected and handles slates as they arrive
+lepic epicbox drain    # handles what is waiting once, then exits
 ```
 
 Other ways in:
 
 ```bash
-lepic --network floonet --data-dir ./wallet tx receive ./payment.slate   # a slate file; the reply goes to ./payment.slate.response
-lepic --network floonet --data-dir ./wallet http listen --port 3415      # an HTTP listener for wallets that pay over HTTP
-lepic --network floonet --data-dir ./wallet tor listen --tor-binary /opt/tor/tor --lib-dir /opt/tor   # an onion address
+lepic tx receive ./payment.slate   # a slate file; the reply goes to ./payment.slate.response
+lepic http listen --port 3415      # an HTTP listener for wallets that pay over HTTP
+lepic tor listen --tor-binary /opt/tor/tor --lib-dir /opt/tor   # an onion address
 ```
 
-`lepic --network floonet --data-dir ./wallet tx list` shows the account's transactions, and
-`lepic --network floonet --data-dir ./wallet wallet info` the balances after a refresh against the
-node.
+`lepic tx list` shows the account's transactions, and `lepic wallet info` the balances after a
+refresh against the node.
 
 ## Send
 
 `lepic tx send AMOUNT` takes one destination. The amount is in EPIC.
 
 ```bash
-W="--network floonet --data-dir ./wallet"          # the wallet made above, on floonet
-lepic $W tx send 1.5 --to ADDRESS@HOST               # through Epicbox
-lepic $W tx send 1.5 --to http://HOST:3415           # straight to a listening wallet
-lepic $W tx send 1.5 --to NAME.onion --tor-binary /opt/tor/tor --lib-dir /opt/tor
-lepic $W tx send 1.5 --to-file ./payment.slate       # a slate file to hand over
-lepic $W tx send 1.5 --to-contact ID                 # a paired contact
+lepic tx send 1.5 --to ADDRESS@HOST               # through Epicbox
+lepic tx send 1.5 --to http://HOST:3415           # straight to a listening wallet
+lepic tx send 1.5 --to NAME.onion --tor-binary /opt/tor/tor --lib-dir /opt/tor
+lepic tx send 1.5 --to-file ./payment.slate       # a slate file to hand over
+lepic tx send 1.5 --to-contact ID                 # a paired contact
 ```
-
-`$W` stands for the two options of the first line.
 
 Over HTTP and Tor the transaction is finished and posted by the same command. Over Epicbox the
 other wallet answers when it next connects, and the next `epicbox listen` or `epicbox drain`
 finishes and posts it. With a file, the receiver runs `lepic tx receive`, and the sender then runs
-`lepic $W tx finalize ./payment.slate.response`.
+`lepic tx finalize ./payment.slate.response`.
 
 A second send can fail with `insufficient_funds` while the first one is unconfirmed. Coins are
 spendable only after `--min-confirmations` blocks, and the change of a send stays locked until its
-transaction confirms. `lepic $W wallet info` shows the `spendable` balance; the amount plus the
-fee must fit in it.
+transaction confirms. `lepic wallet info` shows the `spendable` balance; the amount plus the fee must fit in it.
 
 `--message TEXT` adds a message, `--account LABEL` picks the account to spend from, and
 `--slate-id UUID` (a version 4 UUID the caller stores first) makes a repeated send a no-op that
-reports the first one. `lepic $W tx cancel TX_ID` cancels a transaction that is not posted.
+reports the first one. `lepic tx cancel TX_ID` cancels a transaction that is not posted.
 
 ## Run the wallet API
 
@@ -154,7 +143,7 @@ reports the first one. `lepic $W tx cancel TX_ID` cancels a transaction that is 
 socket. It also listens on Epicbox and refreshes the wallet while it runs.
 
 ```bash
-lepic --network floonet --data-dir ./wallet serve --socket ./w.sock &
+lepic serve --socket ./w.sock &
 curl --unix-socket ./w.sock http://lepic/api/v1/status
 ```
 

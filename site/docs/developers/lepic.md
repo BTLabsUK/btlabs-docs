@@ -17,12 +17,8 @@ with other LEPIC wallets. There is no wallet server to start.
 | A desktop or mobile app | The FFI library `lepic-ffi`, through [lepic-flutter](lepic-flutter.md); BT Wallet is built this way |
 
 Repository: [github.com/BTLabsUK/lepic](https://github.com/BTLabsUK/lepic).
-Licence: Apache-2.0. Rust edition 2024, toolchain pinned in `rust-toolchain.toml`.
-
-:::warning
-LEPIC is beta (version 0.5.0). Its APIs may still change before 1.0. Try the `lepic` command-line
-wallet on floonet, the test network, before using it with real funds.
-:::
+Version documented here: 0.5.0. Licence: Apache-2.0. Rust edition 2024, toolchain pinned in
+`rust-toolchain.toml`.
 
 ## The `lepic` command-line wallet
 
@@ -32,9 +28,9 @@ included, through slate files, an Epicbox relay, or directly over HTTP or Tor. I
 store the chain.
 
 ```bash
-cargo xtask install                   # build and install to ~/.local/bin/lepic
-lepic --network floonet wallet init   # create a test wallet, write down the phrase
-lepic --network floonet wallet info   # balances, from the node at 127.0.0.1:13413
+cargo xtask install   # build and install to ~/.local/bin/lepic
+lepic wallet init     # create a wallet and show its recovery phrase
+lepic wallet info     # balances, from the node
 ```
 
 | Command group | Examples |
