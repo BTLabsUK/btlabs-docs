@@ -1,0 +1,5467 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "LEPIC wallet API",
+    "version": "1.0.0",
+    "description": "HTTP API of `lepic serve` for one LEPIC wallet.\n**One wallet per serve.** Every path is relative to `/api/v1` and names no wallet. To serve several wallets, run one `lepic serve` per wallet, each with its own socket and port.\n\n**Transports.** Two ways in. The Unix socket `lepic.sock` is readable only by the user who runs serve; there are no tokens, and OpenAPI cannot express it, so it has no security scheme here. Optional mutual TLS 1.3 (`--owner-tls`) admits clients listed in `api-clients` by key (`ownerTls`), each with one role: `read`, `receive` (also create invoices, addresses and links; never spends) or `full`. A call above a client role answers 403 with code `role_required`. The socket is always `full`. Operations marked `x-socket-only: true` (`PUT /wallet/password`, `POST /contacts/export`, `POST /contacts/import`) answer 403 with code `socket_only` over TLS. Over TLS, `POST /payments` needs a caller-chosen `id`.\n\n**Wire protocols outside this API.** `/v2/foreign` (stock wallets, JSON-RPC) and `/api/v1/inbox` (LEPIC native) are the endpoints other wallets call. They are wire protocols and are not described here.\n\n**Conventions.** Field names are snake_case; amounts are decimal strings in EPIC with up to 8 decimals; times are RFC 3339 UTC; optional fields are left out when empty, never null; enum values are lower snake_case and clients must accept values they do not know. Lists return `{items, next_cursor}`. Errors are RFC 9457 problem documents. Besides the statuses each operation lists, any call may answer 408 `body_too_slow` or 413 `body_too_large` while serve reads its body, and 500 `internal` on a bug. On the socket, a request that carries the `x-lepic-*` headers of a forwarded CLI command answers 409 `serve_version_differs` or `serve_settings_differ` when they name another version or other settings than serve runs with; other clients do not send them. Every response carries `x-lepic-version`."
+  },
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Service",
+      "description": "Service operations."
+    },
+    {
+      "name": "Wallet",
+      "description": "Wallet operations."
+    },
+    {
+      "name": "Payments",
+      "description": "Payments operations."
+    },
+    {
+      "name": "Inspect and open",
+      "description": "Inspect and open operations."
+    },
+    {
+      "name": "Coins",
+      "description": "Coins operations."
+    },
+    {
+      "name": "Addresses and links",
+      "description": "Addresses and links operations."
+    },
+    {
+      "name": "Contacts",
+      "description": "Contacts operations."
+    },
+    {
+      "name": "Pair requests",
+      "description": "Pair requests operations."
+    },
+    {
+      "name": "Payloads",
+      "description": "Payloads operations."
+    },
+    {
+      "name": "Quarantine",
+      "description": "Quarantine operations."
+    },
+    {
+      "name": "Network",
+      "description": "Network operations."
+    },
+    {
+      "name": "Profile",
+      "description": "Profile operations."
+    },
+    {
+      "name": "Events",
+      "description": "Events operations."
+    },
+    {
+      "name": "Webhooks",
+      "description": "Webhooks operations."
+    }
+  ],
+  "security": [
+    {
+      "ownerTls": []
+    },
+    {}
+  ],
+  "paths": {
+    "/status": {
+      "get": {
+        "operationId": "getStatus",
+        "x-role": "read",
+        "summary": "The running serve: uptime, listeners, last refresh and collect, owner TLS.",
+        "tags": [
+          "Service"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "operationId": "getOpenApi",
+        "x-role": "read",
+        "summary": "This API as OpenAPI 3.1.",
+        "tags": [
+          "Service"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "An OpenAPI 3.1 document."
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/wallet": {
+      "get": {
+        "operationId": "getWallet",
+        "x-role": "read",
+        "summary": "Network, chain height, node behind, scan progress, address issuing.",
+        "tags": [
+          "Wallet"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Wallet"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateWallet",
+        "x-role": "full",
+        "summary": "Make this install the one that issues new epic1 addresses.",
+        "tags": [
+          "Wallet"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchWallet"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Wallet"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/wallet/password": {
+      "put": {
+        "operationId": "changeWalletPassword",
+        "x-role": "full",
+        "summary": "Change the password. Socket only.",
+        "tags": [
+          "Wallet"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePassword"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        },
+        "x-socket-only": true,
+        "security": [
+          {}
+        ]
+      }
+    },
+    "/wallet/scan": {
+      "post": {
+        "operationId": "scanWallet",
+        "x-role": "full",
+        "summary": "Rescan the chain, optionally reading every link mailbox. Runs in the background; progress comes as events.",
+        "tags": [
+          "Wallet"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScanRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Wallet"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/sync": {
+      "post": {
+        "operationId": "syncNow",
+        "x-role": "receive",
+        "summary": "Refresh against the node and collect from the relays now.",
+        "tags": [
+          "Wallet"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Wallet"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
+    "/sync/boost": {
+      "post": {
+        "operationId": "boostSync",
+        "x-role": "receive",
+        "summary": "Collect from the relays, or refresh against the node, more often for a while.",
+        "description": "Runs the poller at most every `interval_seconds` for `duration_seconds` from now, then goes back to its base interval (30 s for `relays`, 60 s for `node`). Each call starts its own boost: a poller with several runs at the shortest interval among them until the last ends, and `DELETE /sync/boost/{id}` ends one before its window does. The interval is at least 5 s and the duration at most 600 s: values outside are clamped. The answer is the boost's `id` and the poller's window with it. Serve boosts `relays` for 120 s at 5 s by itself after `POST /payments`, `POST /contacts`, `POST /pair-requests/{id}/accept` and `POST /links`.",
+        "tags": [
+          "Wallet"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoostRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Boost"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/sync/boost/{id}": {
+      "delete": {
+        "operationId": "endBoost",
+        "x-role": "receive",
+        "summary": "End a boost before its window does.",
+        "description": "The poller's window is then that of the boosts left, or its base interval.",
+        "tags": [
+          "Wallet"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "The `id` `POST /sync/boost` answered."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/accounts": {
+      "get": {
+        "operationId": "listAccounts",
+        "x-role": "read",
+        "summary": "The accounts with their balances.",
+        "tags": [
+          "Wallet"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createAccount",
+        "x-role": "full",
+        "summary": "Create an account.",
+        "tags": [
+          "Wallet"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAccount"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/payments": {
+      "get": {
+        "operationId": "listPayments",
+        "x-role": "read",
+        "summary": "List payments, newest first.",
+        "tags": [
+          "Payments"
+        ],
+        "parameters": [
+          {
+            "name": "account",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Account label."
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Payment/properties/state"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Payment/properties/kind"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Payment/properties/direction"
+            }
+          },
+          {
+            "name": "via",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Payment/properties/via"
+            }
+          },
+          {
+            "name": "contact_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "link_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "delivery",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Delivery/properties/state"
+            },
+            "description": "Delivery state."
+          },
+          {
+            "name": "updated_after",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createPayment",
+        "x-role": "receive",
+        "x-role-note": "Issuing an invoice needs `receive`; a send needs `full`.",
+        "summary": "Start a payment: a send or an invoice.",
+        "tags": [
+          "Payments"
+        ],
+        "description": "Starts a send (`kind: send`, default) or an invoice (`kind: invoice`). Returns 201, or 200 with the stored payment on an idempotent repeat (same `id`, same body). A different body with the same `id` is 409 `idempotency_mismatch`; a repeat while the first call runs is 409 `in_progress`. Over owner TLS `id` is required.\n\n`to` forms: `key@host` (Epicbox address), `http://` or `https://` URL, `.onion` address, `epic:` link, `contact:ID`, `account:LABEL`. An `epic:` link carries its amount and message: a classic one (`epic:ADDRESS?amount=&message=`) is paid to its address, an epic1 link as `lepic epic1 pay` pays it.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePayment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Idempotent repeat: the stored payment; no money moved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
+    "/payments/estimate": {
+      "post": {
+        "operationId": "estimatePayment",
+        "x-role": "read",
+        "summary": "Same body as create, changes nothing: the fee, the most you can send, the coins it would use.",
+        "tags": [
+          "Payments"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePayment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Estimate"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/payments/{id}": {
+      "get": {
+        "operationId": "getPayment",
+        "x-role": "read",
+        "summary": "One payment.",
+        "tags": [
+          "Payments"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PaymentId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updatePayment",
+        "x-role": "full",
+        "summary": "Set the payment's metadata: local notes, never sent.",
+        "tags": [
+          "Payments"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PaymentId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchPayment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/payments/{id}/approve": {
+      "post": {
+        "operationId": "approvePayment",
+        "x-role": "full",
+        "summary": "Pay an invoice that waits for your approval. You retype the amount.",
+        "tags": [
+          "Payments"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PaymentId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApprovePayment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
+    "/payments/{id}/decline": {
+      "post": {
+        "operationId": "declinePayment",
+        "x-role": "full",
+        "summary": "Refuse an invoice that waits for your approval, and tell the issuer.",
+        "description": "Takes no body. The issuer's notice carries a fixed reason, never text of yours (no extra data is sent).",
+        "tags": [
+          "Payments"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PaymentId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/payments/{id}/finalize": {
+      "post": {
+        "operationId": "finalizePayment",
+        "x-role": "full",
+        "summary": "Choose which answer finishes the payment, then post it.",
+        "tags": [
+          "Payments"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PaymentId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinalizePayment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
+    "/payments/{id}/deliver": {
+      "post": {
+        "operationId": "deliverPayment",
+        "x-role": "full",
+        "summary": "Send the current slate to the other wallet again, to the next relay, or to an allowed outside relay.",
+        "tags": [
+          "Payments"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PaymentId"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeliverPayment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
+    "/payments/{id}/post": {
+      "post": {
+        "operationId": "postPayment",
+        "x-role": "receive",
+        "x-role-note": "Posting an invoice this wallet issued needs `receive`; posting a send needs `full`.",
+        "summary": "Post a finished payment to the node again.",
+        "tags": [
+          "Payments"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PaymentId"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostPayment"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
+    "/payments/{id}/cancel": {
+      "post": {
+        "operationId": "cancelPayment",
+        "x-role": "receive",
+        "x-role-note": "Cancelling an invoice this wallet issued while it awaits its answer needs `receive`; every other cancel or release needs `full`.",
+        "summary": "End a payment that is not on the chain and free its coins.",
+        "tags": [
+          "Payments"
+        ],
+        "description": "Covers today's `cancel` and `release`. Cancelling a cancelled payment returns it unchanged.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PaymentId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
+    "/payments/{id}/handoff": {
+      "get": {
+        "operationId": "getPaymentHandoff",
+        "x-role": "read",
+        "summary": "The text, file or QR frames to give the other person by hand.",
+        "tags": [
+          "Payments"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PaymentId"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Handoff/properties/format"
+            },
+            "description": "slate JSON, `.epictx`, sealed to the contact, plain."
+          },
+          {
+            "name": "contact_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Contact to seal for; for `format=sealed`."
+          },
+          {
+            "name": "qr",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "true adds `qr_frames`."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Handoff"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/inspect": {
+      "post": {
+        "operationId": "inspect",
+        "x-role": "read",
+        "summary": "Say what a text, file or scanned code is and what it asks, without changing anything.",
+        "tags": [
+          "Inspect and open"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InspectRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Inspection"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
+    "/open": {
+      "post": {
+        "operationId": "open",
+        "x-role": "receive",
+        "x-role-note": "Receiving a payment, parking an invoice or finishing an invoice this wallet issued needs `receive`; finishing your own send or advancing a pairing needs `full`.",
+        "summary": "Act on it: receive, finish, park an invoice, or advance a pairing. Never spends.",
+        "tags": [
+          "Inspect and open"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
+    "/outputs": {
+      "get": {
+        "operationId": "listOutputs",
+        "x-role": "read",
+        "summary": "The wallet's outputs.",
+        "tags": [
+          "Coins"
+        ],
+        "parameters": [
+          {
+            "name": "account",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Output/properties/state"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutputList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/addresses": {
+      "get": {
+        "operationId": "listAddresses",
+        "x-role": "read",
+        "summary": "Your addresses.",
+        "tags": [
+          "Addresses and links"
+        ],
+        "parameters": [
+          {
+            "name": "account",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Address/properties/type"
+            }
+          },
+          {
+            "name": "index",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddressList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createAddress",
+        "x-role": "receive",
+        "summary": "Issue the next numbered epic1 address of an account.",
+        "tags": [
+          "Addresses and links"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAddress"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Idempotent repeat: the stored address.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Address"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Address"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          }
+        }
+      }
+    },
+    "/links": {
+      "get": {
+        "operationId": "listLinks",
+        "x-role": "read",
+        "summary": "Your epic1 links whose mailboxes are read.",
+        "tags": [
+          "Addresses and links"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createLink",
+        "x-role": "receive",
+        "summary": "Make a link for an epic1 address, on up to three relays.",
+        "tags": [
+          "Addresses and links"
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLink"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Idempotent repeat: the stored link.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Link"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Link"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          }
+        }
+      }
+    },
+    "/links/{id}/retire": {
+      "post": {
+        "operationId": "retireLink",
+        "x-role": "receive",
+        "summary": "Retire a printed link: its mailbox is read no more.",
+        "tags": [
+          "Addresses and links"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/LinkId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Link"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/contacts": {
+      "get": {
+        "operationId": "listContacts",
+        "x-role": "read",
+        "summary": "Contacts, including pairings in progress.",
+        "tags": [
+          "Contacts"
+        ],
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Contact/properties/state"
+            }
+          },
+          {
+            "name": "class",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Contact/properties/class"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createContact",
+        "x-role": "full",
+        "summary": "Start a pairing: make an invite, answer an invite, or send a pair request.",
+        "tags": [
+          "Contacts"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateContact"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Idempotent repeat: the stored contact.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
+    "/contacts/{id}": {
+      "get": {
+        "operationId": "getContact",
+        "x-role": "read",
+        "summary": "One contact.",
+        "tags": [
+          "Contacts"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ContactId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateContact",
+        "x-role": "full",
+        "summary": "Change its label, invoice switch, or sealing.",
+        "tags": [
+          "Contacts"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ContactId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchContact"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteContact",
+        "x-role": "full",
+        "summary": "End the pairing and tell the contact, unless notify=false. Also withdraws an invite or request.",
+        "tags": [
+          "Contacts"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ContactId"
+          },
+          {
+            "name": "notify",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            },
+            "description": "Tell the contact."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
+    "/contacts/{id}/verify": {
+      "post": {
+        "operationId": "verifyContact",
+        "x-role": "full",
+        "summary": "Record whether the four words matched.",
+        "tags": [
+          "Contacts"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ContactId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyContact"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/contacts/{id}/check": {
+      "post": {
+        "operationId": "checkContact",
+        "x-role": "full",
+        "summary": "Ask the contact to answer with its current keys and profile, or whether it holds an older pairing's keys.",
+        "tags": [
+          "Contacts"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ContactId"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckContact"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
+    "/contacts/{id}/keys": {
+      "post": {
+        "operationId": "resolveContactKeys",
+        "x-role": "full",
+        "summary": "After keys changed: keep the old keys or use the new ones.",
+        "tags": [
+          "Contacts"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ContactId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactKeys"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/contacts/{id}/move": {
+      "post": {
+        "operationId": "moveContact",
+        "x-role": "full",
+        "summary": "Answer the contact's request to move relays: accept moves there, refuse records the answer.",
+        "description": "`host` is the relay the user was shown. If `requested_relay` has changed since, the call fails with 409 `relay_changed` and nothing moves. With `accept: false` the wallet clears `requested_relay`, sets `refused_relay` and tells nobody. The wallet never moves on its own.",
+        "tags": [
+          "Contacts"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ContactId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveContact"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
+    "/contacts/{id}/payloads": {
+      "post": {
+        "operationId": "sendPayload",
+        "x-role": "full",
+        "summary": "Send host-app bytes to the contact's mailbox.",
+        "tags": [
+          "Contacts"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ContactId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
+    "/contacts/export": {
+      "post": {
+        "operationId": "exportContacts",
+        "x-role": "full",
+        "summary": "The pairing records as a backup document. Socket only.",
+        "tags": [
+          "Contacts"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactsBackup"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        },
+        "x-socket-only": true,
+        "security": [
+          {}
+        ]
+      }
+    },
+    "/contacts/import": {
+      "post": {
+        "operationId": "importContacts",
+        "x-role": "full",
+        "summary": "Restore pairing records from a backup document. Socket only.",
+        "tags": [
+          "Contacts"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactsBackup"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        },
+        "x-socket-only": true,
+        "security": [
+          {}
+        ]
+      }
+    },
+    "/pair-requests": {
+      "get": {
+        "operationId": "listPairRequests",
+        "x-role": "read",
+        "summary": "Pair requests that reached this wallet.",
+        "tags": [
+          "Pair requests"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PairRequestList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/pair-requests/{id}/accept": {
+      "post": {
+        "operationId": "acceptPairRequest",
+        "x-role": "full",
+        "summary": "Pair through a request, verified against the address that asked.",
+        "tags": [
+          "Pair requests"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PairRequestId"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptPairRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contact"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
+    "/pair-requests/{id}": {
+      "delete": {
+        "operationId": "deletePairRequest",
+        "x-role": "full",
+        "summary": "Drop a request without an answer.",
+        "tags": [
+          "Pair requests"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PairRequestId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/payloads": {
+      "get": {
+        "operationId": "listPayloads",
+        "x-role": "read",
+        "summary": "Payloads that arrived and are not acknowledged, oldest first.",
+        "tags": [
+          "Payloads"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayloadList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/payloads/{id}": {
+      "delete": {
+        "operationId": "deletePayload",
+        "x-role": "full",
+        "summary": "Acknowledge a payload: the wallet forgets it.",
+        "tags": [
+          "Payloads"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PayloadId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/quarantine": {
+      "get": {
+        "operationId": "listQuarantine",
+        "x-role": "read",
+        "summary": "Contact messages kept because they could not be opened.",
+        "tags": [
+          "Quarantine"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuarantinedList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/quarantine/{id}/retry": {
+      "post": {
+        "operationId": "retryQuarantined",
+        "x-role": "full",
+        "summary": "Try to open one again.",
+        "tags": [
+          "Quarantine"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/QuarantineId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quarantined"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          }
+        }
+      }
+    },
+    "/quarantine/{id}": {
+      "delete": {
+        "operationId": "deleteQuarantined",
+        "x-role": "full",
+        "summary": "Throw one away.",
+        "tags": [
+          "Quarantine"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/QuarantineId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/relay": {
+      "get": {
+        "operationId": "getRelay",
+        "x-role": "read",
+        "summary": "This wallet's Epicbox server, its connection, waiting deliveries, old relays still read.",
+        "tags": [
+          "Network"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Relay"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/relay/move": {
+      "post": {
+        "operationId": "moveRelay",
+        "x-role": "full",
+        "summary": "Move this wallet's home relay and tell every contact; keep reading the old one for drain_days.",
+        "tags": [
+          "Network"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveRelay"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Relay"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
+    "/node": {
+      "get": {
+        "operationId": "getNode",
+        "x-role": "read",
+        "summary": "The node's version, tip and whether it is in sync.",
+        "tags": [
+          "Network"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Node"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
+    "/peers": {
+      "get": {
+        "operationId": "listPeers",
+        "x-role": "read",
+        "summary": "Wallets this wallet paid directly, with their pinned keys.",
+        "tags": [
+          "Network"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeerList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/peers/{origin}": {
+      "delete": {
+        "operationId": "deletePeer",
+        "x-role": "full",
+        "summary": "Forget a pinned key.",
+        "tags": [
+          "Network"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Origin"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/profile": {
+      "get": {
+        "operationId": "getProfile",
+        "x-role": "read",
+        "summary": "Name, flags and domain shown to contacts, with the domain proof.",
+        "tags": [
+          "Profile"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateProfile",
+        "x-role": "full",
+        "summary": "Change them; every paired contact is told.",
+        "tags": [
+          "Profile"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchProfile"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/profile/domain-file": {
+      "get": {
+        "operationId": "getProfileDomainFile",
+        "x-role": "read",
+        "summary": "The .well-known file that proves the domain, for the caller to publish.",
+        "tags": [
+          "Profile"
+        ],
+        "parameters": [
+          {
+            "name": "relay",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Relay host."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The file contents.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/events": {
+      "get": {
+        "operationId": "listEvents",
+        "x-role": "read",
+        "summary": "The event log: a JSON page after `after`, or a live stream.",
+        "tags": [
+          "Events"
+        ],
+        "description": "As JSON, a page oldest first after `after`, with `next_cursor` as for any list. With `Accept: text/event-stream`, a live stream that resumes from `Last-Event-ID` or `?after=`. Events are kept 30 days by default; a client that asks for older ids first gets `events.skipped` with the count.",
+        "parameters": [
+          {
+            "name": "after",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Return events with an id greater than this."
+          },
+          {
+            "name": "types",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma list of event types; `payment.*` style wildcards allowed."
+          },
+          {
+            "$ref": "#/components/parameters/cursor"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 50
+            },
+            "description": "Page size."
+          },
+          {
+            "name": "Last-Event-ID",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Stream resume point: the sequence number of the last event received."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of events, or a live stream.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventList"
+                }
+              },
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "description": "Server-sent events (WHATWG). Each frame has `id:` the event's sequence number, `event:` its type, and `data:` the Event as JSON, then a blank line. A comment line (`: keepalive`) is sent every 15 seconds to keep idle connections open."
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/webhook": {
+      "get": {
+        "operationId": "getWebhook",
+        "x-role": "full",
+        "summary": "The webhook: its URL, types, state, cursor and the next attempt.",
+        "tags": [
+          "Webhooks"
+        ],
+        "description": "The webhook is set in the settings (`webhook_url`), not here. 404 `not_found` when none is set.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Webhook"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/webhook/resume": {
+      "post": {
+        "operationId": "resumeWebhook",
+        "x-role": "full",
+        "summary": "Send again from the cursor, or from `after`, now.",
+        "tags": [
+          "Webhooks"
+        ],
+        "description": "Clears the attempt count and the error and starts sending at once. `after` sets the cursor: the next event sent is the first one with a greater id. A webhook that is `disabled` sends again.",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookResume"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Webhook"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ownerTls": {
+        "type": "mutualTLS",
+        "description": "Mutual TLS 1.3 with a client key listed in `api-clients` (`--owner-tls`). Each client has one role (`read`, `receive` or `full`); every operation names its minimum in `x-role`. The Unix socket needs no credentials, has the `full` role, and is described in `info.description`. The empty security requirement `{}` means the socket."
+      }
+    },
+    "parameters": {
+      "limit": {
+        "name": "limit",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500,
+          "default": 50
+        },
+        "description": "Page size."
+      },
+      "cursor": {
+        "name": "cursor",
+        "in": "query",
+        "schema": {
+          "type": "string"
+        },
+        "description": "Opaque cursor from `next_cursor`. Other query parameters must stay the same across pages."
+      },
+      "PaymentId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "description": "Payment id (UUID)."
+      },
+      "ContactId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Contact id."
+      },
+      "PairRequestId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Pair request id."
+      },
+      "PayloadId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Payload id."
+      },
+      "QuarantineId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Quarantine item id."
+      },
+      "LinkId": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Link number, as a string."
+      },
+      "Origin": {
+        "name": "origin",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Peer origin."
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad input (400).",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Not found (404).",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Conflict with the object's state or an idempotency key (409).",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "Unprocessable": {
+        "description": "Valid but impossible, e.g. insufficient funds or invoice changed (422).",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "BadGateway": {
+        "description": "The node or a relay failed (502).",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "Unavailable": {
+        "description": "Not ready: scan running or serve stopping (503). May set Retry-After.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "GatewayTimeout": {
+        "description": "The node or a relay timed out (504).",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Decimal": {
+        "type": "string",
+        "pattern": "^-?[0-9]+(\\.[0-9]{1,8})?$",
+        "description": "EPIC amount as a decimal string",
+        "example": "1.5"
+      },
+      "Delivery": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "sent",
+              "uncertain",
+              "held",
+              "failed",
+              "refused",
+              "by_hand"
+            ]
+          },
+          "to": {
+            "type": "string",
+            "description": "Address, URL, onion, contact id, or the relay used."
+          },
+          "relays_left": {
+            "type": "integer"
+          },
+          "attempts": {
+            "type": "integer"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "attempts",
+          "updated_at"
+        ]
+      },
+      "Handoff": {
+        "type": "object",
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": [
+              "slate",
+              "epictx",
+              "sealed",
+              "plain",
+              "in_person_code"
+            ]
+          },
+          "text": {
+            "type": "string",
+            "description": "Paste, show as QR, or save as a file."
+          },
+          "file_name": {
+            "type": "string",
+            "example": "1a2b3c4d.tx"
+          },
+          "qr_frames": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Animated QR frame."
+            }
+          }
+        },
+        "required": [
+          "format",
+          "text"
+        ]
+      },
+      "Payment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The slate id; the other wallet sees the same."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "send",
+              "invoice",
+              "coinbase",
+              "unknown"
+            ],
+            "description": "Who started it; unknown = found by a scan."
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "in",
+              "out",
+              "self"
+            ],
+            "description": "self = between own accounts, or splitting own coins."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "needs_approval",
+              "awaiting_answer",
+              "awaiting_post",
+              "finalized",
+              "posted",
+              "confirmed",
+              "cancelled",
+              "declined",
+              "expired"
+            ]
+          },
+          "state_reason": {
+            "type": "string",
+            "description": "Why it reached an end state: by_us, by_them, superseded, ..."
+          },
+          "account": {
+            "type": "string",
+            "description": "Label; for self, the account it left."
+          },
+          "to_account": {
+            "type": "string",
+            "description": "self only."
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Decimal",
+            "description": "What the payee gets."
+          },
+          "fee": {
+            "$ref": "#/components/schemas/Decimal"
+          },
+          "balance_change": {
+            "$ref": "#/components/schemas/Decimal",
+            "description": "Signed change to this wallet's balance, fee included."
+          },
+          "via": {
+            "type": "string",
+            "enum": [
+              "epicbox",
+              "http",
+              "tor",
+              "contact",
+              "link",
+              "in_person",
+              "file",
+              "peer",
+              "chain"
+            ]
+          },
+          "counterparty": {
+            "type": "object",
+            "properties": {
+              "contact_id": {
+                "type": "string"
+              },
+              "address": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "our_address": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "epicbox",
+                  "epic1",
+                  "listing"
+                ]
+              },
+              "index": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "description": "Which of our addresses it reached."
+          },
+          "link_id": {
+            "type": "string",
+            "description": "For a payment taken at one of this wallet's epic1 links: the link's id, as `GET /links` lists it. A link's id is used again after the link is retired."
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "payment",
+              "deposit",
+              "withdrawal",
+              "refund",
+              "request"
+            ],
+            "description": "Set by the sender, between contacts."
+          },
+          "message": {
+            "type": "string",
+            "description": "Ours."
+          },
+          "their_message": {
+            "type": "string"
+          },
+          "delivery": {
+            "$ref": "#/components/schemas/Delivery"
+          },
+          "answers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "check_code": {
+                  "type": "string"
+                },
+                "received_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "same_code_as": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "check_code",
+                "received_at"
+              ]
+            }
+          },
+          "check_code": {
+            "type": "string",
+            "description": "Payer side of an in-person code, once delivered."
+          },
+          "their_notices": {
+            "type": "object",
+            "properties": {
+              "posted_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "cancelled_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "declined_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "description": "What the other side reported."
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "approve",
+                "decline",
+                "finalize",
+                "deliver",
+                "post",
+                "cancel"
+              ]
+            },
+            "description": "The calls that work on this payment now, as the wallet computes them. A call not listed fails with 409 `action_not_available`. Clients must accept values they do not know."
+          },
+          "cancellable_from_height": {
+            "type": "integer",
+            "description": "A posted send the chain never took."
+          },
+          "expires_at_height": {
+            "type": "integer"
+          },
+          "confirmations": {
+            "type": "integer"
+          },
+          "confirmed_height": {
+            "type": "integer"
+          },
+          "kernel_excess": {
+            "type": "string",
+            "pattern": "^[0-9a-f]+$",
+            "description": "Hex."
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "wallet",
+              "imported",
+              "scan"
+            ]
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "maxProperties": 50,
+            "description": "Local only, never sent. Up to 50 keys; keys up to 40 and values up to 500 characters."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "handoff": {
+            "$ref": "#/components/schemas/Handoff",
+            "description": "In create and open responses, when you deliver by hand."
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "direction",
+          "state",
+          "account",
+          "amount",
+          "balance_change",
+          "via",
+          "actions",
+          "source",
+          "created_at",
+          "updated_at"
+        ],
+        "example": {
+          "id": "3f2b8c1e-5d7a-4e0b-9a61-2c4d8e7f1a90",
+          "kind": "send",
+          "direction": "out",
+          "state": "awaiting_answer",
+          "account": "default",
+          "amount": "1.5",
+          "fee": "0.007",
+          "balance_change": "-1.507",
+          "via": "epicbox",
+          "counterparty": {
+            "address": "k3y9fexample@relay.example",
+            "name": "Alice"
+          },
+          "message": "Invoice 1042",
+          "delivery": {
+            "state": "sent",
+            "to": "relay.example",
+            "attempts": 1,
+            "updated_at": "2026-11-10T09:30:05Z"
+          },
+          "actions": [
+            "cancel"
+          ],
+          "expires_at_height": 3012450,
+          "confirmations": 0,
+          "source": "wallet",
+          "metadata": {
+            "order": "1042"
+          },
+          "created_at": "2026-11-10T09:30:04Z",
+          "updated_at": "2026-11-10T09:30:05Z"
+        }
+      },
+      "Balance": {
+        "type": "object",
+        "properties": {
+          "spendable": {
+            "$ref": "#/components/schemas/Decimal"
+          },
+          "confirming": {
+            "$ref": "#/components/schemas/Decimal"
+          },
+          "pending": {
+            "$ref": "#/components/schemas/Decimal"
+          },
+          "maturing": {
+            "$ref": "#/components/schemas/Decimal"
+          },
+          "locked": {
+            "$ref": "#/components/schemas/Decimal"
+          },
+          "total": {
+            "$ref": "#/components/schemas/Decimal"
+          }
+        },
+        "required": [
+          "spendable",
+          "confirming",
+          "pending",
+          "maturing",
+          "locked",
+          "total"
+        ]
+      },
+      "Account": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "index": {
+            "type": "integer"
+          },
+          "balance": {
+            "$ref": "#/components/schemas/Balance"
+          }
+        },
+        "required": [
+          "label",
+          "index",
+          "balance"
+        ]
+      },
+      "Output": {
+        "type": "object",
+        "properties": {
+          "commitment": {
+            "type": "string"
+          },
+          "account": {
+            "type": "string"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Decimal"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "unspent",
+              "unconfirmed",
+              "locked",
+              "spent"
+            ]
+          },
+          "confirmations": {
+            "type": "integer"
+          },
+          "height": {
+            "type": "integer"
+          },
+          "lock_height": {
+            "type": "integer"
+          },
+          "coinbase": {
+            "type": "boolean"
+          },
+          "payment_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "commitment",
+          "account",
+          "amount",
+          "state",
+          "confirmations",
+          "coinbase"
+        ]
+      },
+      "Address": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "epicbox",
+              "epic1",
+              "onion",
+              "http"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "account": {
+            "type": "string"
+          },
+          "index": {
+            "type": "integer"
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "used": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "type",
+          "text",
+          "account",
+          "used"
+        ]
+      },
+      "Link": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string",
+            "description": "The `epic:` link."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "on_screen",
+              "printed"
+            ]
+          },
+          "account": {
+            "type": "string"
+          },
+          "address_index": {
+            "type": "integer"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Decimal"
+          },
+          "message": {
+            "type": "string"
+          },
+          "relays": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Relay host."
+            }
+          },
+          "issued_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_paid_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "retired_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "kind",
+          "account",
+          "relays",
+          "issued_at"
+        ]
+      },
+      "Contact": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "class": {
+            "type": "string",
+            "enum": [
+              "standard",
+              "private"
+            ],
+            "description": "private = a linked device."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "waiting",
+              "paired",
+              "verified",
+              "keys_changed",
+              "ended"
+            ]
+          },
+          "ended_reason": {
+            "type": "string",
+            "enum": [
+              "mismatch",
+              "their_mismatch",
+              "unpaired",
+              "never_finished"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "description": "Your name for them."
+          },
+          "claimed_name": {
+            "type": "string",
+            "description": "The name they gave, unverified."
+          },
+          "verify_words": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allow_invoices": {
+            "type": "boolean",
+            "description": "Only for verified contacts."
+          },
+          "seal": {
+            "type": "boolean",
+            "description": "Files to this contact are sealed."
+          },
+          "home_relay": {
+            "type": "string",
+            "description": "Relay host."
+          },
+          "requested_relay": {
+            "type": "string",
+            "description": "They asked you to move there. Answer with `POST /contacts/{id}/move`."
+          },
+          "refused_relay": {
+            "type": "string",
+            "description": "A move you refused. The contact was not told."
+          },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "flags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "domain": {
+                "type": "string"
+              },
+              "domain_proven": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "flags",
+              "domain_proven"
+            ]
+          },
+          "features": {
+            "type": "object",
+            "properties": {
+              "native_slates": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "native_slates"
+            ]
+          },
+          "pairing": {
+            "type": "object",
+            "properties": {
+              "method": {
+                "type": "string",
+                "enum": [
+                  "invite",
+                  "accept",
+                  "request"
+                ]
+              },
+              "invite_link": {
+                "type": "string"
+              },
+              "expires_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "method"
+            ]
+          },
+          "last_heard_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "verified_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ended_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "class",
+          "state",
+          "label",
+          "allow_invoices",
+          "seal",
+          "home_relay",
+          "created_at"
+        ],
+        "example": {
+          "id": "c_7",
+          "class": "standard",
+          "state": "verified",
+          "label": "Alice",
+          "claimed_name": "Alice",
+          "allow_invoices": true,
+          "seal": false,
+          "home_relay": "relay.example",
+          "profile": {
+            "flags": [
+              "accepts_invoices"
+            ],
+            "domain": "shop.example",
+            "domain_proven": true
+          },
+          "features": {
+            "native_slates": true
+          },
+          "last_heard_at": "2026-11-10T09:12:00Z",
+          "verified_at": "2026-11-09T18:00:00Z",
+          "created_at": "2026-11-09T17:40:00Z"
+        }
+      },
+      "PairRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "from_address": {
+            "type": "string"
+          },
+          "claimed_name": {
+            "type": "string"
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "from_address",
+          "received_at",
+          "expires_at"
+        ]
+      },
+      "Payload": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "contact_id": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer"
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "data_base64": {
+            "type": "string",
+            "format": "byte"
+          }
+        },
+        "required": [
+          "id",
+          "contact_id",
+          "size",
+          "received_at",
+          "data_base64"
+        ]
+      },
+      "Quarantined": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "contact_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer"
+          },
+          "attempts": {
+            "type": "integer"
+          },
+          "first_seen_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "reason",
+          "size",
+          "attempts",
+          "first_seen_at"
+        ]
+      },
+      "Peer": {
+        "type": "object",
+        "properties": {
+          "origin": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "first_seen_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_seen_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "origin",
+          "key",
+          "first_seen_at",
+          "last_seen_at"
+        ]
+      },
+      "Profile": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "flags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "domain": {
+            "type": "string"
+          },
+          "domain_proof": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "flags"
+        ]
+      },
+      "Relay": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string"
+          },
+          "connection": {
+            "type": "string",
+            "enum": [
+              "connecting",
+              "connected",
+              "disconnected",
+              "stopped"
+            ]
+          },
+          "address": {
+            "type": "string"
+          },
+          "waiting_deliveries": {
+            "type": "integer"
+          },
+          "draining": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "host": {
+                  "type": "string"
+                },
+                "until_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "host",
+                "until_at"
+              ]
+            }
+          }
+        },
+        "required": [
+          "host",
+          "connection",
+          "address",
+          "waiting_deliveries",
+          "draining"
+        ]
+      },
+      "Node": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "tip_height": {
+            "type": "integer"
+          },
+          "syncing": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "version",
+          "tip_height",
+          "syncing"
+        ]
+      },
+      "Wallet": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string"
+          },
+          "height": {
+            "type": "integer"
+          },
+          "node_behind": {
+            "type": "boolean"
+          },
+          "issues_addresses": {
+            "type": "boolean"
+          },
+          "scan": {
+            "type": "object",
+            "properties": {
+              "state": {
+                "type": "string",
+                "enum": [
+                  "running",
+                  "done",
+                  "failed"
+                ]
+              },
+              "height": {
+                "type": "integer"
+              },
+              "target_height": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "state",
+              "height",
+              "target_height"
+            ]
+          }
+        },
+        "required": [
+          "network",
+          "height",
+          "node_behind",
+          "issues_addresses"
+        ]
+      },
+      "Status": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "uptime_s": {
+            "type": "integer"
+          },
+          "listeners": {
+            "type": "object",
+            "properties": {
+              "epicbox": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "type": "string",
+                    "enum": [
+                      "connecting",
+                      "connected",
+                      "disconnected",
+                      "stopped"
+                    ],
+                    "description": "Absent until the listener reports one."
+                  }
+                }
+              },
+              "http": {
+                "type": "object",
+                "description": "Present when serve runs with `--http`.",
+                "properties": {
+                  "port": {
+                    "type": "integer"
+                  },
+                  "exposure": {
+                    "type": "string"
+                  },
+                  "received": {
+                    "type": "integer"
+                  },
+                  "repeated": {
+                    "type": "integer"
+                  },
+                  "refused": {
+                    "type": "integer"
+                  },
+                  "coinbase": {
+                    "type": "string",
+                    "enum": [
+                      "off",
+                      "local",
+                      "remote"
+                    ]
+                  }
+                }
+              }
+            },
+            "required": [
+              "epicbox"
+            ]
+          },
+          "owner_tls": {
+            "type": "object",
+            "description": "Present when serve runs with `--owner-tls`.",
+            "properties": {
+              "address": {
+                "type": "string"
+              },
+              "fingerprint": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "address",
+              "fingerprint"
+            ]
+          },
+          "refresh": {
+            "type": "object",
+            "properties": {
+              "last_success_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "failures": {
+                "type": "integer",
+                "description": "Failures in a row; 0 after a success."
+              },
+              "last_error": {
+                "type": "string",
+                "description": "The last failure's error."
+              },
+              "boost": {
+                "$ref": "#/components/schemas/Boost",
+                "description": "Present while a boost runs."
+              }
+            },
+            "required": [
+              "failures"
+            ]
+          },
+          "collect": {
+            "type": "object",
+            "properties": {
+              "last_success_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "failures": {
+                "type": "integer",
+                "description": "Failures in a row; 0 after a success."
+              },
+              "last_error": {
+                "type": "string",
+                "description": "The last failure's error."
+              },
+              "boost": {
+                "$ref": "#/components/schemas/Boost",
+                "description": "Present while a boost runs."
+              }
+            },
+            "required": [
+              "failures"
+            ]
+          },
+          "requests": {
+            "type": "object",
+            "description": "Requests this serve answered since it started.",
+            "properties": {
+              "served": {
+                "type": "integer"
+              },
+              "in_flight": {
+                "type": "integer",
+                "description": "Requests and event streams being answered."
+              },
+              "refused": {
+                "type": "integer",
+                "description": "Connections closed unanswered."
+              }
+            },
+            "required": [
+              "served",
+              "in_flight",
+              "refused"
+            ]
+          }
+        },
+        "required": [
+          "version",
+          "uptime_s",
+          "listeners",
+          "refresh",
+          "collect",
+          "requests"
+        ]
+      },
+      "InspectRequest": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Pasted text."
+          },
+          "file_base64": {
+            "type": "string",
+            "format": "byte",
+            "description": "File contents."
+          },
+          "qr_frames": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Scanned QR frames."
+            }
+          }
+        },
+        "description": "Exactly one of `text`, `file_base64`, `qr_frames`.",
+        "oneOf": [
+          {
+            "required": [
+              "text"
+            ]
+          },
+          {
+            "required": [
+              "file_base64"
+            ]
+          },
+          {
+            "required": [
+              "qr_frames"
+            ]
+          }
+        ]
+      },
+      "Inspection": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "epicbox_address",
+              "http_address",
+              "onion_address",
+              "epic1_address",
+              "link",
+              "in_person_send",
+              "in_person_invoice",
+              "in_person_answer",
+              "slate_send",
+              "slate_invoice",
+              "slate_answer",
+              "epictx",
+              "sealed",
+              "pairing_invite",
+              "pairing_reply",
+              "pairing_confirm",
+              "unknown"
+            ]
+          },
+          "network_ok": {
+            "type": "boolean"
+          },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "$ref": "#/components/schemas/Decimal"
+              },
+              "fee": {
+                "$ref": "#/components/schemas/Decimal"
+              },
+              "message": {
+                "type": "string"
+              },
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "type": "string"
+              },
+              "relays": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "expires_at_height": {
+                "type": "integer"
+              },
+              "contact_id": {
+                "type": "string"
+              }
+            }
+          },
+          "peer": {
+            "type": "object",
+            "properties": {
+              "native": {
+                "type": "boolean"
+              },
+              "pays_invoices": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "native",
+              "pays_invoices"
+            ],
+            "description": "For addresses, after asking the relay."
+          },
+          "payment_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "When it belongs to a payment this wallet knows."
+          },
+          "next": {
+            "type": "string",
+            "enum": [
+              "pay",
+              "open",
+              "accept_invite",
+              "none"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "network_ok",
+          "next"
+        ]
+      },
+      "OpenRequest": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Pasted text."
+          },
+          "file_base64": {
+            "type": "string",
+            "format": "byte",
+            "description": "File contents."
+          },
+          "qr_frames": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Scanned QR frames."
+            }
+          },
+          "expect": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "epicbox_address",
+                "http_address",
+                "onion_address",
+                "epic1_address",
+                "link",
+                "in_person_send",
+                "in_person_invoice",
+                "in_person_answer",
+                "slate_send",
+                "slate_invoice",
+                "slate_answer",
+                "epictx",
+                "sealed",
+                "pairing_invite",
+                "pairing_reply",
+                "pairing_confirm",
+                "unknown"
+              ]
+            },
+            "description": "Optional guard. Anything whose inspection `type` is not listed is refused with 422 `unexpected_input` and nothing changes."
+          },
+          "message": {
+            "type": "string"
+          },
+          "deliver": {
+            "type": "boolean"
+          },
+          "relay_ok": {
+            "type": "boolean"
+          }
+        },
+        "description": "InspectRequest plus `expect`, `message`, `deliver`, `relay_ok`.",
+        "oneOf": [
+          {
+            "required": [
+              "text"
+            ]
+          },
+          {
+            "required": [
+              "file_base64"
+            ]
+          },
+          {
+            "required": [
+              "qr_frames"
+            ]
+          }
+        ]
+      },
+      "OpenResult": {
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "received",
+              "finished",
+              "answer_added",
+              "invoice_parked",
+              "pairing_advanced",
+              "already_done"
+            ]
+          },
+          "payment": {
+            "$ref": "#/components/schemas/Payment"
+          },
+          "contact": {
+            "$ref": "#/components/schemas/Contact"
+          },
+          "handoff": {
+            "$ref": "#/components/schemas/Handoff",
+            "description": "The answer to give back by hand, in the format that came in."
+          }
+        },
+        "required": [
+          "outcome"
+        ]
+      },
+      "Event": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Sequence number, rising, never reused."
+          },
+          "type": {
+            "type": "string",
+            "description": "`resource.what_happened`. An open set: new types may be added, and clients must skip types they do not know. Known types: payment.created, payment.state_changed, payment.updated, payment.confirmations_reached, contact.created, contact.state_changed, contact.updated, contact.removed, pair_request.received, payload.received, quarantine.added, account.balance_changed, wallet.progress, relay.updated, slate.unmatched, events.skipped.",
+            "examples": [
+              "payment.state_changed"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "object": {
+                "description": "Snapshot after the change.",
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/Payment"
+                  },
+                  {
+                    "$ref": "#/components/schemas/Contact"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PairRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/Payload"
+                  },
+                  {
+                    "$ref": "#/components/schemas/Quarantined"
+                  },
+                  {
+                    "$ref": "#/components/schemas/Account"
+                  },
+                  {
+                    "$ref": "#/components/schemas/Relay"
+                  },
+                  {
+                    "$ref": "#/components/schemas/Wallet"
+                  }
+                ]
+              },
+              "from_state": {
+                "type": "string"
+              },
+              "to_state": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string",
+                "description": "Why: for `*.state_changed` the end-state reason; for `slate.unmatched` `unknown_slate` or `notice`; for `events.skipped` `lagged` or `pruned`; for `relay.updated` `home_unreachable` or the transport's reason."
+              },
+              "changed": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "description": "Field name."
+                },
+                "description": "The top-level fields of `object` that changed (`*.updated`, `relay.updated`)."
+              },
+              "payment_id": {
+                "type": "string",
+                "description": "`payment.state_changed` for a payment the wallet no longer holds, such as a parked invoice that expired."
+              },
+              "contact_id": {
+                "type": "string",
+                "description": "`quarantine.added`, `payload.received`, and `contact.state_changed` for a contact the wallet no longer holds."
+              },
+              "slate_id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "`slate.unmatched`."
+              },
+              "stage": {
+                "type": "string",
+                "description": "`slate.unmatched`: the slate's stage, such as `S2` or `I2`."
+              },
+              "sender": {
+                "type": "string",
+                "description": "`slate.unmatched`: where it came from, as the relay reported it."
+              },
+              "host": {
+                "type": "string",
+                "description": "`relay.updated` with reason `home_unreachable`: the relay."
+              },
+              "height": {
+                "type": "integer",
+                "description": "`wallet.progress`: the height scanned to."
+              },
+              "target_height": {
+                "type": "integer",
+                "description": "`wallet.progress`: the height the scan runs to."
+              },
+              "count": {
+                "type": "integer",
+                "description": "`events.skipped`: how many events the reader missed."
+              }
+            }
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "created_at",
+          "data"
+        ],
+        "example": {
+          "id": 4712,
+          "type": "payment.state_changed",
+          "created_at": "2026-11-10T09:41:10Z",
+          "data": {
+            "object": {
+              "id": "3f2b8c1e-5d7a-4e0b-9a61-2c4d8e7f1a90",
+              "kind": "send",
+              "direction": "out",
+              "state": "posted",
+              "account": "default",
+              "amount": "1.5",
+              "fee": "0.007",
+              "balance_change": "-1.507",
+              "via": "epicbox",
+              "actions": [],
+              "source": "wallet",
+              "created_at": "2026-11-10T09:30:04Z",
+              "updated_at": "2026-11-10T09:41:10Z"
+            },
+            "from_state": "awaiting_answer",
+            "to_state": "posted",
+            "reason": "answered"
+          }
+        }
+      },
+      "Problem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "about:blank"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "description": "Stable, fine-grained error name, e.g. `insufficient_funds`."
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "usage",
+              "config",
+              "wrong_password",
+              "wallet_state",
+              "not_found",
+              "rejected",
+              "funds",
+              "node",
+              "transport",
+              "internal",
+              "interrupted",
+              "conflict"
+            ]
+          },
+          "param": {
+            "type": "string",
+            "description": "JSON pointer to the bad field."
+          },
+          "payment_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contact_id": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "detail": {
+                  "type": "string"
+                },
+                "param": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "code"
+              ]
+            }
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code",
+          "category"
+        ],
+        "example": {
+          "type": "about:blank",
+          "title": "Unprocessable Content",
+          "status": 422,
+          "detail": "The account has 1.2 EPIC spendable; the payment needs 1.507 with the fee.",
+          "code": "insufficient_funds",
+          "category": "funds",
+          "param": "/amount"
+        }
+      },
+      "PaymentList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Payment"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "description": "Absent on the last page."
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "OutputList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Output"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "description": "Absent on the last page."
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "AddressList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Address"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "description": "Absent on the last page."
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "LinkList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Link"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "description": "Absent on the last page."
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "ContactList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Contact"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "description": "Absent on the last page."
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "PairRequestList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PairRequest"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "description": "Absent on the last page."
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "PayloadList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Payload"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "description": "Absent on the last page."
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "QuarantinedList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Quarantined"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "description": "Absent on the last page."
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "PeerList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Peer"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "description": "Absent on the last page."
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "AccountList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Account"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "description": "Absent on the last page."
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "EventList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            }
+          },
+          "next_cursor": {
+            "type": "string",
+            "description": "Absent on the last page."
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "CreatePayment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Optional caller-chosen id. A send uses it as its slate id, and so does an invoice given a version-4 UUID; an invoice given another UUID takes a slate id of the wallet's own and keeps this one as an alias that `GET /payments/{id}` also answers. Read `id` from the answer. Idempotency key: a repeat with the same id and body returns the stored payment with 200; a different body is 409 `idempotency_mismatch`. Required over owner TLS."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "send",
+              "invoice"
+            ],
+            "default": "send"
+          },
+          "to": {
+            "type": "string",
+            "description": "Destination. Forms: `key@host` (Epicbox address); `http://` or `https://` URL; `.onion` address; `epic:` link (classic or epic1); `contact:ID`; `account:LABEL` (own account). Without `to`, `via` must be `file` or `in_person`."
+          },
+          "via": {
+            "type": "string",
+            "enum": [
+              "epicbox",
+              "http",
+              "tor",
+              "contact",
+              "link",
+              "in_person",
+              "file",
+              "peer",
+              "chain"
+            ],
+            "description": "Route. Same values as Payment.via; `file` and `in_person` produce a handoff."
+          },
+          "account": {
+            "type": "string",
+            "description": "Account label; default account when absent."
+          },
+          "amount": {
+            "description": "Amount, or the string `max` (estimate only). May be left out when `to` is an `epic:` link that names one; if both name one, they must be equal (400 `invalid_field` at `/amount`).",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Decimal"
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "max"
+                ]
+              }
+            ]
+          },
+          "message": {
+            "type": "string",
+            "description": "Signed into the slate, at most 256 bytes. Shows as `message` on this payment and as `their_message` on the other party's, an invoice to a contact included."
+          },
+          "min_confirmations": {
+            "type": "integer"
+          },
+          "selection": {
+            "type": "string",
+            "enum": [
+              "all",
+              "smallest"
+            ]
+          },
+          "change_outputs": {
+            "type": "integer",
+            "description": "Number of change outputs; `account:default` with 3 splits coins."
+          },
+          "ttl_blocks": {
+            "type": "integer",
+            "description": "Blocks after which the other party must refuse the slate. For a send, a V2 slate (Epicbox, HTTP) has no TTL field: the wallet keeps the height and expires the send at refresh if it is still unanswered. For an invoice, the I1 carries it, the payment shows it as `expires_at_height`, and a refresh past it expires the invoice."
+          },
+          "fluff": {
+            "type": "boolean"
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "payment",
+              "deposit",
+              "withdrawal",
+              "refund",
+              "request"
+            ]
+          },
+          "relay_ok": {
+            "type": "boolean",
+            "description": "Allow delivery to a relay outside your list."
+          },
+          "allow_plain_http": {
+            "type": "boolean"
+          },
+          "legacy": {
+            "type": "boolean",
+            "default": false,
+            "description": "true: give an http(s):// or onion payee the V2 or V3 slate every wallet takes, even when its listener offers native slates (today's `tx send --legacy`)."
+          },
+          "deliver": {
+            "type": "boolean",
+            "default": true,
+            "description": "false: create the payment and return the handoff only."
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "maxProperties": 50,
+            "description": "Local notes, never sent. The bounds are input validation, not policy."
+          }
+        },
+        "description": "Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unless `to` is an `epic:` link that names one."
+      },
+      "Estimate": {
+        "type": "object",
+        "properties": {
+          "fee": {
+            "$ref": "#/components/schemas/Decimal"
+          },
+          "max_amount": {
+            "$ref": "#/components/schemas/Decimal",
+            "description": "The most you can send."
+          },
+          "outputs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Output"
+            },
+            "description": "The coins it would use."
+          }
+        },
+        "required": [
+          "fee",
+          "max_amount",
+          "outputs"
+        ]
+      },
+      "CreateAccount": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "label"
+        ]
+      },
+      "SyncRequest": {
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "boolean",
+            "default": true
+          },
+          "relays": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "PatchWallet": {
+        "type": "object",
+        "properties": {
+          "issues_addresses": {
+            "type": "boolean",
+            "const": true,
+            "description": "Only `true` is accepted."
+          }
+        },
+        "required": [
+          "issues_addresses"
+        ]
+      },
+      "ChangePassword": {
+        "type": "object",
+        "properties": {
+          "current": {
+            "type": "string",
+            "format": "password"
+          },
+          "new": {
+            "type": "string",
+            "format": "password"
+          }
+        },
+        "required": [
+          "current",
+          "new"
+        ]
+      },
+      "ScanRequest": {
+        "type": "object",
+        "properties": {
+          "from_height": {
+            "type": "integer"
+          },
+          "delete_unconfirmed": {
+            "type": "boolean"
+          },
+          "reset_chain": {
+            "type": "boolean"
+          },
+          "links": {
+            "type": "boolean",
+            "description": "Read every link mailbox after a restore."
+          }
+        }
+      },
+      "PatchPayment": {
+        "type": "object",
+        "properties": {
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "maxProperties": 50,
+            "description": "A key set to the empty string is removed."
+          }
+        }
+      },
+      "ApprovePayment": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "$ref": "#/components/schemas/Decimal",
+            "description": "The invoice amount, retyped; must match."
+          },
+          "account": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "deliver": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": [
+          "amount"
+        ]
+      },
+      "FinalizePayment": {
+        "type": "object",
+        "properties": {
+          "answer_id": {
+            "type": "string",
+            "description": "The answer that finishes the payment (in-person codes can get up to 16)."
+          }
+        },
+        "required": [
+          "answer_id"
+        ]
+      },
+      "PostPayment": {
+        "type": "object",
+        "properties": {
+          "fluff": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DeliverPayment": {
+        "type": "object",
+        "properties": {
+          "relay": {
+            "type": "string",
+            "description": "`next` for the next relay, or a relay host."
+          },
+          "to": {
+            "type": "string",
+            "description": "`contact:ID`: send a slate through a contact's mailbox, for example a withdrawal."
+          },
+          "relay_ok": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CreateAddress": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "account": {
+            "type": "string",
+            "description": "Account label; default account when absent."
+          }
+        }
+      },
+      "CreateLink": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "account": {
+            "type": "string"
+          },
+          "address_index": {
+            "type": "integer",
+            "description": "Default: the newest."
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Decimal"
+          },
+          "message": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "on_screen",
+              "printed"
+            ]
+          },
+          "relays": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 3
+          }
+        }
+      },
+      "CreateContact": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "invite",
+              "accept",
+              "request"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "class": {
+            "type": "string",
+            "enum": [
+              "standard",
+              "private"
+            ],
+            "default": "standard"
+          },
+          "invite": {
+            "type": "string",
+            "description": "Invite link or text; for `accept`."
+          },
+          "address": {
+            "type": "string",
+            "description": "Payments address; for `request`, e.g. `key@host`."
+          },
+          "expires_in": {
+            "type": "string",
+            "enum": [
+              "1h",
+              "24h",
+              "7d"
+            ],
+            "description": "Invite lifetime; for `invite`."
+          },
+          "deliver": {
+            "type": "boolean",
+            "description": "false: return the reply to send by hand."
+          }
+        },
+        "required": [
+          "method"
+        ]
+      },
+      "PatchContact": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "allow_invoices": {
+            "type": "boolean"
+          },
+          "seal": {
+            "type": "boolean"
+          }
+        }
+      },
+      "VerifyContact": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "enum": [
+              "match",
+              "mismatch",
+              "skip"
+            ]
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "CheckContact": {
+        "type": "object",
+        "properties": {
+          "previous_contact_id": {
+            "type": "string"
+          }
+        }
+      },
+      "ContactKeys": {
+        "type": "object",
+        "properties": {
+          "use": {
+            "type": "string",
+            "enum": [
+              "old",
+              "new"
+            ]
+          }
+        },
+        "required": [
+          "use"
+        ]
+      },
+      "SendPayload": {
+        "type": "object",
+        "properties": {
+          "data_base64": {
+            "type": "string",
+            "format": "byte",
+            "maxLength": 21848,
+            "description": "Up to 16 KiB of bytes, base64-encoded."
+          }
+        },
+        "required": [
+          "data_base64"
+        ]
+      },
+      "ContactsBackup": {
+        "type": "object",
+        "properties": {
+          "document": {
+            "type": "string",
+            "description": "The pairing records as a backup document (opaque)."
+          }
+        },
+        "required": [
+          "document"
+        ]
+      },
+      "ImportResult": {
+        "type": "object",
+        "properties": {
+          "imported": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "imported"
+        ]
+      },
+      "MoveContact": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string",
+            "description": "The relay the user was shown; must equal the contact's `requested_relay`."
+          },
+          "accept": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": [
+          "host"
+        ]
+      },
+      "MoveRelay": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string"
+          },
+          "drain_days": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "host"
+        ]
+      },
+      "AcceptPairRequest": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          }
+        }
+      },
+      "PatchProfile": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "flags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "domain": {
+            "type": "string",
+            "description": "Empty string removes it."
+          }
+        }
+      },
+      "BoostRequest": {
+        "type": "object",
+        "properties": {
+          "poller": {
+            "type": "string",
+            "enum": [
+              "relays",
+              "node"
+            ],
+            "description": "`relays`: the collect from the contact, pairing and link mailboxes. `node`: the wallet refresh."
+          },
+          "duration_seconds": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "How long the boost lasts from now; at most 600, a longer one is cut to 600."
+          },
+          "interval_seconds": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "How often the poller runs meanwhile; at least 5, a shorter one is raised to 5."
+          }
+        },
+        "required": [
+          "poller",
+          "duration_seconds",
+          "interval_seconds"
+        ]
+      },
+      "Boost": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Only in the answer to `POST /sync/boost`: the boost it started, for `DELETE /sync/boost/{id}`. Random, from 1 to 2^53 - 1."
+          },
+          "poller": {
+            "type": "string",
+            "enum": [
+              "relays",
+              "node"
+            ],
+            "description": "`relays`: the collect from the contact, pairing and link mailboxes. `node`: the wallet refresh."
+          },
+          "until": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the last boost of the poller ends, unless one is ended first."
+          },
+          "interval_seconds": {
+            "type": "integer",
+            "description": "The shortest interval the poller's boosts ask. The poller never runs slower than its base: 30 s for `relays`, 60 s for `node`."
+          }
+        },
+        "required": [
+          "poller",
+          "until",
+          "interval_seconds"
+        ]
+      },
+      "Webhook": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "`webhook_url`."
+          },
+          "types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "`webhook_types`; empty for all."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "active",
+              "retrying",
+              "config_error",
+              "disabled"
+            ],
+            "description": "`retrying` after a failed attempt; `config_error` while serve cannot use the secret file (no attempt counts, `last_error` says why); `disabled` after the last retry failed, until `POST /webhook/resume`."
+          },
+          "cursor": {
+            "type": "integer",
+            "description": "The id of the last event delivered, or passed over because `webhook_types` leaves it out. A new `webhook_url` starts at the newest event in the log."
+          },
+          "attempts": {
+            "type": "integer",
+            "description": "Failed attempts at the next event."
+          },
+          "next_attempt_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the next attempt is due, while `retrying`."
+          },
+          "last_error": {
+            "type": "string",
+            "description": "Why the last attempt failed, in a sentence: the receiver's status, a timeout, a refused address or a secret file it could not use. Never the receiver's body or the URL."
+          }
+        },
+        "required": [
+          "url",
+          "types",
+          "state",
+          "cursor",
+          "attempts"
+        ],
+        "additionalProperties": false
+      },
+      "WebhookResume": {
+        "type": "object",
+        "properties": {
+          "after": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Event id to set the cursor to."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

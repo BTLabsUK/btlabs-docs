@@ -46,6 +46,8 @@ Builds run on your own machine; there is no hosted CI.
 | `WRITING.md` | Format and word rules for the pages. Read it before writing. |
 | `tools/check-doc-names.py` | Fails on the app's old names outside `tools/doc-names.allow`, and on Epic node or epic-wallet version numbers in the pages. `npm run build` runs it first. |
 | `tools/wiki-sync.py` | Exports a chosen set of pages to each code project's GitHub wiki. |
+| `tools/gen-lepic-cli.py` | Regenerates the `lepic` command reference from a built binary: `tools/gen-lepic-cli.py --bin <path to lepic>`. |
+| `tools/gen-lepic-api.py` | Regenerates the wallet API guide and reference from a LEPIC checkout (`--lepic <path>`, default `~/lepic`). |
 | `deploy/` | Deploys the built site to the web server (an nginx site serving `/srv/btlabs-docs`). |
 
 ## Deploy

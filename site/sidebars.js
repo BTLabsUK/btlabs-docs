@@ -38,7 +38,17 @@ const sidebars = {
   developers: [
     'developers/index',
     'developers/architecture',
-    'developers/lepic',
+    {
+      type: 'category',
+      label: 'LEPIC',
+      link: {type: 'doc', id: 'developers/lepic'},
+      items: [
+        'developers/lepic/cli/index',
+        'developers/lepic/cli/reference',
+        'developers/lepic/api/v1/index',
+        'developers/lepic/api/v1/reference',
+      ],
+    },
     'developers/lepic-flutter',
     'developers/security-model',
     'developers/decisions',

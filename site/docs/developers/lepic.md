@@ -13,7 +13,7 @@ with other LEPIC wallets. There is no wallet server to start.
 | Use | Through |
 |---|---|
 | A Rust program | The crates, from git (see [LEPIC from Rust](#quick-start-lepic-from-rust)) |
-| A script or a service | The [`lepic` command-line wallet](#the-lepic-command-line-wallet) and `lepic serve`, its local wallet API (`/api/v1`) |
+| A script or a service | The [`lepic` command-line wallet](lepic/cli/index.md) and `lepic serve`, its local [wallet API](lepic/api/v1/index.md) (`/api/v1`) |
 | A desktop or mobile app | The FFI library `lepic-ffi`, through [lepic-flutter](lepic-flutter.md); BT Wallet is built this way |
 
 Repository: [github.com/BTLabsUK/lepic](https://github.com/BTLabsUK/lepic).
@@ -76,7 +76,9 @@ never taken from command-line arguments: they come from the file `LEPIC_PASSWORD
 `LEPIC_PASSWORD`, a hidden prompt, or one line of standard input. Plain
 `http://` and `ws://` are accepted only for a loopback host.
 
-The full guide is
+Task-first examples and the [command reference](lepic/cli/reference.md) are in
+[the command-line wallet](lepic/cli/index.md); the wallet API has a [guide](lepic/api/v1/index.md) and a
+[reference](lepic/api/v1/reference.md). The full guide is
 [docs/cli.md](https://github.com/BTLabsUK/lepic/blob/main/docs/cli.md) in
 the repository.
 
