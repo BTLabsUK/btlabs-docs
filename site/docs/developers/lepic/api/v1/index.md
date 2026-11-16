@@ -328,14 +328,16 @@ refreshes the wallet from the node every 60 seconds. `GET /status` shows each un
 `refresh`.
 
 Where a relay offers mux/1, serve also holds push sessions to it. The payments address and every
-live contact and pairing mailbox are attached, an invite's inbox as soon as `POST /contacts`
-answers and an accepted request's as soon as `POST /pair-requests/{id}/accept` does. When a relay
-pushes mail, or a session attaches (at start and after each reconnect), serve runs a collect at
-once. Its events, SSE and webhooks are the same as from a polled collect, and a collect after a
-reconnect catches up on mail stored while the socket was down. The 30 second collect stays: it
-covers epic1 link and in-person reply mailboxes, every mailbox on a relay without mux/1, and a
-session that is down. A client that waits for contact or pairing mail still gets it sooner than
-30 seconds without a boost; a boost remains for the polled mailboxes.
+live contact and pairing mailbox are attached. An invite's inbox is attached once `POST /contacts`
+has answered, an accepted request's once `POST /pair-requests/{id}/accept` has, and a verified
+pairing's once `POST /contacts/{id}/verify` has; when a collect is running, each waits for it to
+end. When a relay pushes mail, or a session attaches (at start and after each reconnect), serve
+runs a collect, at most one a second. With `relay_sockets = "shared"` mail for the payments address
+wakes it too. Its events, SSE and webhooks are the same as from a polled collect, and a collect
+after a reconnect catches up on mail stored while the socket was down. The 30 second collect stays:
+it covers epic1 link and in-person reply mailboxes, every mailbox on a relay without mux/1, and a
+session that is down. A client that waits for contact or pairing mail on a relay with mux/1 needs
+no boost; a boost still speeds up the polled mailboxes.
 
 `POST /sync/boost` makes one of them run faster for a while, for a client that expects an
 answer:

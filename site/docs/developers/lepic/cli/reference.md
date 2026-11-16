@@ -2609,10 +2609,11 @@ operation.
 Only the user that runs it can use the socket. Ctrl-C or SIGTERM stops it.
 
 Where the relay offers mux/1, it holds push sessions to it: the payments address and every live
-contact and pairing mailbox are attached, and a collect runs as soon as mail is pushed or a
-session attaches. The collect still runs every 30 seconds for the mailboxes no session reads
-and when a session is down. relay_sockets (LEPIC_RELAY_SOCKETS) is shared, one socket a relay
-for payments and contacts, or split, one for each; split is the default when a tor is named.
+contact and pairing mailbox are attached, and a collect runs when mail is pushed or a session
+attaches, at most one a second. The collect still runs every 30 seconds for the mailboxes no
+session reads and when a session is down. relay_sockets (LEPIC_RELAY_SOCKETS) is shared, one
+socket a relay for payments and contacts, or split, one for each; split is the default when a
+tor is named.
 
 With --owner-tls it also answers the wallet API over TLS on the address `[api] owner_tls` sets
 in settings.toml, to the clients `lepic api client add` lists, each with its role. It writes its
