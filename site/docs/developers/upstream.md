@@ -27,7 +27,7 @@ Review notes for each upstream release are in LEPIC's
   The one Epic library it links is
   [rust-secp256k1-zkp](https://github.com/EpicCash/rust-secp256k1-zkp), vendored from a pinned
   commit with the changes listed in
-  [`PATCHES.md`](https://github.com/BTLabsUK/lepic/blob/main/third_party/grin_secp256k1zkp/PATCHES.md).
+  [`PATCHES.md`](https://github.com/BTLabsUK/lepic/blob/main/third_party/epic_secp256k1zkp/PATCHES.md).
 - **Golden vectors.** A separate conformance workspace runs the pinned reference code and writes
   test vectors: keys, proofs, signatures, slates at every stage, Epicbox messages. LEPIC's tests
   must reproduce them byte for byte, without access to the reference code (ADR 0009). Where a

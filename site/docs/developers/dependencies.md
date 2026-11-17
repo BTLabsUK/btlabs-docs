@@ -37,7 +37,7 @@ configuration is `deny.toml` at the repository root.
 - **Banned crates.** Proof-of-work code (RandomX, ProgPoW), chain storage (CRoaring, LMDB),
   OpenSSL and native-tls, `aws-lc-rs`, and crates that need CMake, bindgen or a C++ bridge at build
   time. Builds need only Rust and a C compiler.
-- **Sources.** Only crates.io. Two crates are vendored in `third_party/`: `grin_secp256k1zkp`, a
+- **Sources.** Only crates.io. Two crates are vendored in `third_party/`: `epic_secp256k1zkp`, a
   copy of the library Epic Cash uses with the changes listed in its `PATCHES.md`, and
   `libsqlite3-sys`.
 - **Not used directly:** `failure`, `log4rs`, `lazy_static`, `once_cell`, `chrono`, `log`.
@@ -51,7 +51,7 @@ considered.
 
 | Area | Crates |
 |---|---|
-| Curve, commitments, proofs | `grin_secp256k1zkp`, vendored in `third_party/` |
+| Curve, commitments, proofs | `epic_secp256k1zkp`, vendored in `third_party/` |
 | Async runtime | `tokio` |
 | TLS | `rustls` with the ring provider, `webpki-roots`, `tokio-rustls` |
 | HTTP | `hyper`, `hyper-util`, `hyper-rustls` |
