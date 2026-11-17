@@ -11,6 +11,10 @@ import EndpointGroups from '@site/src/components/lepic/EndpointGroups';
 
 # The wallet API v1
 
+:::warning Alpha
+LEPIC is alpha and not ready for production use. Commands, the API and data formats can change between versions without a migration path.
+:::
+
 `lepic serve` holds one wallet open and answers an HTTP API under `/api/v1` on a Unix socket, and
 on an owner TLS listener when that is on. This guide covers lepic 0.6.0. The contract is
 [openapi.json](/developers/lepic/api/v1/explorer/), API version 1.0.0; `GET /api/v1/openapi.json` returns the same

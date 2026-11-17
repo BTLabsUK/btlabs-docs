@@ -11,6 +11,10 @@ import Link from '@docusaurus/Link';
 
 # LEPIC recipes
 
+:::warning Alpha
+LEPIC is alpha and not ready for production use. Commands, the API and data formats can change between versions without a migration path.
+:::
+
 Each recipe shows the `lepic` command first, then the same task through the
 [wallet API](/developers/lepic/api/v1/). The API side assumes `lepic serve --socket ./w.sock` is running for
 the wallet. The CLI names a transaction by its local id (`TX_ID`, as `lepic tx list` shows it);

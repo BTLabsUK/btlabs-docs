@@ -186,6 +186,7 @@ def main():
     if not intro_line:
         die('docs/recipes.md: no intro before the first group')
 
+    page = M.with_notice(page)
     if not OUT.exists() or OUT.read_text() != page:
         OUT.write_text(page)
         print(f'wrote {OUT.relative_to(ROOT)}')

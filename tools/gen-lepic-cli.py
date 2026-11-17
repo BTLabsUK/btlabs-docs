@@ -620,7 +620,7 @@ def main():
     reference, n_leaves, n_groups = build_reference(version, cmds, groups, leafset, lepic)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    for path, text in ((GUIDE, guide), (REFERENCE, reference)):
+    for path, text in ((GUIDE, M.with_notice(guide)), (REFERENCE, M.with_notice(reference))):
         if not path.exists() or path.read_text() != text:
             path.write_text(text)
             print(f'wrote {path.relative_to(ROOT)}')

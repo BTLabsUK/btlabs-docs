@@ -5,6 +5,10 @@ description: "LEPIC, the Epic Cash client library and command-line wallet in Rus
 
 # LEPIC
 
+:::warning Alpha
+LEPIC is alpha and not ready for production use. Commands, the API and data formats can change between versions without a migration path.
+:::
+
 LEPIC (light Epic) is an Epic Cash client library and command-line wallet in Rust. It runs as a
 library inside the process of the program that uses it: it creates and restores wallets, scans the
 chain through an Epic node, and sends and receives transactions with the standard `epic-wallet` and

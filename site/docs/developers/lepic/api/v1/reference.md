@@ -7,6 +7,10 @@ description: "Every endpoint of the `lepic serve` wallet API: paths, roles, para
 
 # Wallet API v1 reference
 
+:::warning Alpha
+LEPIC is alpha and not ready for production use. Commands, the API and data formats can change between versions without a migration path.
+:::
+
 The reference of the `lepic serve` wallet API, version 1.0.0 of its contract: 62 operations under `/api/v1`. How to connect, the roles and the conventions are in the [guide](index.mdx). A running serve returns the same document at `GET /api/v1/openapi.json`; a copy is at [lepic-openapi.json](pathname:///lepic-openapi.json).
 
 Every path below is relative to `/api/v1`. `Role` is the least role of an owner TLS client that may call the operation; the Unix socket always has `full`.

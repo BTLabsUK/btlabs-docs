@@ -549,11 +549,11 @@ def main():
             lines += render_schema_body(ctx, s)
     out = '\n'.join(lines).rstrip() + '\n'
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(out)
+    OUT.write_text(L.with_notice(out))
     STATIC.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(spec_path, STATIC)
-    EXPLORER.write_text(explorer(spec, n_ops))
-    GUIDE.write_text(guide(spec, Path(args.lepic) / README))
+    EXPLORER.write_text(L.with_notice(explorer(spec, n_ops)))
+    GUIDE.write_text(L.with_notice(guide(spec, Path(args.lepic) / README)))
     if OLD_GUIDE.exists():
         OLD_GUIDE.unlink()
     print(f'wrote {GUIDE.relative_to(ROOT)}, {OUT.relative_to(ROOT)}, {EXPLORER.relative_to(ROOT)} ({n_ops} operations, {len(done)} schemas) and {STATIC.relative_to(ROOT)}')
