@@ -9,16 +9,22 @@ description: "LEPIC, the Epic Cash client library and command-line wallet in Rus
 LEPIC is alpha and not ready for production use. Commands, the API and data formats can change between versions without a migration path.
 :::
 
-LEPIC (light Epic) is an Epic Cash client library and command-line wallet in Rust. It runs as a
-library inside the process of the program that uses it: it creates and restores wallets, scans the
-chain through an Epic node, and sends and receives transactions with the standard `epic-wallet` and
-with other LEPIC wallets. There is no wallet server to start.
+Welcome to LEPIC, a light wallet for Epic Cash. It creates and restores wallets, sends and receives
+EPIC, takes payments through epic1 addresses and links, and exchanges transactions with people who
+use the standard `epic-wallet`. It asks an Epic node for chain data, so it does not mine or store
+the chain. No earlier knowledge of Epic is needed to try it.
 
-| Use | Through |
+There are four ways to use it:
+
+| Way | Use it when |
 |---|---|
-| A Rust program | The crates, from git (see [LEPIC from Rust](#quick-start-lepic-from-rust)) |
-| A script or a service | The [`lepic` command-line wallet](lepic/cli/index.mdx) and `lepic serve`, its local [wallet API](lepic/api/v1/index.mdx) (`/api/v1`) |
-| A desktop or mobile app | The FFI library `lepic-ffi`, through [lepic-flutter](lepic-flutter.md); BT Wallet is built this way |
+| The [`lepic` command-line wallet](lepic/cli/index.mdx) | You want to try the wallet in a terminal or drive it from scripts. |
+| `lepic serve`, with its [wallet API](lepic/api/v1/index.mdx) | A bot, shop or service needs a running wallet with a local HTTP API (`/api/v1`, webhooks). |
+| The Rust crates | You want the wallet inside your own Rust program (see [LEPIC from Rust](#quick-start-lepic-from-rust)). |
+| The FFI library `lepic-ffi` | You build a desktop or mobile app, through [lepic-flutter](lepic-flutter.md). BT Wallet is built on it. |
+
+The quickest first step is the CLI: [the CLI guide](lepic/cli/index.mdx) starts with building it and
+creating a wallet, and [the recipes](lepic/recipes.mdx) give a command and an API call for each task.
 
 Repository: [github.com/BTLabsUK/lepic](https://github.com/BTLabsUK/lepic).
 Version documented here: 0.6.0. Licence: Apache-2.0. Rust edition 2024, toolchain pinned in
