@@ -1,25 +1,28 @@
 ---
 title: Payment methods
-description: Epicbox, Link · HTTP, Link · Tor, Direct · File Transfer and Direct · QR Payment, and when to use each.
+description: Epicbox, epic1, Link · HTTP, Link · Tor, Direct · File Transfer and Direct · QR Payment, and when to use each.
 ---
 
 # Payment methods
 
-A payment is a handshake between two wallets. The messages between them travel one of three ways.
+A payment is a handshake between two wallets. The messages between them travel one of three ways:
+through an Epicbox server (**Epicbox** and **epic1**), straight to the other wallet (**Link**), or by
+hand (**Direct**).
 
 | Method | Both online at once? | Server in between | Apps |
 | --- | --- | --- | --- |
 | **Epicbox** | no | an Epicbox server | both |
+| **epic1** | no | an Epicbox server | both |
 | **Link · HTTP** | yes | none | both |
 | **Link · Tor** | yes | none (Tor) | desktop, Android |
 | **Direct · File Transfer** | no | none | both |
 | **Direct · QR Payment** | side by side | none | phone |
 
-Each method has a switch under **Settings › Payments** on the desktop and **Settings › Transactions**
-on the phone. **Epicbox** is on by default. A method that is off does not appear on Send and Receive.
-**Default method** picks the method Send opens with; you can still change it for one payment. On a
-phone, **Link · HTTP** has no switch: it only sends, to any http(s) address you paste. Direct · File
-Transfer on the phone needs its switch in [Advanced](advanced.md).
+Each method has a switch under **Settings › Transactions** on the desktop and **Settings › Payments**
+on the phone. **Epicbox** and **epic1** are on by default. A method that is off does not appear on
+Send and Receive. **Default method** picks the method Send opens with; you can still change it for
+one payment. On a phone, **Link · HTTP** has no switch: it only sends, to any http(s) address you
+paste. Direct · File Transfer on the phone needs its switch in [Advanced](advanced.md).
 
 A payment to a [paired contact](pairing.md#after-pairing) starts on the **Paired address**, over
 Epicbox and sealed.
@@ -30,13 +33,21 @@ The everyday way and the default. The Epicbox server holds each message until th
 comes online, so nobody has to be online at the same time. Messages are encrypted, and the server
 cannot spend anything. See [Epicbox](epicbox.md).
 
+## epic1
+
+Payment by link. The payee's wallet shares an epic1 link, and the payment goes through the Epicbox
+server the link names, so nobody has to be online at the same time. The paying wallet needs epic1.
+
+The switch is called **epic1**. It also covers in-person codes and epic1 files. See
+[epic1 addresses and links](epic1.md).
+
 ## Link · HTTP and Link · Tor
 
 Straight to the other wallet, with no server in between. The other wallet must be open and
 reachable right now.
 
 - **Link · HTTP** sends to a web address such as `http://host:3415`. Receiving this way is on the
-  desktop only, and it is off until you turn it on under **Settings › Payments**. The default port is
+  desktop only, and it is off until you turn it on under **Settings › Transactions**. The default port is
   3415. To be paid from outside your own network, the router has to forward that port. Plain HTTP is
   not encrypted.
 - **Link · Tor** sends to an address of 56 characters ending in `.onion`, over Tor. With
@@ -83,6 +94,6 @@ cancelled until you scan the reply.
 ## Send defaults
 
 With **Send options** on in [Advanced](advanced.md), the phone adds Strategy and Split change under
-**Settings › Transactions**, and the desktop adds a fold on Send: which outputs a send spends
+**Settings › Payments**, and the desktop adds a fold on Send: which outputs a send spends
 (**Smallest** or **All**) and whether its change is split. See
 [How Epic Cash works](how-it-works.md#smallest-or-all).

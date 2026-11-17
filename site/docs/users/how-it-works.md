@@ -15,9 +15,9 @@ wallets build each transaction together, like a handshake:
 3. The sender's wallet signs too, finishes the transaction and posts it to the network.
 
 Something has to carry the messages between the two wallets: **Epicbox** holds each message while
-the other wallet is offline; **Link · HTTP** and **Link · Tor** go straight to the other wallet
-while it is open; **Direct · File Transfer** and **Direct · QR Payment** are the manual ways. See
-[Payment methods](payment-methods.md).
+the other wallet is offline, and [epic1](epic1.md) links go through it too; **Link · HTTP** and
+**Link · Tor** go straight to the other wallet while it is open; **Direct · File Transfer** and
+**Direct · QR Payment** are the manual ways. See [Payment methods](payment-methods.md).
 
 ## Confirmations
 

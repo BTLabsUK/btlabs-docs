@@ -22,7 +22,7 @@ Yes: restore the same recovery phrase on both. To keep them in step, use
 
 ## Does the other person need to be online when I pay?
 
-Not over Epicbox: the payment waits on the server until their wallet opens. Link methods need the
+Not over Epicbox or epic1: the payment waits on the server until their wallet opens. Link methods need the
 other wallet open; File Transfer and QR Payment pass the messages by hand. See
 [Payment methods](payment-methods.md).
 
@@ -40,7 +40,8 @@ Before the other wallet has answered, yes, for certain. After it is posted to th
 
 Yes. Epicbox, Link · HTTP, Link · Tor and transaction files work with the standard Epic Cash
 wallet and others. A recovery phrase from another Epic Cash wallet restores here. Pairing, invoices,
-QR Payment and Linked devices need BT Wallet on both sides.
+QR Payment and Linked devices need BT Wallet on both sides. An [epic1 link](epic1.md) needs a
+wallet with epic1 to pay it.
 
 ## Do I need to run a node?
 

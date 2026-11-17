@@ -14,7 +14,7 @@ Epic Cash wallets use Epicbox too, and two wallets can use different servers.
 
 ## Change the server
 
-- **Desktop:** **Settings › Payments › Epicbox**.
+- **Desktop:** **Settings › Transactions › Epicbox**.
 - **Phone:** tap the Epicbox icon on the Wallet tab, or **Settings › Network & privacy › Epicbox**.
 
 The servers are listed with their state. Pick one and confirm, or type an address to filter the
@@ -34,7 +34,7 @@ to a current server and share the new address.
 
 ## Turn Epicbox off
 
-Epicbox is a switch under **Settings › Payments** on the desktop and **Settings › Transactions** on
+Epicbox is a switch under **Settings › Transactions** on the desktop and **Settings › Payments** on
 the phone. Off, the wallet connects to no Epicbox
 server: no Epicbox payments or invoices, and Receive shows no Epicbox address. Payments sent to the
 address wait on the server until it is on again.

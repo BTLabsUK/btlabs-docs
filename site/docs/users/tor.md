@@ -14,7 +14,7 @@ app and on Android. Tor runs inside the app: there is nothing to install. The iP
 | Desktop | **Settings › Network & privacy › Tor only**. The Tor row in the sidebar shows its state. |
 | Android | The Tor switch in **Settings › Network & privacy**, or the Tor only [connection mode](network-modes.md). |
 
-**Link · Tor** under **Settings › Payments** (desktop) or **Settings › Transactions** (phone) is Tor
+**Link · Tor** under **Settings › Transactions** (desktop) or **Settings › Payments** (phone) is Tor
 for payments alone: it gives the wallet a Tor address to be paid at and does not move the other
 connections.
 

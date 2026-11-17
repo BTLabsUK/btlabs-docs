@@ -58,7 +58,7 @@ address needs the recipient's wallet open and reachable at that moment.
 
 ## Payment links
 
-A payment link opens by tapping, scanning, pasting or sharing, and fills in Send. There are two kinds.
+A payment link opens by tapping, scanning, pasting or sharing, and fills in Send. There are three kinds.
 
 - **`epiccash://pay/1/…`**, or a web link ending in `/p#1/…`. The wallet checks the service's
   signature, the payee's signature, the network, the expiry, and that the link was not made for someone
@@ -66,12 +66,15 @@ A payment link opens by tapping, scanning, pasting or sharing, and fills in Send
 - **A plain `epic:` link**, for example
   `epic:<address>?amount=0.01&message=VEND-0026&require=message&min=0.01`. The desktop app registers
   `epic:` and `epiccash:` on every platform.
+- **An epic1 link**, `epic:epic1…?epicbox=…`. It opens the epic1 payment, with a review that names
+  the server the payment goes through. See [epic1 addresses and links](epic1.md).
 
 ## Other ways to pay
 
 Send picks the method from the address in the To field. For the other methods, and when to use
 them, see [Payment methods](payment-methods.md):
 
+- **[epic1](epic1.md)**: a payment link that carries the recipient's Epicbox server.
 - **Link · HTTP** and **Link · Tor**: straight to the other wallet while it is open.
 - **Direct · File Transfer**: a transaction file passed by hand.
 - **Direct · QR Payment**: phone to phone, with an animated QR code.

@@ -7,7 +7,7 @@ description: The words the app uses, in plain language.
 
 The terms as the app writes them, in alphabetical order.
 
-- **Address**: Where a payment goes. An Epicbox address (`es…@server`), an HTTP address, or a Tor address (`….onion`). Never written on the blockchain. See [Addresses](addresses.md).
+- **Address**: Where a payment goes. An Epicbox address (`es…@server`), an epic1 link (`epic:epic1…`), an HTTP address, or a Tor address (`….onion`). Never written on the blockchain. See [Addresses](addresses.md).
 - **Advanced**: The Settings page with the parts most people never need, all off to begin with. See [Advanced settings](advanced.md).
 - **Allow invoices**: The switch that lets a Verified contact ask you to pay. Off to begin with. See [Invoices](pairing.md#invoices).
 - **Awaiting finalization**: A transaction still waiting for the other wallet.
@@ -19,6 +19,7 @@ The terms as the app writes them, in alphabetical order.
 - **Direct · File Transfer**: Paying with a transaction file (`.tx`) and a response file (`.response`) passed by hand.
 - **Direct · QR Payment**: Paying phone to phone with an animated QR code. Phone app only.
 - **Domain**: A web domain a service claims, proven at `https://<domain>/.well-known/epic-wallet.json`.
+- **epic1**: Paying by link. The link carries the recipient's Epicbox server, and the payment goes through it. On by default. See [epic1 addresses and links](epic1.md).
 - **EPIC**: The coin of Epic Cash.
 - **Epicbox**: The server that carries payment messages between wallets and holds them while the other wallet is offline. See [Epicbox](epicbox.md).
 - **Export wallet data**: Saves history, notes, contacts, invoices and settings in an encrypted wallet data file (`.wfeh`). See [Backups and wallet data](backups.md).

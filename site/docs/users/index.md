@@ -23,6 +23,7 @@ Up to 26.10.24 the app was called Epic Cash Desktop and Epic Cash Mobile.
   (phone).
 - Sends and receives over **Epicbox**, the everyday way: the other wallet does not have to be
   online at the same time.
+- Gets paid by link with [epic1](epic1.md), over Epicbox as well.
 - Also sends straight to another open wallet (**Link · HTTP**, **Link · Tor**), by file
   (**Direct · File Transfer**), or phone to phone with an animated QR code
   (**Direct · QR Payment**).
