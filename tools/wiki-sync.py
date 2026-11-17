@@ -164,7 +164,7 @@ def wiki_file(name):
 
 
 def site_url(rel, anchor=''):
-    path = rel[:-3]
+    path = rel[: -len('.mdx')] if rel.endswith('.mdx') else rel[:-3]
     if path.endswith('/index') or path == 'index':
         path = path[: -len('index')]
     else:
@@ -222,10 +222,13 @@ def convert(rel, text, pages, images):
             name = 'images/' + doc.replace('/', '-')
             images[name] = resolved
             return f'![{label}]({name})'
-        if not doc.endswith('.md'):
+        if not doc.endswith(('.md', '.mdx')):
             raise SystemExit(f'{rel}: link to a non-page: {target}')
         if not resolved.is_file():
             raise SystemExit(f'{rel}: broken link {target}')
+        # A generated .mdx page (the LEPIC command-line and API pages) is on the site only.
+        if doc.endswith('.mdx'):
+            return f'[{label}]({site_url(doc, anchor)})'
         if doc in pages:
             return f'[{label}]({pages[doc]}{anchor})'
         return f'[{label}]({site_url(doc, anchor)})'

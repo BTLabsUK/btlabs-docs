@@ -1,0 +1,76 @@
+.steps {
+  margin: 0 0 var(--ifm-spacing-vertical);
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  column-gap: var(--epic-space-16);
+  margin: 0;
+  padding-bottom: var(--epic-space-24);
+}
+
+.step:last-child {
+  padding-bottom: 0;
+}
+
+/* The line that joins one number to the next. */
+.step:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: calc(0.875rem - 0.5px);
+  top: calc(1.75rem + var(--epic-space-4));
+  bottom: var(--epic-space-4);
+  width: 1px;
+  background: var(--ld-line-strong);
+}
+
+.num {
+  grid-row: 1;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--epic-space-8);
+  min-width: 0;
+  padding-top: var(--epic-space-2);
+}
+
+.text {
+  margin: 0;
+}
+
+.lead {
+  font-weight: 600;
+}
+
+.answerWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--epic-space-4);
+}
+
+.answerWrap > p {
+  margin: 0;
+}
+
+.answer {
+  max-height: 14rem;
+  margin: 0;
+  padding: var(--epic-space-8) var(--epic-space-12);
+  overflow: auto;
+  font-family: var(--ld-mono);
+  font-size: var(--ld-text-xs);
+  line-height: 1.5;
+  white-space: pre;
+}
+
+@media (max-width: 480px) {
+  .step {
+    column-gap: var(--epic-space-12);
+  }
+}

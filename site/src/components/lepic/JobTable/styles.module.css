@@ -1,0 +1,98 @@
+.list {
+  display: grid;
+  grid-template-columns: minmax(9rem, 11rem) minmax(0, 1fr) max-content;
+  margin: 0 0 var(--ifm-spacing-vertical);
+  padding: 0;
+  list-style: none;
+}
+
+/* The site holds a list under .markdown to the reading measure; this one takes the article
+   width, as CommandGroups does, so the commands get the room. */
+:global(.markdown) > ul.list {
+  max-width: none;
+}
+
+.row {
+  /* Every row shares the list's columns, so the command strips line up. */
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+  gap: var(--epic-space-8) var(--epic-space-16);
+  margin: 0;
+  padding: var(--epic-space-12) var(--epic-space-16);
+}
+
+.row + .row {
+  border-top: 1px solid var(--ld-line);
+}
+
+.goal {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.cmds {
+  display: flex;
+  flex-direction: column;
+  gap: var(--epic-space-4);
+  min-width: 0;
+}
+
+.then {
+  font-family: var(--ld-ui);
+  font-size: var(--ld-text-micro);
+  color: var(--ld-dim);
+  padding-left: var(--epic-space-12);
+}
+
+a.more {
+  display: inline-flex;
+  align-items: center;
+  justify-self: end;
+  gap: var(--epic-space-4);
+  min-height: var(--ld-control);
+  padding: 0 var(--epic-space-4);
+  border-radius: var(--ld-radius-sm);
+  font-family: var(--ld-ui);
+  font-size: var(--ld-text-sm);
+  white-space: nowrap;
+  color: var(--ld-dim);
+  text-decoration: none;
+  transition: color var(--epic-dur) var(--epic-ease);
+}
+
+a.more:hover {
+  color: var(--ld-accent-ink);
+  text-decoration: none;
+}
+
+.chev {
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+@media (max-width: 996px) {
+  .list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  a.more {
+    justify-self: start;
+    padding: 0;
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a.more {
+    transition: none;
+  }
+}

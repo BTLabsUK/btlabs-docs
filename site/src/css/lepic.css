@@ -1,0 +1,510 @@
+/* The LEPIC developer pages: shared vocabulary for the components under src/components/lepic and
+ * the API explorer. Prefix `ld`. Loaded after looks.css.
+ *
+ * What lives here: tokens and the primitives more than one component uses (panel, tag, command
+ * line, copy button, chip, filter, label, step number, grid, rule). A component's own layout
+ * lives in its CSS module and reads these tokens.
+ *
+ * Rules the components keep:
+ *  - Surfaces, lines and spacing come from the site's tokens (--epic-s*, --epic-line*,
+ *    --epic-space-*). No raw lengths for padding, margin or gap.
+ *  - Gold as a fill, border or rule is --ld-accent. Gold as text is --ld-accent-ink, which meets
+ *    4.5:1 on the page and on --ld-surface in every look.
+ *  - Anything that shows a command or a call sits on the terminal surface (.ldTerm), which is dark
+ *    in all three looks, as the code blocks are.
+ *  - A tag or a state always carries its word. Colour only repeats it.
+ *  - Controls are `md` (32px) for a pointer and 44px for a finger (pointer: coarse).
+ *  - Motion answers an action and uses --epic-dur and --epic-ease; none under reduced motion. */
+
+:root {
+  --ld-radius: 10px;
+  --ld-radius-sm: 6px;
+  --ld-surface: var(--epic-s1);
+  --ld-surface-2: var(--epic-s2);
+  --ld-line: var(--epic-line);
+  --ld-line-strong: var(--epic-line-strong);
+  --ld-accent: var(--btw-accent, var(--ifm-color-primary));
+  --ld-accent-ink: var(--ifm-color-primary);
+  --ld-soft: var(--btw-soft, rgba(246, 212, 113, 0.1));
+  --ld-ink: var(--ifm-font-color-base);
+  --ld-dim: var(--ifm-color-content-secondary);
+  --ld-mono: var(--ifm-font-family-monospace);
+  --ld-ui: var(--epic-font-ui, var(--ifm-font-family-base));
+
+  /* The terminal surface. */
+  --ld-term: #0b0b0e;
+  --ld-term-2: #131318;
+  --ld-term-ink: #ecebe6;
+  --ld-term-dim: #9d998f;
+  --ld-term-line: #26262d;
+  --ld-term-accent: #f6d471;
+
+  /* Danger, for DELETE and for calls that end a payment. Text on the terminal surface. */
+  --ld-danger: #f08a7c;
+
+  --ld-control: var(--epic-control-md);
+  --ld-text-sm: 0.875rem;
+  --ld-text-xs: 0.8125rem;
+  --ld-text-micro: 0.75rem;
+}
+
+@media (pointer: coarse) {
+  :root {
+    --ld-control: 2.75rem;
+  }
+}
+
+html[data-look='b'] {
+  --ld-radius: 4px;
+  --ld-radius-sm: 2px;
+  --ld-term: #0c0d10;
+  --ld-term-2: #15181e;
+  --ld-term-line: #262b34;
+}
+
+html[data-look='c'] {
+  --ld-radius: 14px;
+  --ld-radius-sm: 8px;
+  --ld-term: #1b1a18;
+  --ld-term-2: #24221f;
+  --ld-term-ink: #f7f2e8;
+  --ld-term-dim: #b3aa9c;
+  --ld-term-line: #3a352f;
+}
+
+/* ---------- visually hidden ---------- */
+.ldSr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- panel ---------- */
+.ldPanel {
+  position: relative;
+  min-width: 0;
+  padding: var(--epic-space-16) var(--epic-space-20);
+  border: 1px solid var(--ld-line);
+  border-radius: var(--ld-radius);
+  background: var(--ld-surface);
+}
+.ldPanel--flush {
+  padding: 0;
+  overflow: hidden;
+}
+html[data-look='b'] .ldPanel {
+  border-color: var(--ld-line-strong);
+}
+html[data-look='c'] .ldPanel {
+  box-shadow: 0 1px 2px rgba(90, 58, 18, 0.05), 0 6px 18px rgba(90, 58, 18, 0.04);
+}
+/* Grid look: corner ticks on a panel that asks for them. Widths only, never the border shorthand
+   (custom.css, .epic-ticked, says why). `--flush` clips its overflow, so it cannot take ticks. */
+html[data-look='b'] .ldPanel--ticked::before,
+html[data-look='b'] .ldPanel--ticked::after {
+  content: '';
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-style: solid;
+  border-color: var(--ld-accent);
+  pointer-events: none;
+}
+html[data-look='b'] .ldPanel--ticked::before {
+  left: -1px;
+  top: -1px;
+  border-width: 1px 0 0 1px;
+}
+html[data-look='b'] .ldPanel--ticked::after {
+  right: -1px;
+  bottom: -1px;
+  border-width: 0 1px 1px 0;
+}
+.ldPanel > :last-child {
+  margin-bottom: 0;
+}
+
+/* A block of components after prose keeps the page's vertical rhythm. */
+.ldBlock {
+  margin: 0 0 var(--ifm-spacing-vertical);
+}
+
+/* ---------- grid ---------- */
+.ldGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: var(--epic-space-12);
+}
+.ldGrid--tight {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: var(--epic-space-8);
+}
+
+/* ---------- label and meta ---------- */
+.ldLabel {
+  margin: 0;
+  font-family: var(--ld-ui);
+  font-size: var(--ld-text-micro);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  color: var(--ld-dim);
+}
+.ldMeta {
+  font-size: var(--ld-text-sm);
+  line-height: 1.45;
+  color: var(--ld-dim);
+}
+
+/* ---------- tag ---------- */
+.ldTag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.375rem;
+  padding: 0 var(--epic-space-8);
+  border: 1px solid var(--ld-line-strong);
+  border-radius: 999px;
+  font-family: var(--ld-mono);
+  font-size: var(--ld-text-micro);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--ld-dim);
+  background: transparent;
+}
+html[data-look='b'] .ldTag {
+  border-radius: 2px;
+}
+.ldTag--core {
+  border-color: transparent;
+  background: var(--ld-soft);
+  color: var(--ld-accent-ink);
+}
+.ldTag--repair {
+  border-style: dashed;
+  color: var(--ld-ink);
+}
+/* HTTP methods. They sit on the terminal surface or inside .ldTerm, so the colours are the
+   terminal's. Width is fixed so paths line up in a list. */
+.ldTag--method {
+  justify-content: center;
+  min-width: 3.75rem;
+  border-color: var(--ld-term-line);
+  border-radius: var(--ld-radius-sm);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ld-term-ink);
+  background: var(--ld-term-2);
+}
+.ldTag--post {
+  border-color: transparent;
+  background: var(--ld-term-accent);
+  color: #17130a;
+}
+.ldTag--put,
+.ldTag--patch {
+  border-color: var(--ld-term-accent);
+  color: var(--ld-term-accent);
+}
+.ldTag--delete {
+  border-color: var(--ld-danger);
+  color: var(--ld-danger);
+}
+
+/* ---------- terminal surface ---------- */
+.ldTerm {
+  --ifm-color-primary: var(--ld-term-accent);
+  --ifm-font-color-base: var(--ld-term-ink);
+  --ifm-color-content-secondary: var(--ld-term-dim);
+  --ld-ink: var(--ld-term-ink);
+  --ld-dim: var(--ld-term-dim);
+  --ld-line: var(--ld-term-line);
+  --ld-accent-ink: var(--ld-term-accent);
+  color-scheme: dark;
+  color: var(--ld-term-ink);
+  background: var(--ld-term);
+  border: 1px solid var(--ld-term-line);
+  border-radius: var(--ld-radius-sm);
+}
+
+/* ---------- command line ----------
+   One command with its copy button. The text wraps on a phone; it never scrolls sideways. */
+.ldCmd {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  min-height: var(--ld-control);
+}
+html code.ldCmd-text,
+html[data-look][data-theme] code.ldCmd-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: var(--epic-space-8) var(--epic-space-12);
+  border: 0;
+  background: none;
+  font-family: var(--ld-mono);
+  font-size: var(--ld-text-xs);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--ld-term-ink);
+}
+.ldCmd-text::before {
+  content: '$ ';
+  color: var(--ld-term-dim);
+  user-select: none;
+}
+.ldCmd--bare .ldCmd-text::before {
+  content: none;
+}
+.ldCmd-note {
+  color: var(--ld-term-dim);
+}
+
+/* ---------- copy button ---------- */
+.ldCopy {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--epic-space-4);
+  min-width: var(--ld-control);
+  min-height: var(--ld-control);
+  padding: 0 var(--epic-space-8);
+  border: 0;
+  border-left: 1px solid var(--ld-term-line);
+  border-radius: 0;
+  background: none;
+  font-family: var(--ld-ui);
+  font-size: var(--ld-text-micro);
+  font-weight: 600;
+  color: var(--ld-term-dim);
+  cursor: pointer;
+  transition: color var(--epic-dur) var(--epic-ease), background-color var(--epic-dur) var(--epic-ease);
+}
+.ldCopy svg {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+}
+.ldCopy:hover {
+  color: var(--ld-term-ink);
+  background: var(--ld-term-2);
+}
+.ldCopy[data-copied='true'] {
+  color: var(--ld-term-accent);
+}
+/* On a plain surface, outside the terminal. */
+.ldCopy--plain {
+  border: 1px solid var(--ld-line-strong);
+  border-radius: var(--ld-radius-sm);
+  color: var(--ld-dim);
+}
+.ldCopy--plain:hover {
+  color: var(--ld-ink);
+  background: var(--ld-surface-2);
+}
+.ldCopy--plain[data-copied='true'] {
+  color: var(--ld-accent-ink);
+}
+
+/* ---------- name ----------
+   A command, a state or a path named inside a component: the mono face without the chip the
+   site draws around inline code. On the code element, or on a parent for every code inside. */
+html code.ldMono,
+html .ldMono code,
+html[data-look][data-theme] code.ldMono,
+html[data-look][data-theme] .ldMono code {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font-family: var(--ld-mono);
+  font-size: 0.9375em;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- link inside a component ----------
+   custom.css underlines and recolours every prose link (.markdown a) except a.ldChip and
+   a.ldLink. A link that is a row, a command or a call takes ldLink and styles itself. */
+.ldLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ---------- chip ----------
+   A link to a command or a call (a.ldChip), or a filter toggle (button.ldChip, aria-pressed). */
+.ldChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--epic-space-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* the site spaces list items in an article; a chip row has its gap */
+html .ldChips > li {
+  margin: 0;
+}
+.ldChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--epic-space-8);
+  min-height: var(--ld-control);
+  padding: 0 var(--epic-space-12);
+  border: 1px solid var(--ld-line-strong);
+  border-radius: 999px;
+  background: var(--ld-surface);
+  font-family: var(--ld-ui);
+  font-size: var(--ld-text-xs);
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--ld-ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color var(--epic-dur) var(--epic-ease), background-color var(--epic-dur) var(--epic-ease), color var(--epic-dur) var(--epic-ease);
+}
+html[data-look='b'] .ldChip {
+  border-radius: 2px;
+}
+.ldChip--cmd {
+  font-family: var(--ld-mono);
+}
+.ldChip:hover {
+  border-color: var(--ld-accent);
+  color: var(--ld-ink);
+  text-decoration: none;
+}
+.ldChip[aria-pressed='true'] {
+  border-color: var(--ld-accent);
+  background: var(--ld-soft);
+  color: var(--ld-accent-ink);
+}
+.ldChip-count {
+  font-family: var(--ld-mono);
+  font-size: var(--ld-text-micro);
+  color: var(--ld-dim);
+}
+.ldChip[aria-pressed='true'] .ldChip-count {
+  color: inherit;
+}
+
+/* ---------- filter field ---------- */
+.ldFilter {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+.ldFilter svg {
+  position: absolute;
+  left: var(--epic-space-12);
+  width: 1rem;
+  height: 1rem;
+  color: var(--ld-dim);
+  pointer-events: none;
+}
+.ldFilter-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--epic-control-lg);
+  padding: 0 var(--epic-space-12) 0 var(--epic-space-40);
+  border: 1px solid var(--ld-line-strong);
+  border-radius: var(--ld-radius-sm);
+  background: var(--ld-surface);
+  font-family: var(--ld-ui);
+  font-size: 1rem;
+  color: var(--ld-ink);
+  transition: border-color var(--epic-dur) var(--epic-ease);
+}
+@media (pointer: coarse) {
+  .ldFilter-input {
+    min-height: 2.75rem;
+  }
+}
+.ldFilter-input::placeholder {
+  color: var(--ld-dim);
+  opacity: 1;
+}
+.ldFilter-input:hover {
+  border-color: var(--ld-dim);
+}
+.ldFilter-input:focus-visible {
+  border-color: var(--ld-accent);
+}
+.ldEmpty {
+  margin: 0;
+  padding: var(--epic-space-24) var(--epic-space-16);
+  border: 1px dashed var(--ld-line-strong);
+  border-radius: var(--ld-radius);
+  text-align: center;
+  color: var(--ld-dim);
+}
+
+/* ---------- step number ----------
+   Only where the content is a sequence. */
+.ldStepNum {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid var(--ld-accent);
+  border-radius: 999px;
+  font-family: var(--ld-mono);
+  font-size: var(--ld-text-xs);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ld-accent-ink);
+  background: var(--ld-soft);
+}
+html[data-look='b'] .ldStepNum {
+  border-radius: 2px;
+}
+
+/* ---------- rule ----------
+   The one sentence a client is built around, such as the `actions` rule of a payment. */
+.ldRule {
+  margin: 0 0 var(--ifm-spacing-vertical);
+  padding: var(--epic-space-12) var(--epic-space-16);
+  border: 1px solid var(--ld-line);
+  border-left: 3px solid var(--ld-accent);
+  border-radius: 0 var(--ld-radius-sm) var(--ld-radius-sm) 0;
+  background: var(--ld-surface);
+}
+.ldRule > :last-child {
+  margin-bottom: 0;
+}
+
+/* ---------- focus ---------- */
+/* no double-tap zoom delay on the small controls */
+.ldCopy,
+.ldChip {
+  touch-action: manipulation;
+}
+.ldCopy:focus-visible,
+.ldChip:focus-visible,
+.ldFilter-input:focus-visible,
+.ldFocus:focus-visible {
+  outline: 2px solid var(--ld-accent-ink);
+  outline-offset: 2px;
+}
+.ldCopy:focus-visible {
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ldCopy,
+  .ldChip,
+  .ldFilter-input {
+    transition: none;
+  }
+}

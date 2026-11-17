@@ -1,0 +1,365 @@
+/* The API explorer on the ld vocabulary (src/css/lepic.css). */
+.explorer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--epic-space-16);
+  margin-bottom: var(--ifm-spacing-vertical);
+}
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--epic-space-8);
+}
+.filterRow {
+  display: flex;
+  gap: var(--epic-space-8);
+  align-items: stretch;
+}
+.filterRow > :first-child {
+  flex: 1 1 auto;
+}
+.toggleAll {
+  flex: none;
+  border-radius: var(--ld-radius-sm);
+}
+.count {
+  margin: 0;
+  font-size: var(--ld-text-sm);
+  color: var(--ld-dim);
+}
+
+/* ---------- tag section ---------- */
+.tag {
+  min-width: 0;
+}
+.tag h2 {
+  margin-top: var(--epic-space-24);
+  margin-bottom: var(--epic-space-12);
+}
+.ops {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--ld-line);
+  border-radius: var(--ld-radius);
+  background: var(--ld-surface);
+  overflow: hidden;
+}
+html[data-look='b'] .ops {
+  border-color: var(--ld-line-strong);
+}
+.ops > div:not([hidden]) ~ div:not([hidden]) {
+  border-top: 1px solid var(--ld-line);
+}
+
+/* ---------- operation row ----------
+   `html .ops details.op` outranks the site's `.markdown details` box (border, radius, surface,
+   corner ticks): rows are separated by the one rule above, and the panel edge is the list's. */
+html .ops details.op {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  scroll-margin-top: calc(var(--ifm-navbar-height) + var(--epic-space-16));
+}
+html .ops details.op::before,
+html .ops details.op::after {
+  content: none;
+}
+.opHead {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--epic-space-4) var(--epic-space-12);
+  min-height: var(--epic-control-lg);
+  padding: var(--epic-space-8) var(--epic-space-16);
+  list-style: none;
+  cursor: pointer;
+  transition: background-color var(--epic-dur) var(--epic-ease);
+}
+.opHead::-webkit-details-marker {
+  display: none;
+}
+.opHead::marker {
+  content: '';
+}
+.opHead:hover {
+  background: var(--ld-surface-2);
+}
+.opHead:focus-visible {
+  outline: 2px solid var(--ld-accent-ink);
+  outline-offset: -2px;
+}
+.op[open] > .opHead {
+  background: var(--ld-surface-2);
+  border-bottom: 1px solid var(--ld-line);
+}
+.opChev {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--ld-dim);
+}
+.op[open] .opChev {
+  transform: rotate(90deg);
+}
+/* Mono names (path, field, operationId, status) are ldMono: no chip; colour set here, above the
+   looks' `html[data-look][data-theme] code` colour. */
+html[data-look][data-theme] code.path {
+  font-weight: 600;
+  color: var(--ld-ink);
+}
+.opSummary {
+  min-width: 0;
+  font-size: var(--ld-text-sm);
+  line-height: 1.45;
+  color: var(--ld-dim);
+}
+.role {
+  justify-self: end;
+}
+
+/* ---------- operation body ---------- */
+.opBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--epic-space-12);
+  padding: var(--epic-space-16);
+  font-size: var(--ld-text-sm);
+  line-height: 1.55;
+}
+.opBody p {
+  margin: 0;
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--epic-space-4) var(--epic-space-16);
+  color: var(--ld-dim);
+}
+html[data-look][data-theme] code.opId {
+  color: var(--ld-ink);
+}
+.selfLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--epic-space-4);
+  min-height: var(--ld-control);
+  color: var(--ld-accent-ink);
+}
+.selfLink:hover {
+  color: var(--ld-accent-ink);
+  text-decoration: underline;
+}
+.linkIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+.note {
+  padding-left: var(--epic-space-12);
+  border-left: 2px solid var(--ld-accent);
+}
+.desc + .desc {
+  margin-top: calc(-1 * var(--epic-space-4));
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--epic-space-6);
+  padding-top: var(--epic-space-12);
+  border-top: 1px solid var(--ld-line);
+}
+.sectionTitle {
+  font-family: var(--ld-ui);
+  font-size: var(--ld-text-xs);
+  font-weight: 600;
+  color: var(--ld-ink);
+}
+.schemaName {
+  font-family: var(--ld-mono);
+  font-size: var(--ld-text-xs);
+  color: var(--ld-dim);
+}
+.schemaText {
+  color: var(--ld-dim);
+}
+
+/* ---------- field rows ---------- */
+.fields {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.field {
+  margin: 0;
+  padding: var(--epic-space-6) 0;
+}
+.field + .field {
+  border-top: 1px dashed var(--ld-line);
+}
+.fieldHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--epic-space-2) var(--epic-space-8);
+}
+html[data-look][data-theme] code.fieldName {
+  font-weight: 600;
+  color: var(--ld-ink);
+}
+.fieldType {
+  min-width: 0;
+  font-family: var(--ld-mono);
+  font-size: var(--ld-text-xs);
+  color: var(--ld-dim);
+  overflow-wrap: anywhere;
+}
+.fieldType code {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: inherit;
+  color: var(--ld-dim);
+}
+.typeName {
+  color: var(--ld-ink);
+}
+.req {
+  font-size: var(--ld-text-micro);
+  font-weight: 600;
+  color: var(--ld-accent-ink);
+}
+.fieldText {
+  margin-top: var(--epic-space-2);
+  color: var(--ld-dim);
+}
+.fieldText p + p {
+  margin-top: var(--epic-space-4);
+}
+.field > .fields,
+.nested {
+  margin-top: var(--epic-space-6);
+  margin-left: var(--epic-space-4);
+  padding-left: var(--epic-space-12);
+  border-left: 1px solid var(--ld-line-strong);
+}
+.nestedTitle {
+  font-family: var(--ld-mono);
+  font-size: var(--ld-text-xs);
+  font-weight: 600;
+  color: var(--ld-dim);
+}
+.refButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--epic-space-2);
+  min-height: 1.5rem;
+  padding: 0 var(--epic-space-6);
+  border: 1px solid var(--ld-line-strong);
+  border-radius: var(--ld-radius-sm);
+  background: none;
+  font-family: var(--ld-mono);
+  font-size: var(--ld-text-xs);
+  color: var(--ld-ink);
+  cursor: pointer;
+  transition: border-color var(--epic-dur) var(--epic-ease), background-color var(--epic-dur) var(--epic-ease);
+}
+/* A larger target without a larger box. */
+.refButton {
+  position: relative;
+}
+.refButton::after {
+  content: '';
+  position: absolute;
+  inset: calc((1.5rem - var(--ld-control)) / 2) 0;
+}
+.refButton:hover {
+  border-color: var(--ld-accent);
+}
+.refButton[aria-expanded='true'] {
+  border-color: var(--ld-accent);
+  background: var(--ld-soft);
+}
+.refChev {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: var(--ld-dim);
+}
+.refButton[aria-expanded='true'] .refChev {
+  transform: rotate(90deg);
+}
+.plainType {
+  font-family: var(--ld-mono);
+  font-size: var(--ld-text-xs);
+  color: var(--ld-dim);
+}
+
+/* ---------- responses ---------- */
+.responses {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.response {
+  margin: 0;
+  padding: var(--epic-space-6) 0;
+}
+.response + .response {
+  border-top: 1px dashed var(--ld-line);
+}
+.responseHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--epic-space-2) var(--epic-space-12);
+}
+html[data-look][data-theme] code.status {
+  font-weight: 600;
+  color: var(--ld-dim);
+}
+html[data-look][data-theme] code.status[data-ok] {
+  color: var(--ld-accent-ink);
+}
+.responseText {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+.ctype {
+  font-family: var(--ld-mono);
+  font-size: var(--ld-text-micro);
+  color: var(--ld-dim);
+}
+.responseBody {
+  margin-top: var(--epic-space-6);
+  margin-left: var(--epic-space-4);
+  padding-left: var(--epic-space-12);
+  border-left: 1px solid var(--ld-line-strong);
+}
+
+@media (max-width: 760px) {
+  .opHead {
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    padding: var(--epic-space-8) var(--epic-space-12);
+  }
+  .opSummary {
+    grid-column: 2 / -1;
+  }
+  .role {
+    grid-row: 1;
+    grid-column: 4;
+  }
+  .opBody {
+    padding: var(--epic-space-12);
+  }
+  .filterRow {
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opHead,
+  .refButton {
+    transition: none;
+  }
+}

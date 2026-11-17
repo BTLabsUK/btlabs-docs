@@ -13,11 +13,11 @@ with other LEPIC wallets. There is no wallet server to start.
 | Use | Through |
 |---|---|
 | A Rust program | The crates, from git (see [LEPIC from Rust](#quick-start-lepic-from-rust)) |
-| A script or a service | The [`lepic` command-line wallet](lepic/cli/index.md) and `lepic serve`, its local [wallet API](lepic/api/v1/index.md) (`/api/v1`) |
+| A script or a service | The [`lepic` command-line wallet](lepic/cli/index.mdx) and `lepic serve`, its local [wallet API](lepic/api/v1/index.mdx) (`/api/v1`) |
 | A desktop or mobile app | The FFI library `lepic-ffi`, through [lepic-flutter](lepic-flutter.md); BT Wallet is built this way |
 
 Repository: [github.com/BTLabsUK/lepic](https://github.com/BTLabsUK/lepic).
-Version documented here: 0.5.0. Licence: Apache-2.0. Rust edition 2024, toolchain pinned in
+Version documented here: 0.6.0. Licence: Apache-2.0. Rust edition 2024, toolchain pinned in
 `rust-toolchain.toml`.
 
 ## The `lepic` command-line wallet
@@ -71,11 +71,19 @@ written on first use; timeouts and limits are compiled in from `lepic-config.tom
 `LEPIC_PASSWORD`, a hidden prompt, or one line of standard input. Plain
 `http://` and `ws://` are accepted only for a loopback host.
 
-Task-first examples and the [command reference](lepic/cli/reference.md) are in
-[the command-line wallet](lepic/cli/index.md); the wallet API has a [guide](lepic/api/v1/index.md) and a
-[reference](lepic/api/v1/reference.md). The full guide is
-[docs/cli.md](https://github.com/BTLabsUK/lepic/blob/main/docs/cli.md) in
-the repository.
+| Page | Contents |
+|---|---|
+| [CLI guide](lepic/cli/index.mdx) | Start here, a command for each job, the everyday commands, every command by group |
+| [Recipes](lepic/recipes.mdx) | One task per recipe, as a command and as an API call |
+| [Command reference](lepic/cli/reference.mdx) | Every command with its usage, examples and options |
+| [Wallet API guide](lepic/api/v1/index.mdx) | The first request, the life of a payment, the endpoints by group |
+| [API explorer](lepic/api/v1/explorer.mdx) | Every call of the wallet API with its parameters, bodies and schemas |
+| [API reference](lepic/api/v1/reference.md) | The same calls on one page |
+
+The same guides as plain Markdown are in the repository:
+[docs/cli.md](https://github.com/BTLabsUK/lepic/blob/main/docs/cli.md),
+[docs/recipes.md](https://github.com/BTLabsUK/lepic/blob/main/docs/recipes.md) and
+[docs/api/README.md](https://github.com/BTLabsUK/lepic/blob/main/docs/api/README.md).
 
 ## Crates
 

@@ -1,0 +1,97 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--epic-space-12);
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--epic-space-8) var(--epic-space-16);
+}
+
+.filter {
+  flex: 1 1 16rem;
+  max-width: 26rem;
+}
+
+.count {
+  margin: 0;
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.group {
+  display: grid;
+  grid-template-columns: minmax(0, 7.5rem) minmax(0, 1fr);
+  gap: var(--epic-space-8) var(--epic-space-16);
+  margin: 0;
+  padding: var(--epic-space-12) var(--epic-space-16);
+}
+
+.group + .group {
+  border-top: 1px solid var(--ld-line);
+}
+
+.name {
+  align-self: start;
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--ld-mono);
+  font-size: var(--ld-text-sm);
+  font-weight: 600;
+  line-height: var(--ld-control);
+  color: var(--ld-ink);
+}
+
+.runs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--epic-space-8);
+  min-width: 0;
+}
+
+.run {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  align-items: start;
+  gap: var(--epic-space-8);
+}
+
+.runLabel {
+  line-height: var(--ld-control);
+}
+
+.run :global(.ldChips) > li {
+  margin: 0;
+}
+
+a.core {
+  border-color: var(--ld-accent);
+}
+
+@media (max-width: 640px) {
+  .group {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .name {
+    line-height: 1.5;
+  }
+
+  .run {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--epic-space-4);
+  }
+
+  .runLabel {
+    line-height: 1.3;
+  }
+}

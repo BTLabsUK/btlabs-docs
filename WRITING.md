@@ -7,6 +7,11 @@ lepic-flutter by `tools/wiki-sync.py`. Write it so both work.
 ## Format
 
 - Plain Markdown in `.md` files. No JSX, no MDX components, no raw HTML.
+- The one exception: the LEPIC command-line and wallet API pages under
+  `site/docs/developers/lepic/` are generated `.mdx` with components (`tools/gen-lepic-cli.py`,
+  `tools/gen-lepic-recipes.py`, `tools/gen-lepic-api.py`). Never edit them by hand: their source
+  is the plain Markdown in the LEPIC repository (`docs/cli.md`, `docs/recipes.md`,
+  `docs/api/README.md`) and the help of the `lepic` binary. They are not exported to the wikis.
 - Front matter with `title` and `description` (one sentence), then the page's own `# Heading`
   (the same text as `title`).
 - Links to other pages are relative paths with the `.md` extension, for example

@@ -1,0 +1,161 @@
+.flow {
+  margin: 0 0 var(--ifm-spacing-vertical);
+  padding: var(--epic-space-12) var(--epic-space-16) var(--epic-space-16);
+}
+
+.lanes {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--epic-space-16);
+  padding-bottom: var(--epic-space-8);
+  border-bottom: 1px solid var(--ld-line);
+}
+
+.lane {
+  font-size: var(--ld-text-xs);
+  color: var(--ld-ink);
+}
+
+.laneRight {
+  text-align: right;
+}
+
+.steps {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--epic-space-12);
+  margin: 0;
+  padding: var(--epic-space-16) 0 0;
+  list-style: none;
+}
+
+/* The two lanes: a rail at each edge. */
+.steps::before,
+.steps::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--ld-line-strong);
+}
+
+.steps::before {
+  left: 0;
+}
+
+.steps::after {
+  right: 0;
+}
+
+.step {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.rtl {
+  flex-direction: row-reverse;
+}
+
+.bubble {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--epic-space-8);
+  flex: 0 1 auto;
+  max-width: 62%;
+  min-width: 0;
+  padding: var(--epic-space-8) var(--epic-space-12);
+  border: 1px solid var(--ld-line-strong);
+  border-radius: var(--ld-radius-sm);
+  background: var(--ld-surface-2);
+}
+
+.ltr .bubble {
+  margin-left: var(--epic-space-8);
+}
+
+.rtl .bubble {
+  margin-right: var(--epic-space-8);
+}
+
+.words {
+  font-size: var(--ld-text-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--epic-space-2);
+  min-width: 0;
+  padding-top: var(--epic-space-2);
+}
+
+.cmd {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--ld-mono);
+  font-size: var(--ld-text-xs);
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  color: var(--ld-ink);
+}
+
+.note {
+  font-size: var(--ld-text-sm);
+  line-height: 1.4;
+  color: var(--ld-dim);
+}
+
+/* The arrow: a line from the bubble to the other rail, with a head at the rail. */
+.arrow {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: var(--epic-space-24);
+  height: 0;
+  border-top: 1.5px solid var(--ld-accent);
+}
+
+.reply .arrow {
+  border-top-style: dashed;
+}
+
+.arrow::after {
+  content: '';
+  position: absolute;
+  top: calc(-0.3125rem - 0.75px);
+  width: 0;
+  height: 0;
+  border-top: 0.3125rem solid transparent;
+  border-bottom: 0.3125rem solid transparent;
+}
+
+.ltr .arrow::after {
+  right: 0;
+  border-left: 0.5rem solid var(--ld-accent);
+}
+
+.rtl .arrow::after {
+  left: 0;
+  border-right: 0.5rem solid var(--ld-accent);
+}
+
+.noteRow {
+  justify-content: center;
+}
+
+.span {
+  flex: 1 1 auto;
+  max-width: none;
+  margin: 0 var(--epic-space-8);
+  border-style: dashed;
+  background: var(--ld-surface);
+}
+
+@media (max-width: 640px) {
+  .bubble {
+    max-width: 85%;
+  }
+}

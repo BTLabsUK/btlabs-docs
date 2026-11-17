@@ -4,7 +4,10 @@
 // panel and prism theme are copied here unchanged. On top of it, src/css/looks.css gives the site the
 // BT Wallet landing page's three looks (Night, Grid, Day; src/components/look.js), and the colour-mode
 // toggle is the look switch. The Markdown under docs/ is also the source of the GitHub wikis
-// (tools/wiki-sync.py), which is why the pages use plain Markdown only (WRITING.md).
+// (tools/wiki-sync.py), which is why the pages use plain Markdown only (WRITING.md). The one
+// exception is the LEPIC command-line and wallet API pages under docs/developers/lepic/: they are
+// generated .mdx (tools/gen-lepic-*.py) with the components in src/components/lepic/, styled by
+// src/css/lepic.css; their plain Markdown source is in the LEPIC repository.
 import {darkPrismTheme} from './src/prism-themes.js';
 
 /** @type {import('@docusaurus/types').Config} */
@@ -93,7 +96,7 @@ const config = {
         },
         blog: false,
         sitemap: {ignorePatterns: ['/404', '/404.html', '/search', '/search/**']},
-        theme: {customCss: ['./src/css/custom.css', './src/css/btlabs.css', './src/css/looks.css']},
+        theme: {customCss: ['./src/css/custom.css', './src/css/btlabs.css', './src/css/looks.css', './src/css/lepic.css']},
       }),
     ],
   ],

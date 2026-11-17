@@ -1903,7 +1903,7 @@ div[class^='announcementBar'] a:hover {
    paragraph with several links does not turn into a fence.
    --------------------------------------------------------------------------- */
 
-.markdown a:not(.epicCard):not(.epicSrc):not(.hash-link):not([class*='card']),
+.markdown a:not(.epicCard):not(.epicSrc):not(.hash-link):not([class*='card']):not(.ldChip):not(.ldLink),
 .epicUnverified a,
 .ixStepNote a,
 .ixConventions dd a,
@@ -1914,7 +1914,7 @@ div[class^='announcementBar'] a:hover {
   text-underline-offset: 0.19em;
   text-decoration-color: rgba(246, 212, 113, 0.55);
 }
-.markdown a:not(.epicCard):not(.epicSrc):not(.hash-link):not([class*='card']):hover,
+.markdown a:not(.epicCard):not(.epicSrc):not(.hash-link):not([class*='card']):not(.ldChip):not(.ldLink):hover,
 .epicUnverified a:hover,
 .ixStepNote a:hover,
 .ixConventions dd a:hover,
@@ -1922,7 +1922,7 @@ div[class^='announcementBar'] a:hover {
 .ixLede a:hover {
   text-decoration-color: currentColor;
 }
-[data-theme='light'] .markdown a:not(.epicCard):not(.epicSrc):not(.hash-link):not([class*='card']),
+[data-theme='light'] .markdown a:not(.epicCard):not(.epicSrc):not(.hash-link):not([class*='card']):not(.ldChip):not(.ldLink),
 [data-theme='light'] .epicUnverified a,
 [data-theme='light'] .ixStepNote a,
 [data-theme='light'] .ixConventions dd a,
@@ -4234,8 +4234,8 @@ html[class*='docs-doc-id-examples/'],
 }
 
 /* Light prose links */
-[data-theme='light'] .markdown a:not(.epicCard):not(.epicSrc):not(.hash-link):not([class*='card']) { color: #7a4a12; }
-[data-theme='light'] .markdown a:not(.epicCard):not(.epicSrc):not(.hash-link):not([class*='card']):hover { color: #5c3610; }
+[data-theme='light'] .markdown a:not(.epicCard):not(.epicSrc):not(.hash-link):not([class*='card']):not(.ldChip):not(.ldLink) { color: #7a4a12; }
+[data-theme='light'] .markdown a:not(.epicCard):not(.epicSrc):not(.hash-link):not([class*='card']):not(.ldChip):not(.ldLink):hover { color: #5c3610; }
 
 /* Light meta/eyebrow */
 [data-theme='light'] .epic-meta b { color: #8a5a1d; }

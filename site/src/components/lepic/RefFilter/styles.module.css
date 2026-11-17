@@ -1,0 +1,30 @@
+.bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--epic-space-12);
+  margin: 0 0 var(--epic-space-32);
+}
+
+.filter {
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--epic-space-8) var(--epic-space-16);
+}
+
+.count {
+  margin: 0;
+}
+
+.empty {
+  padding: var(--epic-space-16);
+}
+
+.group[hidden] {
+  display: none;
+}

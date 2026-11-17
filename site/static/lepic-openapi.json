@@ -187,7 +187,8 @@
           "409": {
             "$ref": "#/components/responses/Conflict"
           }
-        }
+        },
+        "description": "Only `issues_addresses: true` is accepted."
       }
     },
     "/wallet/password": {
@@ -225,7 +226,8 @@
         "x-socket-only": true,
         "security": [
           {}
-        ]
+        ],
+        "description": "Answers 204, or 403 `wrong_password`."
       }
     },
     "/wallet/scan": {
@@ -269,7 +271,8 @@
           "503": {
             "$ref": "#/components/responses/Unavailable"
           }
-        }
+        },
+        "description": "Answers 202. The scan runs in the background and reports as `wallet.progress` events; `GET /wallet` shows it under `scan`. `links` reads every link mailbox after a restore."
       }
     },
     "/sync": {
@@ -316,7 +319,8 @@
           "504": {
             "$ref": "#/components/responses/GatewayTimeout"
           }
-        }
+        },
+        "description": "Serve collects the relays (contact, pairing and epic1 link mailboxes) every 30 s and refreshes from the node every 60 s by itself; this call does both now. Where a relay offers mux/1, serve also holds push sessions for the payments address and every live contact and pairing mailbox, and a pushed message starts a collect, at most one a second. The 30 s collect covers link and in-person reply mailboxes, relays without mux/1 and sessions that are down. Events, SSE and webhooks are the same for both paths."
       }
     },
     "/sync/boost": {
@@ -566,7 +570,8 @@
           "403": {
             "$ref": "#/components/responses/Forbidden"
           }
-        }
+        },
+        "description": "Newest first. `state`, `kind`, `direction`, `via`, `account`, `contact_id`, `link_id`, `delivery` and `updated_after` filter the list."
       },
       "post": {
         "operationId": "createPayment",
@@ -576,7 +581,7 @@
         "tags": [
           "Payments"
         ],
-        "description": "Starts a send (`kind: send`, default) or an invoice (`kind: invoice`). Returns 201, or 200 with the stored payment on an idempotent repeat (same `id`, same body). A different body with the same `id` is 409 `idempotency_mismatch`; a repeat while the first call runs is 409 `in_progress`. Over owner TLS `id` is required.\n\n`to` forms: `key@host` (Epicbox address), `http://` or `https://` URL, `.onion` address, `epic:` link, `contact:ID`, `account:LABEL`. An `epic:` link carries its amount and message: a classic one (`epic:ADDRESS?amount=&message=`) is paid to its address, an epic1 link as `lepic epic1 pay` pays it.",
+        "description": "Starts a send (`kind: send`, default) or an invoice (`kind: invoice`). Returns 201, or 200 with the stored payment on an idempotent repeat (same `id`, same body). A different body with the same `id` is 409 `idempotency_mismatch`; a repeat while the first call runs is 409 `in_progress`. Over owner TLS `id` is required. A send needs the `full` role; an invoice needs `receive`.\n\n`to` forms: `key@host` (Epicbox address), `http://` or `https://` URL, `.onion` address, `epic:` link, `contact:ID`, `account:LABEL`. An `epic:` link carries its amount and message: a classic one (`epic:ADDRESS?amount=&message=`) is paid to its address, an epic1 link as `lepic epic1 pay` pays it.",
         "requestBody": {
           "required": true,
           "content": {
@@ -811,7 +816,8 @@
           "504": {
             "$ref": "#/components/responses/GatewayTimeout"
           }
-        }
+        },
+        "description": "Needs the `full` role. `amount` must equal the invoice's amount: another amount answers 400 `invalid_field` at `/amount` and the payment stays held. `deliver: false` answers 400 `invalid_field` at `/deliver`. The answer is the payment, with a `handoff` for an issuer that is not online. After `approve` or `decline`, the other answers 409 `action_not_available`."
       }
     },
     "/payments/{id}/decline": {
@@ -909,14 +915,15 @@
           "504": {
             "$ref": "#/components/responses/GatewayTimeout"
           }
-        }
+        },
+        "description": "Needs `answer_id` (400 without it). No payment lists `finalize` in `actions`: only in-person payments collect several answers, and serve starts none. The call answers 409 `action_not_available`."
       }
     },
     "/payments/{id}/deliver": {
       "post": {
         "operationId": "deliverPayment",
         "x-role": "full",
-        "summary": "Send the current slate to the other wallet again, to the next relay, or to an allowed outside relay.",
+        "summary": "Send the current slate to the payment's own address again.",
         "tags": [
           "Payments"
         ],
@@ -1038,7 +1045,7 @@
         "tags": [
           "Payments"
         ],
-        "description": "Covers today's `cancel` and `release`. Cancelling a cancelled payment returns it unchanged.",
+        "description": "In `awaiting_answer` or `finalized` it cancels the payment in this wallet. In `posted`, when the chain never took it (`cancellable_from_height`), it releases the inputs. Cancelling a cancelled payment returns it unchanged. The `receive` role may cancel an invoice this wallet issued.",
         "parameters": [
           {
             "$ref": "#/components/parameters/PaymentId"
@@ -1137,7 +1144,8 @@
           "409": {
             "$ref": "#/components/responses/Conflict"
           }
-        }
+        },
+        "description": "`format` picks the form, `contact_id` names the contact for `format=sealed`, and `qr=true` adds `qr_frames`. A plain slate that carries a LEPIC wallet's reply key is answered sealed to that key, so its handoff has `format: sealed`. A sealed answer has no QR frames: `qr=true` on it answers 409 `format_not_available`."
       }
     },
     "/inspect": {
@@ -1184,7 +1192,8 @@
           "504": {
             "$ref": "#/components/responses/GatewayTimeout"
           }
-        }
+        },
+        "description": "A sealed file answers `type: sealed` with the amount, the `contact_id` when the contact signed it, the message and the next step. Nothing is stored."
       }
     },
     "/open": {
@@ -1241,7 +1250,8 @@
           "504": {
             "$ref": "#/components/responses/GatewayTimeout"
           }
-        }
+        },
+        "description": "Outcomes: `received` (a payment was handed to you; `handoff` is the answer to give back), `finished` (the answer to your payment arrived and it was posted), `answer_added`, `invoice_parked` (an invoice is held in `needs_approval`), `pairing_advanced`, and `already_done` (opened before; the answer stored the first time is handed back). An item given as `qr_frames` is answered with `qr_frames`, on a repeat too.\n\nA sealed file from a contact (`BEGINEPICSEALED.` text) is opened with this wallet's keys: a send is received and answered sealed (`receive`), an invoice is held (`receive`), the answer to an invoice this wallet issued is finished (`receive`), and the answer to your own send is finished (`full`). A sealed file that does not open with this wallet's keys answers 409 `nothing_to_open`.\n\nAn invoice past its expiry height answers 422 `payment_expired` and nothing is stored. With 100 invoices held, a new one answers 409 `too_many_held`; opening one already held does not count. A held invoice whose `expires_at_height` is below the wallet's last known height drops out of the list."
       }
     },
     "/outputs": {
@@ -1488,7 +1498,8 @@
           "422": {
             "$ref": "#/components/responses/Unprocessable"
           }
-        }
+        },
+        "description": "`relays` takes up to three relays. A link has an `address_index` when the wallet knows the address it pays; a link mailbox a restore found in use has none."
       }
     },
     "/links/{id}/retire": {
@@ -1760,7 +1771,8 @@
           "504": {
             "$ref": "#/components/responses/GatewayTimeout"
           }
-        }
+        },
+        "description": "On a pairing that waits, it cancels it: a request you sent is withdrawn, an invite of yours is cancelled, a late answer is refused, and the same wallet can be asked again at once. On a paired contact it ends the pairing and tells the contact; `notify=false` does not tell it. The contact keeps its record until this wallet sends it a new pair request, which ends the old record there if that wallet had heard from this one and the request is newer than the pairing. Newer is judged by this wallet's clock alone when the pairing came from a request of this wallet, or when the contact held a request from this wallet as the pairing finished. A new request from a wallet whose earlier request this wallet answered, and which never confirmed it, replaces that pairing. The contact's `invite_link`, the label given while it waited and its `refused_relay` go when the contact is removed, by this API, `lepic contact remove`, the app or a new pairing."
       }
     },
     "/contacts/{id}/verify": {
@@ -2026,7 +2038,8 @@
           "504": {
             "$ref": "#/components/responses/GatewayTimeout"
           }
-        }
+        },
+        "description": "Answers 204."
       }
     },
     "/contacts/export": {
@@ -2100,7 +2113,8 @@
         "x-socket-only": true,
         "security": [
           {}
-        ]
+        ],
+        "description": "Answers `{\"imported\": n}`. An import past the contact limit answers 409 `contact_cap_reached`."
       }
     },
     "/pair-requests": {
@@ -2197,7 +2211,8 @@
           "504": {
             "$ref": "#/components/responses/GatewayTimeout"
           }
-        }
+        },
+        "description": "Takes an optional `label`. Answers 422 `other_address`, `address_proof_missing` or `no_free_slot` when the pairing cannot go on."
       }
     },
     "/pair-requests/{id}": {
@@ -2360,7 +2375,8 @@
           "422": {
             "$ref": "#/components/responses/Unprocessable"
           }
-        }
+        },
+        "description": "Answers 200, or 422 when the item still does not open."
       }
     },
     "/quarantine/{id}": {
@@ -2679,7 +2695,7 @@
         "tags": [
           "Events"
         ],
-        "description": "As JSON, a page oldest first after `after`, with `next_cursor` as for any list. With `Accept: text/event-stream`, a live stream that resumes from `Last-Event-ID` or `?after=`. Events are kept 30 days by default; a client that asks for older ids first gets `events.skipped` with the count.",
+        "description": "As JSON, a page oldest first after `after`, with `next_cursor` as for any list. With `Accept: text/event-stream`, a live stream that resumes from `Last-Event-ID` or `?after=`. Events are kept 30 days by default; a client that asks for older ids first gets `events.skipped` with the count.\n\nThe stream sends a `: keepalive` comment every 15 s. Without `Last-Event-ID` or `after` it starts at the next event. `events.skipped` carries a `reason` of `lagged` or `pruned`: read the objects again, then go on from the new id. `contact.state_changed` for a failed pairing carries a `reason`: `changed_on_the_way`, `kind_differs`, `expired`, `not_confirmed`, `refused`, `other_address`, `address_proof_missing` or `crossed`. After a restart, `from_state` is present when the log holds the object; otherwise the entry has `to_state` only, and a `contact.updated` that does not know the fields has no `changed`. `payment.confirmations_reached` comes once per payment, when the tip reaches its `payment_confirmations`-th confirmation (6 unless the setting says 1 to 1440); after a restart serve logs those reached meanwhile, none twice.",
         "parameters": [
           {
             "name": "after",
@@ -2757,7 +2773,7 @@
         "tags": [
           "Webhooks"
         ],
-        "description": "The webhook is set in the settings (`webhook_url`), not here. 404 `not_found` when none is set.",
+        "description": "The webhook is set in the settings (`webhook_url`), not here. 404 `not_found` when none is set.\n\nSettings: `webhook_url` (`https://` only), `webhook_secret_file` (owner-only, one `whsec_` secret per line, read before each delivery), `webhook_types` (as `GET /events` takes them; all when unset) and `webhook_allow_private` (allows `http://` and private addresses). Each request is one event with Standard Webhooks headers: `webhook-id` (`evt_` 16 hex digits `_` event id, the same on a retry), `webhook-timestamp` (Unix seconds) and `webhook-signature` (`v1,` base64 HMAC-SHA256 of `id.timestamp.body` per secret, space-separated). `data.object` holds only `id`, `kind`, `direction`, `state`, `state_reason`, `account`, `amount`, `fee`, `link_id`, `message`, `their_message`, `purpose`, `metadata`, `confirmations`, `confirmed_height`, `expires_at_height`, `created_at` and `updated_at`.\n\nA 2xx within 10 s (5 s to connect) is delivered; a redirect, another status, a timeout or a dropped connection fails. One request at a time, in id order, at most 10 a second. A failed event is retried after 5 s, 5 min, 30 min, 2 h, 5 h, 10 h and 10 h, each plus or minus 20 %, then the state is `disabled`. The cursor and schedule survive a restart.\n\nServe resolves the host before each attempt and refuses an address that is not public: loopback, private, link-local, shared (100.64.0.0/10), benchmarking (198.18.0.0/15), IETF protocol (192.0.0.0/24), reserved (240.0.0.0/4), NAT64 (64:ff9b::/32), 6to4 (2002::/16), Teredo (2001::/32), IPv4-compatible (::/96), site-local (fec0::/10), discard (100::/64), multicast, unspecified, documentation or broadcast. It follows no redirect and uses no proxy. In `config_error` serve reads the secret file again each minute and on each new event.",
         "responses": {
           "200": {
             "description": "OK",
@@ -3015,7 +3031,8 @@
               "failed",
               "refused",
               "by_hand"
-            ]
+            ],
+            "description": "Serve sets three of these: `by_hand` for a payment handed over as a file or text, `uncertain` when the slate went out and is not known to have arrived, and `sent` otherwise. A send the receiver refused reads `sent`."
           },
           "to": {
             "type": "string",
@@ -3114,7 +3131,8 @@
               "cancelled",
               "declined",
               "expired"
-            ]
+            ],
+            "description": "Where the payment is. `needs_approval`: an invoice held until `approve` or `decline`. `awaiting_answer`: the slate went out and the other side has not answered. `finalized`: the answer arrived and the transaction is built, not yet with the node. `posted`: the node took it. `confirmed`: it is on the chain. `cancelled`, `declined`, `expired`: it ended without a transaction; `state_reason` says who ended it. A payer of an invoice and a receiver of a send go from `awaiting_answer` to `confirmed` when the other side posts. A `cancelled` or `expired` payment that the chain mines after all becomes `confirmed`. Serve sets no payment to `awaiting_post`."
           },
           "state_reason": {
             "type": "string",
@@ -3494,7 +3512,8 @@
             "format": "date-time"
           },
           "used": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Always `false`."
           }
         },
         "required": [
@@ -3590,7 +3609,8 @@
               "verified",
               "keys_changed",
               "ended"
-            ]
+            ],
+            "description": "`waiting`: the pairing has not finished (`pairing.method` is `invite`, `accept` or `request`). `paired`: it finished. `verified`: the four words matched. `keys_changed`: the contact's keys differ from the pinned ones; `POST /contacts/{id}/keys` decides. `ended`: the pairing is over; `ended_reason` says why."
           },
           "ended_reason": {
             "type": "string",
@@ -3599,7 +3619,8 @@
               "their_mismatch",
               "unpaired",
               "never_finished"
-            ]
+            ],
+            "description": "`mismatch`: you said the words differed. `their_mismatch`: the contact said so. `unpaired`: the contact removed the pairing. `never_finished`: the contact's wallet was never heard while this one collected."
           },
           "label": {
             "type": "string",
@@ -4546,7 +4567,7 @@
           },
           "code": {
             "type": "string",
-            "description": "Stable, fine-grained error name, e.g. `insufficient_funds`."
+            "description": "Stable, fine-grained error name, e.g. `insufficient_funds`. Clients must accept codes they do not know and fall back on `category`. Any call: `no_route` 404, `method_not_allowed` 405 (with `Allow`), `body_too_slow` 408, `body_too_large` 413, `role_required` 403, `socket_only` 403, `client_not_listed` 403, `serve_version_differs` and `serve_settings_differ` 409, `invalid_request`, `invalid_body`, `invalid_field`, `invalid_cursor`, `cursor_filters_changed` 400, `not_found` 404, `internal` 500, `interrupted` and `cancelled` 503. Creates: `idempotency_mismatch`, `in_progress`, `account_exists` 409. Payments: `action_not_available`, `format_not_available`, `no_handoff`, `nothing_to_open`, `too_many_held` 409; `unexpected_input`, `insufficient_funds` 422; `invoice_already_paid`, `invoice_locked_above_tip`, `inputs_spent_elsewhere`, `inputs_spent_by_own_transaction`, `peer_inputs_spent`, `on_chain`, `in_pool`, `not_releasable`, `changed_during_cancel` 409; `plain_http_not_allowed`, `http_url_invalid`, `onion_address_invalid` 400; `change_too_small`, `too_heavy`, `nothing_to_consolidate`, `invalid_slate`, `payment_expired`, `invoice_changed`, `amount_mismatch`, `not_posted`, `not_delivered` by category. Wallet and node: `wrong_password` 403, `wallet_not_found` 404, `wallet_already_exists`, `wallet_busy`, `locked`, `foreign_wallet`, `offline`, `wallet_too_new`, `wrong_key` 409, `restore_scan_required` 503, `scan_running` 409 or 503, `node_unreachable` 502 (504 on a timeout), `tor_not_running` 503, `onion_unreachable` 502, `transport_failed` 502, `damaged_database` 500. Contacts: `contact_not_found`, `pairing_not_found` 404; `invite_expired`, `already_paired`, `pairing_in_progress`, `pairing_crossed`, `pairing_ended`, `pairing_waiting`, `invite_dismissed`, `contact_not_verified`, `key_check_refused`, `relay_changed`, `keys_not_changed`, `domain_fixed`, `contact_cap_reached`, `contacts_offline`, `epicbox_off` 409; `wrong_pairing_class` 400; `other_address`, `address_proof_missing`, `peer_not_proven`, `no_free_slot` 422. A code not listed here has its category's status: `usage` 400, `wrong_password` 403, `not_found` 404, `wallet_state` and `conflict` 409, `rejected` and `funds` 422, `node` and `transport` 502, `interrupted` 503, `internal` and `config` 500. 502, 503 and 504 carry `Retry-After` when waiting is worth it."
           },
           "category": {
             "type": "string",
@@ -4567,7 +4588,7 @@
           },
           "param": {
             "type": "string",
-            "description": "JSON pointer to the bad field."
+            "description": "JSON pointer to the bad field, when one field is to blame. `payment_id` and `contact_id` name the object an error is about; `errors` lists several faults."
           },
           "payment_id": {
             "type": "string",
@@ -4830,7 +4851,7 @@
           },
           "to": {
             "type": "string",
-            "description": "Destination. Forms: `key@host` (Epicbox address); `http://` or `https://` URL; `.onion` address; `epic:` link (classic or epic1); `contact:ID`; `account:LABEL` (own account). Without `to`, `via` must be `file` or `in_person`."
+            "description": "Destination. Forms: `key@host` (Epicbox address); `http://` or `https://` URL; `.onion` address; `epic:` link (classic or epic1); `contact:ID`; `account:LABEL` (own account), which serve refuses with 400 `invalid_field` at `/to`. Without `to`, `via` must be `file`, or `deliver` must be `false`."
           },
           "via": {
             "type": "string",
@@ -4845,7 +4866,7 @@
               "peer",
               "chain"
             ],
-            "description": "Route. Same values as Payment.via; `file` and `in_person` produce a handoff."
+            "description": "Route. Same values as Payment.via; `file` produces a handoff. Serve refuses `in_person`, `link`, `peer` and `chain` here with 400 `invalid_field` at `/via`."
           },
           "account": {
             "type": "string",
@@ -5086,11 +5107,11 @@
         "properties": {
           "relay": {
             "type": "string",
-            "description": "`next` for the next relay, or a relay host."
+            "description": "Not supported: 400 `invalid_field`. A delivery goes to the payment's own address."
           },
           "to": {
             "type": "string",
-            "description": "`contact:ID`: send a slate through a contact's mailbox, for example a withdrawal."
+            "description": "Not supported: 400 `invalid_field`. A delivery goes to the payment's own address."
           },
           "relay_ok": {
             "type": "boolean"
@@ -5148,7 +5169,8 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "Optional caller-chosen id, 1 to 128 bytes. A repeat with the same body answers 200 with the stored contact."
           },
           "method": {
             "type": "string",
@@ -5159,7 +5181,8 @@
             ]
           },
           "label": {
-            "type": "string"
+            "type": "string",
+            "description": "Your name for them, at most 48 bytes."
           },
           "class": {
             "type": "string",
@@ -5199,7 +5222,8 @@
         "type": "object",
         "properties": {
           "label": {
-            "type": "string"
+            "type": "string",
+            "description": "At most 48 bytes."
           },
           "allow_invoices": {
             "type": "boolean"

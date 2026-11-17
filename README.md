@@ -21,7 +21,27 @@ GitHub ([wallet-for-epic](https://github.com/BTLabsUK/wallet-for-epic),
 [lepic-flutter](https://github.com/BTLabsUK/lepic-flutter)). Source:
 [github.com/BTLabsUK/btlabs-docs](https://github.com/BTLabsUK/btlabs-docs).
 
+The LEPIC command-line and wallet API pages are the one exception: they are generated from the
+Markdown guides in the LEPIC repository and the help of the `lepic` binary, and the site shows
+them with its own components.
+
 > **Status: live.** The site is published at docs.btlabs.uk.
+
+## Start here
+
+| If you want to | Go to |
+|---|---|
+| Use BT Wallet | [User guide](https://docs.btlabs.uk/users/) |
+| Run the `lepic` wallet from a terminal | [LEPIC CLI guide](https://docs.btlabs.uk/developers/lepic/cli/) |
+| Look up one `lepic` command | [Command reference](https://docs.btlabs.uk/developers/lepic/cli/reference/) |
+| Follow a task with its command and its API call | [Recipes](https://docs.btlabs.uk/developers/lepic/recipes/) |
+| Take payments from a program or a service | [Wallet API guide](https://docs.btlabs.uk/developers/lepic/api/v1/) |
+| Browse every wallet API call and schema | [API explorer](https://docs.btlabs.uk/developers/lepic/api/v1/explorer/) |
+| Build the app or work on the code | [Developer docs](https://docs.btlabs.uk/developers/) |
+| Change a page of the site | [Writing rules](WRITING.md), then [Build from source](#build-from-source) |
+
+LEPIC is the Epic Cash wallet core in Rust behind BT Wallet. Its source and its plain Markdown
+guides are at [github.com/BTLabsUK/lepic](https://github.com/BTLabsUK/lepic).
 
 ## Build from source
 
@@ -46,8 +66,11 @@ Builds run on your own machine; there is no hosted CI.
 | `WRITING.md` | Format and word rules for the pages. Read it before writing. |
 | `tools/check-doc-names.py` | Fails on the app's old names outside `tools/doc-names.allow`, and on Epic node or epic-wallet version numbers in the pages. `npm run build` runs it first. |
 | `tools/wiki-sync.py` | Exports a chosen set of pages to each code project's GitHub wiki. |
-| `tools/gen-lepic-cli.py` | Regenerates the `lepic` command reference from a built binary: `tools/gen-lepic-cli.py --bin <path to lepic>`. |
-| `tools/gen-lepic-api.py` | Regenerates the wallet API guide and reference from a LEPIC checkout (`--lepic <path>`, default `~/lepic`). |
+| `tools/gen-lepic-cli.py` | Regenerates the LEPIC CLI guide from LEPIC's `docs/cli.md` and the command reference from a built binary: `tools/gen-lepic-cli.py --bin <path to lepic>`. |
+| `tools/gen-lepic-recipes.py` | Regenerates the recipes page from LEPIC's `docs/recipes.md`. |
+| `tools/gen-lepic-api.py` | Regenerates the wallet API guide, explorer data and reference from a LEPIC checkout (`--lepic <path>`, default `~/lepic`). |
+| `tools/lepic_mdx.py` | What the three generators share: reading LEPIC's Markdown and writing `.mdx`. |
+| `site/src/components/lepic/`, `site/src/components/ApiExplorer/` | The components of the LEPIC pages (job table, command cards, pairing flow, payment lifecycle, API explorer), styled by `site/src/css/lepic.css`. |
 | `deploy/` | Deploys the built site to the web server (an nginx site serving `/srv/btlabs-docs`). |
 
 ## Deploy
