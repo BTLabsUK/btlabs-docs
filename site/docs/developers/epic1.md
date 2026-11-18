@@ -76,11 +76,10 @@ own, so a relay cannot join two payments by their reply mailbox. The
 
 ## What the host does
 
-The core runs no timer: the host calls collect, which reads by push and posts what the outbox
-owes, as [Delivery](https://github.com/BTLabsUK/lepic/blob/main/docs/protocols/delivery.md#what-the-host-does)
-describes. An app calls `contacts_collect` and `contacts_push_start`
-([FFI](https://github.com/BTLabsUK/lepic/blob/main/docs/ffi.md#epicbox-push-sessions)); the CLI
-has `lepic contact collect`, and `lepic serve` collects on its own
+The core runs collect in a loop, which reads by push and posts what the outbox owes. An app
+starts the loop with `set_delivery` after it opens the wallet and asks for one more collect with
+`delivery_wake` ([FFI](https://github.com/BTLabsUK/lepic/blob/main/docs/ffi.md#delivery-loop));
+the CLI has `lepic contact collect`, and `lepic serve` runs the loop on its own
 ([CLI](https://github.com/BTLabsUK/lepic/blob/main/docs/cli.md#lepic-serve-and-the-wallet-api)).
 
 ## Limits
