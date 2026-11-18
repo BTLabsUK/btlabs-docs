@@ -40,10 +40,6 @@
       "description": "Contacts operations."
     },
     {
-      "name": "Pair requests",
-      "description": "Pair requests operations."
-    },
-    {
       "name": "Payloads",
       "description": "Payloads operations."
     },
@@ -234,7 +230,7 @@
       "post": {
         "operationId": "scanWallet",
         "x-role": "full",
-        "summary": "Rescan the chain, optionally reading every link mailbox. Runs in the background; progress comes as events.",
+        "summary": "Rescan the chain, optionally reading the delivery mailboxes of epic1 addresses. Runs in the background; progress comes as events.",
         "tags": [
           "Wallet"
         ],
@@ -272,7 +268,7 @@
             "$ref": "#/components/responses/Unavailable"
           }
         },
-        "description": "Answers 202. The scan runs in the background and reports as `wallet.progress` events; `GET /wallet` shows it under `scan`. `links` reads every link mailbox after a restore."
+        "description": "Answers 202. The scan runs in the background and reports as `wallet.progress` events; `GET /wallet` shows it under `scan`. `links` then reads the delivery mailboxes of the wallet's epic1 addresses, as a restore does."
       }
     },
     "/sync": {
@@ -320,7 +316,7 @@
             "$ref": "#/components/responses/GatewayTimeout"
           }
         },
-        "description": "Serve collects the relays (contact, pairing and epic1 link mailboxes) every 30 s and refreshes from the node every 60 s by itself; this call does both now. Where a relay offers mux/1, serve also holds push sessions for the payments address and every live contact and pairing mailbox, and a pushed message starts a collect, at most one a second. The 30 s collect covers link and in-person reply mailboxes, relays without mux/1 and sessions that are down. Events, SSE and webhooks are the same for both paths."
+        "description": "Serve refreshes from the node every 60 s by itself. Where a relay offers mux/1, it holds push sessions for the payments address and every live contact, pairing, epic1 and reply mailbox, and reads mail as the relay pushes it, at most once a second; on a relay without mux/1 that mail is not read. Every 30 s it collects: it asks each push session how much waits, which ends drained pairings, counts the wait of contacts not heard from and reports relays that do not answer, ends what expired and posts the outbox rows and replies that fell due. This call refreshes and collects now. Events, SSE and webhooks are the same for both paths."
       }
     },
     "/sync/boost": {
@@ -328,7 +324,7 @@
         "operationId": "boostSync",
         "x-role": "receive",
         "summary": "Collect from the relays, or refresh against the node, more often for a while.",
-        "description": "Runs the poller at most every `interval_seconds` for `duration_seconds` from now, then goes back to its base interval (30 s for `relays`, 60 s for `node`). Each call starts its own boost: a poller with several runs at the shortest interval among them until the last ends, and `DELETE /sync/boost/{id}` ends one before its window does. The interval is at least 5 s and the duration at most 600 s: values outside are clamped. The answer is the boost's `id` and the poller's window with it. Serve boosts `relays` for 120 s at 5 s by itself after `POST /payments`, `POST /contacts`, `POST /pair-requests/{id}/accept` and `POST /links`.",
+        "description": "Runs the poller at most every `interval_seconds` for `duration_seconds` from now, then goes back to its base interval (30 s for `relays`, 60 s for `node`). Each call starts its own boost: a poller with several runs at the shortest interval among them until the last ends, and `DELETE /sync/boost/{id}` ends one before its window does. The interval is at least 5 s and the duration at most 600 s: values outside are clamped. The answer is the boost's `id` and the poller's window with it. Serve boosts `relays` for 120 s at 5 s by itself after `POST /payments`, `POST /contacts` and `POST /links`.",
         "tags": [
           "Wallet"
         ],
@@ -527,8 +523,10 @@
             "name": "link_id",
             "in": "query",
             "schema": {
-              "type": "string"
-            }
+              "type": "string",
+              "pattern": "^[0-9]+\\.[0-9]+$"
+            },
+            "description": "`<account>.<index>`, as `GET /links` lists it."
           },
           {
             "name": "delivery",
@@ -581,7 +579,7 @@
         "tags": [
           "Payments"
         ],
-        "description": "Starts a send (`kind: send`, default) or an invoice (`kind: invoice`). Returns 201, or 200 with the stored payment on an idempotent repeat (same `id`, same body). A different body with the same `id` is 409 `idempotency_mismatch`; a repeat while the first call runs is 409 `in_progress`. Over owner TLS `id` is required. A send needs the `full` role; an invoice needs `receive`.\n\n`to` forms: `key@host` (Epicbox address), `http://` or `https://` URL, `.onion` address, `epic:` link, `contact:ID`, `account:LABEL`. An `epic:` link carries its amount and message: a classic one (`epic:ADDRESS?amount=&message=`) is paid to its address, an epic1 link as `lepic epic1 pay` pays it.",
+        "description": "Starts a send (`kind: send`, default) or an invoice (`kind: invoice`). Returns 201, or 200 with the stored payment on an idempotent repeat (same `id`, same body). A different body with the same `id` is 409 `idempotency_mismatch`; a repeat while the first call runs is 409 `in_progress` with `Retry-After`. A payment with an `id` goes on being made when the caller leaves, and a repeat after it ends answers 200 with its `handoff`. A create that serve's stop cuts short answers 503 `interrupted`, its record is kept, and a repeat makes the payment. Such payments count against `api.max_connections` while they are made; over it a new create answers 503 `busy` with `Retry-After` and makes and keeps nothing. A repeat of a payment that exists is answered at any count. Over owner TLS `id` is required. A send needs the `full` role; an invoice needs `receive`.\n\n`to` forms: `key@host` (Epicbox address), `http://` or `https://` URL, `.onion` address, `epic:` link, `contact:ID`, `account:LABEL`. An `epic:` link carries its amount and message: a classic one (`epic:ADDRESS?amount=&message=`) is paid to its address, an epic1 link as `lepic epic1 pay` pays it. An invoice goes to `contact:ID` or is handed back (`via: file` or `deliver: false`); to an address or a classic `epic:` link it is 400 `invoice_to_address` and nothing is stored, to an epic1 link 400 `invalid_field`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -860,70 +858,12 @@
         }
       }
     },
-    "/payments/{id}/finalize": {
-      "post": {
-        "operationId": "finalizePayment",
-        "x-role": "full",
-        "summary": "Choose which answer finishes the payment, then post it.",
-        "tags": [
-          "Payments"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/PaymentId"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FinalizePayment"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Payment"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "409": {
-            "$ref": "#/components/responses/Conflict"
-          },
-          "502": {
-            "$ref": "#/components/responses/BadGateway"
-          },
-          "503": {
-            "$ref": "#/components/responses/Unavailable"
-          },
-          "504": {
-            "$ref": "#/components/responses/GatewayTimeout"
-          }
-        },
-        "description": "Needs `answer_id` (400 without it). No payment lists `finalize` in `actions`: only in-person payments collect several answers, and serve starts none. The call answers 409 `action_not_available`."
-      }
-    },
     "/payments/{id}/deliver": {
       "post": {
         "operationId": "deliverPayment",
         "x-role": "full",
         "summary": "Send the current slate to the payment's own address again.",
+        "description": "On an epic1 payment whose post is `uncertain` or `failed`, posts it on the link's next `http` or `tor` entry, and on the entries after it while each is refused or out of reach. A next route exists only for a link with `http` or `tor` entries. Each entry waits at most the relay's connect and response limits, 15 s each by default, and a link holds at most three entries, the first already tried, so the call can take up to 60 s; its outcome also arrives as `payment.delivery_changed`. 409 `no_more_routes` when every entry was tried, and the payment is unchanged. A payment that went to the payee's mailbox was posted to every usable relay of the list on its first post, so the call answers 409 `no_more_routes` for it, though its `actions` can list `deliver`. A payment past its cutoff height has expired and offers no `deliver`. The call takes no body.",
         "tags": [
           "Payments"
         ],
@@ -1040,12 +980,12 @@
       "post": {
         "operationId": "cancelPayment",
         "x-role": "receive",
-        "x-role-note": "Cancelling an invoice this wallet issued while it awaits its answer needs `receive`; every other cancel or release needs `full`.",
+        "x-role-note": "Cancelling an invoice this wallet issued while it awaits its answer needs `receive`; every other cancel needs `full`.",
         "summary": "End a payment that is not on the chain and free its coins.",
         "tags": [
           "Payments"
         ],
-        "description": "In `awaiting_answer` or `finalized` it cancels the payment in this wallet. In `posted`, when the chain never took it (`cancellable_from_height`), it releases the inputs. Cancelling a cancelled payment returns it unchanged. The `receive` role may cancel an invoice this wallet issued.",
+        "description": "In `awaiting_answer` or `finalized` it cancels the payment in this wallet. A `posted` send (`direction` `out`) is not cancelled: the answer is 409 `use_recover` and nothing changes, since only a recovery spends its inputs again. Any other `posted` payment answers 409 `action_not_available`. Cancelling a cancelled payment returns it unchanged. The `receive` role may cancel an invoice this wallet issued.",
         "parameters": [
           {
             "$ref": "#/components/parameters/PaymentId"
@@ -1083,11 +1023,58 @@
         }
       }
     },
+    "/payments/{id}/recover": {
+      "post": {
+        "operationId": "recoverPayment",
+        "x-role": "full",
+        "summary": "Spend a send's inputs back to this wallet, as a last resort.",
+        "tags": [
+          "Payments"
+        ],
+        "description": "For a send that is `finalized`, `posted`, `cancelled` or `expired` and whose inputs are still held for it (`recover` in `actions`). Serve asks the node first and refuses while the node's pool or chain holds the send. The recovery is a send to this wallet that spends all of the send's inputs into one output, so the send can never be mined once the recovery is. It is two ordinary transactions, a self payment (`direction: self`, `via: chain`) whose id is `recovery.tx_id`.\n\nThe answer is the payment with its `recovery`: `posted` when the node took it, `confirming` when the node already held it, `uncertain` when the node could not be reached (each refresh posts it again), `failed` with `error` when the node refused it; nothing else changed then. Once the recovery has `needed` confirmations it is `done`, and a payment still open ends `cancelled` with `state_reason` `recovered`. Pay again only after `recovered`: until then the send may still be mined. While a recovery is open, the payment and the recovery's self payment offer no `post` and no `cancel`, and another recover answers 409 `recovery_open`.\n\nThe recovery's fee is 0.004 EPIC for one input, 0.001 EPIC less for each further input, and at least 0.001 EPIC. A send whose inputs total less cannot be recovered. The node must accept the recovery.\n\n409 codes: `in_pool` and `on_chain` when the node holds the send, `recovery_open`, `not_recoverable` for any other payment.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PaymentId"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "The recovery is stored; the payment shows how its push went.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
     "/payments/{id}/handoff": {
       "get": {
         "operationId": "getPaymentHandoff",
         "x-role": "read",
         "summary": "The text, file or QR frames to give the other person by hand.",
+        "description": "Returns the handoff the create or the open returned. A plain slate of a payment handed over by hand is rebuilt from the stored slate when serve no longer keeps the text, byte for byte the same, while the payment waits for the other side.",
         "tags": [
           "Payments"
         ],
@@ -1145,7 +1132,7 @@
             "$ref": "#/components/responses/Conflict"
           }
         },
-        "description": "`format` picks the form, `contact_id` names the contact for `format=sealed`, and `qr=true` adds `qr_frames`. A plain slate that carries a LEPIC wallet's reply key is answered sealed to that key, so its handoff has `format: sealed`. A sealed answer has no QR frames: `qr=true` on it answers 409 `format_not_available`."
+        "description": "`format` picks the form, `contact_id` names the contact for `format=sealed`, and `qr=true` adds `qr_frames`. A sealed answer has no QR frames: `qr=true` on it answers 409 `format_not_available`."
       }
     },
     "/inspect": {
@@ -1304,6 +1291,77 @@
         }
       }
     },
+    "/outputs/consolidate": {
+      "post": {
+        "operationId": "consolidateOutputs",
+        "x-role": "full",
+        "summary": "Spend the wallet's outputs to itself as fewer outputs.",
+        "tags": [
+          "Coins"
+        ],
+        "description": "Spends the wallet's outputs to itself as fewer outputs, for the usual fee. Without `inputs` it spends the smallest spendable outputs, at most `max_inputs` (default 500); `inputs` names the outputs to spend instead, and the call fails with 422 and stores nothing when one of them cannot be spent. Locked, under-confirmed and immature coinbase outputs are left alone. `outputs` (1 to 10, default 1) is how many outputs of nearly equal value it makes. A consolidation links its inputs to each other on chain.\n\n`dry_run: true` answers 200 with an estimate and stores and locks nothing; it ignores `id`. Otherwise it answers 201 with the payment (`direction: self`). With an `id` the consolidation takes the job path of a payment create: the id becomes the payment's id, a repeat with the same body answers 200 with the stored payment and spends nothing again, a different body with the same id is 409 `idempotency_mismatch`, and over `api.max_connections` running creates it answers 503 `busy`. Over owner TLS `id` is required.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsolidateOutputs"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A dry run: the estimate. Or an idempotent repeat: the stored payment; no money moved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Estimate"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Payment"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/Unprocessable"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
     "/addresses": {
       "get": {
         "operationId": "listAddresses",
@@ -1378,16 +1436,6 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Idempotent repeat: the stored address.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Address"
-                }
-              }
-            }
-          },
           "201": {
             "description": "Created",
             "content": {
@@ -1451,7 +1499,7 @@
       "post": {
         "operationId": "createLink",
         "x-role": "receive",
-        "summary": "Make a link for an epic1 address, on up to three relays.",
+        "summary": "Make a link for the next numbered epic1 address of an account.",
         "tags": [
           "Addresses and links"
         ],
@@ -1499,14 +1547,14 @@
             "$ref": "#/components/responses/Unprocessable"
           }
         },
-        "description": "`relays` takes up to three relays. A link has an `address_index` when the wallet knows the address it pays; a link mailbox a restore found in use has none."
+        "description": "The link's `id` is `<account>.<index>`, the account and the index of its address. 409 `too_many_open` when the account has 256 open numbered addresses, from this create and `POST /addresses`. A link is retired with `POST /links/{id}/retire`, an address made by `POST /addresses` with the CLI, `lepic epic1 retire N`."
       }
     },
     "/links/{id}/retire": {
       "post": {
         "operationId": "retireLink",
         "x-role": "receive",
-        "summary": "Retire a printed link: its mailbox is read no more.",
+        "summary": "Retire a link: its open address closes and its delivery mailbox is read no more.",
         "tags": [
           "Addresses and links"
         ],
@@ -1587,7 +1635,7 @@
       "post": {
         "operationId": "createContact",
         "x-role": "full",
-        "summary": "Start a pairing: make an invite, answer an invite, or send a pair request.",
+        "summary": "Start a pairing: make an invite or answer an invite.",
         "tags": [
           "Contacts"
         ],
@@ -1728,7 +1776,7 @@
       "delete": {
         "operationId": "deleteContact",
         "x-role": "full",
-        "summary": "End the pairing and tell the contact, unless notify=false. Also withdraws an invite or request.",
+        "summary": "End the pairing and tell the contact, unless notify=false. Also cancels a pairing that waits.",
         "tags": [
           "Contacts"
         ],
@@ -1772,7 +1820,7 @@
             "$ref": "#/components/responses/GatewayTimeout"
           }
         },
-        "description": "On a pairing that waits, it cancels it: a request you sent is withdrawn, an invite of yours is cancelled, a late answer is refused, and the same wallet can be asked again at once. On a paired contact it ends the pairing and tells the contact; `notify=false` does not tell it. The contact keeps its record until this wallet sends it a new pair request, which ends the old record there if that wallet had heard from this one and the request is newer than the pairing. Newer is judged by this wallet's clock alone when the pairing came from a request of this wallet, or when the contact held a request from this wallet as the pairing finished. A new request from a wallet whose earlier request this wallet answered, and which never confirmed it, replaces that pairing. The contact's `invite_link`, the label given while it waited and its `refused_relay` go when the contact is removed, by this API, `lepic contact remove`, the app or a new pairing."
+        "description": "On a pairing that waits, it cancels it: an invite of yours is cancelled, a late answer is refused, and the same wallet can be invited again at once. On a paired contact it ends the pairing and tells the contact; `notify=false` does not tell it. The contact's `invite_link`, the label given while it waited and its `refused_relay` go when the contact is removed, by this API, `lepic contact remove`, the app or a new pairing."
       }
     },
     "/contacts/{id}/verify": {
@@ -2117,130 +2165,6 @@
         "description": "Answers `{\"imported\": n}`. An import past the contact limit answers 409 `contact_cap_reached`."
       }
     },
-    "/pair-requests": {
-      "get": {
-        "operationId": "listPairRequests",
-        "x-role": "read",
-        "summary": "Pair requests that reached this wallet.",
-        "tags": [
-          "Pair requests"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/limit"
-          },
-          {
-            "$ref": "#/components/parameters/cursor"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PairRequestList"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          }
-        }
-      }
-    },
-    "/pair-requests/{id}/accept": {
-      "post": {
-        "operationId": "acceptPairRequest",
-        "x-role": "full",
-        "summary": "Pair through a request, verified against the address that asked.",
-        "tags": [
-          "Pair requests"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/PairRequestId"
-          }
-        ],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AcceptPairRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Contact"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          },
-          "409": {
-            "$ref": "#/components/responses/Conflict"
-          },
-          "422": {
-            "$ref": "#/components/responses/Unprocessable"
-          },
-          "502": {
-            "$ref": "#/components/responses/BadGateway"
-          },
-          "503": {
-            "$ref": "#/components/responses/Unavailable"
-          },
-          "504": {
-            "$ref": "#/components/responses/GatewayTimeout"
-          }
-        },
-        "description": "Takes an optional `label`. Answers 422 `other_address`, `address_proof_missing` or `no_free_slot` when the pairing cannot go on."
-      }
-    },
-    "/pair-requests/{id}": {
-      "delete": {
-        "operationId": "deletePairRequest",
-        "x-role": "full",
-        "summary": "Drop a request without an answer.",
-        "tags": [
-          "Pair requests"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/PairRequestId"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No content"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          }
-        }
-      }
-    },
     "/payloads": {
       "get": {
         "operationId": "listPayloads",
@@ -2517,68 +2441,6 @@
         }
       }
     },
-    "/peers": {
-      "get": {
-        "operationId": "listPeers",
-        "x-role": "read",
-        "summary": "Wallets this wallet paid directly, with their pinned keys.",
-        "tags": [
-          "Network"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/limit"
-          },
-          {
-            "$ref": "#/components/parameters/cursor"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PeerList"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          }
-        }
-      }
-    },
-    "/peers/{origin}": {
-      "delete": {
-        "operationId": "deletePeer",
-        "x-role": "full",
-        "summary": "Forget a pinned key.",
-        "tags": [
-          "Network"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/Origin"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "No content"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          }
-        }
-      }
-    },
     "/profile": {
       "get": {
         "operationId": "getProfile",
@@ -2695,7 +2557,7 @@
         "tags": [
           "Events"
         ],
-        "description": "As JSON, a page oldest first after `after`, with `next_cursor` as for any list. With `Accept: text/event-stream`, a live stream that resumes from `Last-Event-ID` or `?after=`. Events are kept 30 days by default; a client that asks for older ids first gets `events.skipped` with the count.\n\nThe stream sends a `: keepalive` comment every 15 s. Without `Last-Event-ID` or `after` it starts at the next event. `events.skipped` carries a `reason` of `lagged` or `pruned`: read the objects again, then go on from the new id. `contact.state_changed` for a failed pairing carries a `reason`: `changed_on_the_way`, `kind_differs`, `expired`, `not_confirmed`, `refused`, `other_address`, `address_proof_missing` or `crossed`. After a restart, `from_state` is present when the log holds the object; otherwise the entry has `to_state` only, and a `contact.updated` that does not know the fields has no `changed`. `payment.confirmations_reached` comes once per payment, when the tip reaches its `payment_confirmations`-th confirmation (6 unless the setting says 1 to 1440); after a restart serve logs those reached meanwhile, none twice.",
+        "description": "As JSON, a page oldest first after `after`, with `next_cursor` as for any list. With `Accept: text/event-stream`, a live stream that resumes from `Last-Event-ID` or `?after=`. Events are kept 30 days by default; a client that asks for older ids first gets `events.skipped` with the count.\n\nThe stream sends a `: keepalive` comment every 15 s. Without `Last-Event-ID` or `after` it starts at the next event. `events.skipped` carries a `reason` of `lagged` or `pruned`: read the objects again, then go on from the new id. `contact.state_changed` for a failed pairing carries a `reason`: `changed_on_the_way`, `kind_differs`, `expired`, `not_confirmed`, `refused`, `other_address`, `address_proof_missing` or `crossed`. After a restart, `from_state` is present when the log holds the object; otherwise the entry has `to_state` only, and a `contact.updated` that does not know the fields has no `changed`. `payment.confirmations_reached` comes once per payment, when the tip reaches its `payment_confirmations`-th confirmation (6 unless the setting says 1 to 1440); after a restart serve logs those reached meanwhile, none twice. `payment.recovery_changed` comes each time the state of a payment's `recovery` changes; `data.object` is the payment, and its own state change follows as `payment.state_changed`. `payment.post_failed` comes when a push of a payment's transaction to the node fails for the first time, and again each time the outcome or the node's text changes; `data.error` carries the text and `data.object` the payment. It changes no state: a state change it brings is logged before it as `payment.state_changed`. `payment.delivery_changed` comes when the post of an epic1 payment turns `uncertain`, when it fails with no route tried next, and with `sent` when the payment goes out after an earlier post was uncertain or failed; a payment that goes out on its first post raises none; `data.object` is the payment, `data.state` the new `delivery.state` and `data.route` the route it was posted on.",
         "parameters": [
           {
             "name": "after",
@@ -2883,15 +2745,6 @@
         },
         "description": "Contact id."
       },
-      "PairRequestId": {
-        "name": "id",
-        "in": "path",
-        "required": true,
-        "schema": {
-          "type": "string"
-        },
-        "description": "Pair request id."
-      },
       "PayloadId": {
         "name": "id",
         "in": "path",
@@ -2915,18 +2768,10 @@
         "in": "path",
         "required": true,
         "schema": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+$"
         },
-        "description": "Link number, as a string."
-      },
-      "Origin": {
-        "name": "origin",
-        "in": "path",
-        "required": true,
-        "schema": {
-          "type": "string"
-        },
-        "description": "Peer origin."
+        "description": "`<account>.<index>`, as `GET /links` lists it."
       }
     },
     "responses": {
@@ -3032,7 +2877,7 @@
               "refused",
               "by_hand"
             ],
-            "description": "Serve sets three of these: `by_hand` for a payment handed over as a file or text, `uncertain` when the slate went out and is not known to have arrived, and `sent` otherwise. A send the receiver refused reads `sent`."
+            "description": "Serve sets five of these: `by_hand` for a payment handed over as a file or text, `queued` while an epic1 post waits for its turn, `uncertain` when the slate went out and is not known to have arrived, `failed` when an epic1 post failed on its last route, and `sent` otherwise. A send the receiver refused reads `sent`."
           },
           "to": {
             "type": "string",
@@ -3136,7 +2981,7 @@
           },
           "state_reason": {
             "type": "string",
-            "description": "Why it reached an end state: by_us, by_them, superseded, ..."
+            "description": "Why it reached an end state: by_us, by_them, superseded, ... `expired_no_answer`: an `expired` payment or invoice this wallet started whose answer never came; it can never be mined. `expired_not_mined`: an `expired` payment that was answered but not mined by its expiry height; it may still be mined. `expired_rejected_by_node`: an `expired` send whose every push the node's pool refused until its expiry height; its inputs are spendable again. `recovered`: a `cancelled` send whose inputs a recovery spent back to this wallet; it can never be mined. An `expired` payment with no stored slate and no known kernel has no reason. A payment the chain mines later becomes `confirmed` with no reason."
           },
           "account": {
             "type": "string",
@@ -3207,7 +3052,7 @@
           },
           "link_id": {
             "type": "string",
-            "description": "For a payment taken at one of this wallet's epic1 links: the link's id, as `GET /links` lists it. A link's id is used again after the link is retired."
+            "description": "For a payment taken at one of this wallet's epic1 links: the link's id, as `GET /links` lists it. An account issues each index once, so a link id is never used again."
           },
           "purpose": {
             "type": "string",
@@ -3278,6 +3123,12 @@
             },
             "description": "What the other side reported."
           },
+          "recovery": {
+            "$ref": "#/components/schemas/PaymentRecovery"
+          },
+          "post": {
+            "$ref": "#/components/schemas/PaymentPost"
+          },
           "actions": {
             "type": "array",
             "items": {
@@ -3285,17 +3136,13 @@
               "enum": [
                 "approve",
                 "decline",
-                "finalize",
                 "deliver",
                 "post",
-                "cancel"
+                "cancel",
+                "recover"
               ]
             },
-            "description": "The calls that work on this payment now, as the wallet computes them. A call not listed fails with 409 `action_not_available`. Clients must accept values they do not know."
-          },
-          "cancellable_from_height": {
-            "type": "integer",
-            "description": "A posted send the chain never took."
+            "description": "The calls that work on this payment now, as the wallet computes them. A call not listed fails with 409 `action_not_available`. `post` is not listed once the wallet's last known height reaches the height from which it no longer posts the payment. `recover` is listed for a send the wallet would recover by what it holds; the node may still refuse it. Clients must accept values they do not know."
           },
           "expires_at_height": {
             "type": "integer"
@@ -3339,6 +3186,14 @@
           "handoff": {
             "$ref": "#/components/schemas/Handoff",
             "description": "In create and open responses, when you deliver by hand."
+          },
+          "slate_bytes": {
+            "type": "integer",
+            "description": "In a send's create response: the bytes the longest post of the payment takes on the relay, the first slate or the answer the receiver sends back. Only when the slate goes over Epicbox."
+          },
+          "slate_limit": {
+            "type": "integer",
+            "description": "The most bytes the relay takes in one post: 131071. Beside `slate_bytes`."
           }
         },
         "required": [
@@ -3388,6 +3243,90 @@
           "created_at": "2026-11-10T09:30:04Z",
           "updated_at": "2026-11-10T09:30:05Z"
         }
+      },
+      "PaymentRecovery": {
+        "type": "object",
+        "description": "The latest recovery of a send (`POST /payments/{id}/recover`), in any state.",
+        "properties": {
+          "tx_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The id of the recovery's self payment, as `GET /payments/{id}` takes it."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "uncertain",
+              "posted",
+              "confirming",
+              "done",
+              "failed"
+            ],
+            "description": "`uncertain`: stored, the node could not be reached; each refresh posts it again. `posted`: the node took it. `confirming`: the chain holds it, below `needed` confirmations. `done`: it reached `needed`; the send can never be mined. `failed`: the node refused it, or the chain took the send first; the recovery's self payment is `cancelled`. After a refusal the send keeps its state and its inputs, and `recover` may be listed again."
+          },
+          "confirmations": {
+            "type": "integer",
+            "description": "0 until the chain holds the recovery."
+          },
+          "needed": {
+            "type": "integer",
+            "description": "The confirmations at which the recovery is done: the account's minimum confirmations."
+          },
+          "fee": {
+            "$ref": "#/components/schemas/Decimal"
+          },
+          "error": {
+            "type": "string",
+            "description": "The node's answer to the last failed push, or why the recovery failed."
+          }
+        },
+        "required": [
+          "tx_id",
+          "state",
+          "confirmations",
+          "needed"
+        ]
+      },
+      "PaymentPost": {
+        "type": "object",
+        "description": "The pushes of the payment's transaction to the node, by this wallet or a refresh. Absent until the first push, and on a payment that waits for its answer. The node's text is plain text: control characters and characters that reorder or hide text (bidirectional overrides, zero-width characters, line separators) escaped, at most 256 characters, the last one `…` when it was cut.",
+        "properties": {
+          "attempts": {
+            "type": "integer",
+            "description": "Pushes so far."
+          },
+          "last_outcome": {
+            "type": "string",
+            "enum": [
+              "accepted",
+              "refused",
+              "unreachable"
+            ],
+            "description": "`accepted`: the node's pool took it. `refused`: the node answered with an error. `unreachable`: no answer from the node."
+          },
+          "last_attempt_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_error": {
+            "type": "string",
+            "description": "The node's text for the last push that failed. Kept after a later push is accepted: read it with `accepted_once` and `last_outcome`."
+          },
+          "next_attempt_height": {
+            "type": "integer",
+            "description": "The height from which a refresh pushes it again. Only while the payment is `finalized` or `posted`."
+          },
+          "accepted_once": {
+            "type": "boolean",
+            "description": "Whether the node's pool took any push of it."
+          }
+        },
+        "required": [
+          "attempts",
+          "last_outcome",
+          "last_attempt_at",
+          "accepted_once"
+        ]
       },
       "Balance": {
         "type": "object",
@@ -3527,37 +3466,21 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "`<account>.<index>`: the account and the index of the epic1 address the link is."
           },
           "text": {
             "type": "string",
             "description": "The `epic:` link."
           },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "on_screen",
-              "printed"
-            ]
-          },
           "account": {
             "type": "string"
-          },
-          "address_index": {
-            "type": "integer"
           },
           "amount": {
             "$ref": "#/components/schemas/Decimal"
           },
           "message": {
             "type": "string"
-          },
-          "relays": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "description": "Relay host."
-            }
           },
           "issued_at": {
             "type": "string",
@@ -3581,9 +3504,7 @@
         "required": [
           "id",
           "text",
-          "kind",
           "account",
-          "relays",
           "issued_at"
         ]
       },
@@ -3610,7 +3531,7 @@
               "keys_changed",
               "ended"
             ],
-            "description": "`waiting`: the pairing has not finished (`pairing.method` is `invite`, `accept` or `request`). `paired`: it finished. `verified`: the four words matched. `keys_changed`: the contact's keys differ from the pinned ones; `POST /contacts/{id}/keys` decides. `ended`: the pairing is over; `ended_reason` says why."
+            "description": "`waiting`: the pairing has not finished (`pairing.method` is `invite` or `accept`). `paired`: it finished. `verified`: the four words matched. `keys_changed`: the contact's keys differ from the pinned ones; `POST /contacts/{id}/keys` decides. `ended`: the pairing is over; `ended_reason` says why."
           },
           "ended_reason": {
             "type": "string",
@@ -3677,17 +3598,6 @@
               "domain_proven"
             ]
           },
-          "features": {
-            "type": "object",
-            "properties": {
-              "native_slates": {
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "native_slates"
-            ]
-          },
           "pairing": {
             "type": "object",
             "properties": {
@@ -3695,8 +3605,7 @@
                 "type": "string",
                 "enum": [
                   "invite",
-                  "accept",
-                  "request"
+                  "accept"
                 ]
               },
               "invite_link": {
@@ -3754,41 +3663,10 @@
             "domain": "shop.example",
             "domain_proven": true
           },
-          "features": {
-            "native_slates": true
-          },
           "last_heard_at": "2026-11-10T09:12:00Z",
           "verified_at": "2026-11-09T18:00:00Z",
           "created_at": "2026-11-09T17:40:00Z"
         }
-      },
-      "PairRequest": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "from_address": {
-            "type": "string"
-          },
-          "claimed_name": {
-            "type": "string"
-          },
-          "received_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "expires_at": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "from_address",
-          "received_at",
-          "expires_at"
-        ]
       },
       "Payload": {
         "type": "object",
@@ -3848,31 +3726,6 @@
           "size",
           "attempts",
           "first_seen_at"
-        ]
-      },
-      "Peer": {
-        "type": "object",
-        "properties": {
-          "origin": {
-            "type": "string"
-          },
-          "key": {
-            "type": "string"
-          },
-          "first_seen_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "last_seen_at": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "origin",
-          "key",
-          "first_seen_at",
-          "last_seen_at"
         ]
       },
       "Profile": {
@@ -4037,8 +3890,62 @@
                       "stopped"
                     ],
                     "description": "Absent until the listener reports one."
+                  },
+                  "relays": {
+                    "type": "array",
+                    "description": "The push sessions serve holds, one for each relay and group; empty when it holds none. `connected_since` and `last_mail_at` are what this serve saw: absent until it saw them, and gone after a restart.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "host": {
+                          "type": "string",
+                          "description": "The relay as `domain:port`."
+                        },
+                        "group": {
+                          "type": "string",
+                          "description": "`wallet`; `payments` or `contacts` when `relay_sockets` is `split`."
+                        },
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "connecting",
+                            "attached",
+                            "waiting",
+                            "not_offered",
+                            "stopped"
+                          ],
+                          "description": "`waiting` is the pause before the next attempt; `not_offered` is a relay without mux/1: serve reads the payments address on a plain socket and reads no contact, pairing or epic1 mail there."
+                        },
+                        "push": {
+                          "type": "boolean",
+                          "description": "Whether the relay offers mux/1; absent before it answered the first greeting."
+                        },
+                        "last_error": {
+                          "type": "string",
+                          "description": "Why the session last lost its socket, as plain text cut to 256 characters; absent once it attached again."
+                        },
+                        "connected_since": {
+                          "type": "string",
+                          "format": "date-time",
+                          "description": "Since when the session is attached; absent while it is not."
+                        },
+                        "last_mail_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "description": "When the relay last pushed mail to the session."
+                        }
+                      },
+                      "required": [
+                        "host",
+                        "group",
+                        "state"
+                      ]
+                    }
                   }
-                }
+                },
+                "required": [
+                  "relays"
+                ]
               },
               "http": {
                 "type": "object",
@@ -4072,6 +3979,95 @@
             },
             "required": [
               "epicbox"
+            ]
+          },
+          "node": {
+            "type": "object",
+            "description": "The node as the last refresh of this serve saw it; both fields are absent until the first refresh that reaches the node, and again after a restart.",
+            "properties": {
+              "tip_height": {
+                "type": "integer",
+                "description": "The node's tip height."
+              },
+              "tip_changed_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When a refresh first saw the tip at `tip_height`. A monitor that sees it grow old while `refresh.last_success_at` stays recent has a node that stopped following the chain."
+              }
+            }
+          },
+          "payments": {
+            "type": "object",
+            "description": "The payments that are not over, over every account, read from the store alone. Ended states are not counted.",
+            "properties": {
+              "open": {
+                "type": "object",
+                "properties": {
+                  "needs_approval": {
+                    "type": "integer",
+                    "description": "How many invoices wait for approval. It counts every parked invoice, so it can exceed what `GET /payments?state=needs_approval` lists by one whose slate does not decode or one from a contact without its note."
+                  },
+                  "awaiting_answer": {
+                    "type": "integer",
+                    "description": "How many payments `GET /payments?state=awaiting_answer` lists."
+                  },
+                  "finalized": {
+                    "type": "integer",
+                    "description": "How many payments `GET /payments?state=finalized` lists."
+                  },
+                  "posted": {
+                    "type": "integer",
+                    "description": "How many payments `GET /payments?state=posted` lists."
+                  }
+                },
+                "required": [
+                  "needs_approval",
+                  "awaiting_answer",
+                  "finalized",
+                  "posted"
+                ]
+              },
+              "oldest_awaiting_answer": {
+                "type": "object",
+                "description": "The `awaiting_answer` payment created first; absent when there is none.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The payment's `id`."
+                  },
+                  "since": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "The payment's `created_at`."
+                  }
+                },
+                "required": [
+                  "id",
+                  "since"
+                ]
+              },
+              "oldest_finalized": {
+                "type": "object",
+                "description": "The `finalized` payment created first; absent when there is none.",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The payment's `id`."
+                  },
+                  "since": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "The payment's `created_at`."
+                  }
+                },
+                "required": [
+                  "id",
+                  "since"
+                ]
+              }
+            },
+            "required": [
+              "open"
             ]
           },
           "owner_tls": {
@@ -4151,7 +4147,7 @@
               },
               "refused": {
                 "type": "integer",
-                "description": "Connections closed unanswered."
+                "description": "Connections closed unanswered, and payment creates answered 503 `busy`."
               }
             },
             "required": [
@@ -4165,6 +4161,8 @@
           "version",
           "uptime_s",
           "listeners",
+          "node",
+          "payments",
           "refresh",
           "collect",
           "requests"
@@ -4269,22 +4267,6 @@
               }
             }
           },
-          "peer": {
-            "type": "object",
-            "properties": {
-              "native": {
-                "type": "boolean"
-              },
-              "pays_invoices": {
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "native",
-              "pays_invoices"
-            ],
-            "description": "For addresses, after asking the relay."
-          },
           "payment_id": {
             "type": "string",
             "format": "uuid",
@@ -4356,12 +4338,9 @@
           },
           "deliver": {
             "type": "boolean"
-          },
-          "relay_ok": {
-            "type": "boolean"
           }
         },
-        "description": "InspectRequest plus `expect`, `message`, `deliver`, `relay_ok`.",
+        "description": "InspectRequest plus `expect`, `message`, `deliver`.",
         "oneOf": [
           {
             "required": [
@@ -4418,7 +4397,7 @@
           },
           "type": {
             "type": "string",
-            "description": "`resource.what_happened`. An open set: new types may be added, and clients must skip types they do not know. Known types: payment.created, payment.state_changed, payment.updated, payment.confirmations_reached, contact.created, contact.state_changed, contact.updated, contact.removed, pair_request.received, payload.received, quarantine.added, account.balance_changed, wallet.progress, relay.updated, slate.unmatched, events.skipped.",
+            "description": "`resource.what_happened`. An open set: new types may be added, and clients must skip types they do not know. Known types: payment.created, payment.state_changed, payment.updated, payment.confirmations_reached, payment.recovery_changed, payment.post_failed, payment.delivery_changed, contact.created, contact.state_changed, contact.updated, contact.removed, payload.received, quarantine.added, account.balance_changed, wallet.progress, relay.updated, slate.unmatched, events.skipped.",
             "examples": [
               "payment.state_changed"
             ]
@@ -4438,9 +4417,6 @@
                   },
                   {
                     "$ref": "#/components/schemas/Contact"
-                  },
-                  {
-                    "$ref": "#/components/schemas/PairRequest"
                   },
                   {
                     "$ref": "#/components/schemas/Payload"
@@ -4467,7 +4443,25 @@
               },
               "reason": {
                 "type": "string",
-                "description": "Why: for `*.state_changed` the end-state reason; for `slate.unmatched` `unknown_slate` or `notice`; for `events.skipped` `lagged` or `pruned`; for `relay.updated` `home_unreachable` or the transport's reason."
+                "description": "Why: for `*.state_changed` the end-state reason; for `slate.unmatched` `unknown_slate`; for `events.skipped` `lagged` or `pruned`; for `relay.updated` `home_unreachable` or the transport's reason."
+              },
+              "error": {
+                "type": "string",
+                "description": "`payment.post_failed`: the node's text for the failed push, as `post.last_error` shows it, or the wallet's reason when the node gave none."
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "queued",
+                  "sent",
+                  "uncertain",
+                  "failed"
+                ],
+                "description": "`payment.delivery_changed`: the outcome of that post. The carried payment shows its delivery as it stood then; `GET /payments/{id}` reads the current one."
+              },
+              "route": {
+                "type": "string",
+                "description": "`payment.delivery_changed`: the route the payment was posted on, such as an Epicbox address `key@host`."
               },
               "changed": {
                 "type": "array",
@@ -4567,7 +4561,7 @@
           },
           "code": {
             "type": "string",
-            "description": "Stable, fine-grained error name, e.g. `insufficient_funds`. Clients must accept codes they do not know and fall back on `category`. Any call: `no_route` 404, `method_not_allowed` 405 (with `Allow`), `body_too_slow` 408, `body_too_large` 413, `role_required` 403, `socket_only` 403, `client_not_listed` 403, `serve_version_differs` and `serve_settings_differ` 409, `invalid_request`, `invalid_body`, `invalid_field`, `invalid_cursor`, `cursor_filters_changed` 400, `not_found` 404, `internal` 500, `interrupted` and `cancelled` 503. Creates: `idempotency_mismatch`, `in_progress`, `account_exists` 409. Payments: `action_not_available`, `format_not_available`, `no_handoff`, `nothing_to_open`, `too_many_held` 409; `unexpected_input`, `insufficient_funds` 422; `invoice_already_paid`, `invoice_locked_above_tip`, `inputs_spent_elsewhere`, `inputs_spent_by_own_transaction`, `peer_inputs_spent`, `on_chain`, `in_pool`, `not_releasable`, `changed_during_cancel` 409; `plain_http_not_allowed`, `http_url_invalid`, `onion_address_invalid` 400; `change_too_small`, `too_heavy`, `nothing_to_consolidate`, `invalid_slate`, `payment_expired`, `invoice_changed`, `amount_mismatch`, `not_posted`, `not_delivered` by category. Wallet and node: `wrong_password` 403, `wallet_not_found` 404, `wallet_already_exists`, `wallet_busy`, `locked`, `foreign_wallet`, `offline`, `wallet_too_new`, `wrong_key` 409, `restore_scan_required` 503, `scan_running` 409 or 503, `node_unreachable` 502 (504 on a timeout), `tor_not_running` 503, `onion_unreachable` 502, `transport_failed` 502, `damaged_database` 500. Contacts: `contact_not_found`, `pairing_not_found` 404; `invite_expired`, `already_paired`, `pairing_in_progress`, `pairing_crossed`, `pairing_ended`, `pairing_waiting`, `invite_dismissed`, `contact_not_verified`, `key_check_refused`, `relay_changed`, `keys_not_changed`, `domain_fixed`, `contact_cap_reached`, `contacts_offline`, `epicbox_off` 409; `wrong_pairing_class` 400; `other_address`, `address_proof_missing`, `peer_not_proven`, `no_free_slot` 422. A code not listed here has its category's status: `usage` 400, `wrong_password` 403, `not_found` 404, `wallet_state` and `conflict` 409, `rejected` and `funds` 422, `node` and `transport` 502, `interrupted` 503, `internal` and `config` 500. 502, 503 and 504 carry `Retry-After` when waiting is worth it."
+            "description": "Stable, fine-grained error name, e.g. `insufficient_funds`. Clients must accept codes they do not know and fall back on `category`. Any call: `no_route` 404, `method_not_allowed` 405 (with `Allow`), `body_too_slow` 408, `body_too_large` 413, `role_required` 403, `socket_only` 403, `client_not_listed` 403, `serve_version_differs` and `serve_settings_differ` 409, `invalid_request`, `invalid_body`, `invalid_field`, `invalid_cursor`, `cursor_filters_changed` 400, `not_found` 404, `internal` 500, `interrupted` and `cancelled` 503. Payment creates: `busy` 503. Creates: `idempotency_mismatch`, `in_progress`, `account_exists` 409. Payments: `action_not_available`, `format_not_available`, `no_handoff`, `nothing_to_open`, `too_many_held`, `no_more_routes` 409; `unexpected_input`, `insufficient_funds` 422; `invoice_already_paid`, `invoice_locked_above_tip`, `inputs_spent_elsewhere`, `inputs_spent_by_own_transaction`, `peer_inputs_spent`, `on_chain`, `in_pool`, `recovery_open`, `not_recoverable`, `use_recover`, `changed_during_cancel` 409; `plain_http_not_allowed`, `http_url_invalid`, `onion_address_invalid`, `slate_too_large`, `invoice_to_address` 400; `change_too_small`, `too_heavy`, `nothing_to_consolidate`, `invalid_slate`, `payment_expired`, `invoice_changed`, `amount_mismatch`, `not_posted`, `not_delivered` by category. Wallet and node: `wrong_password` 403, `wallet_not_found` 404, `wallet_already_exists`, `wallet_busy`, `locked`, `foreign_wallet`, `offline`, `wallet_too_new`, `wrong_key` 409, `restore_scan_required` 503, `scan_running` 409 or 503, `node_unreachable` 502 (504 on a timeout), `tor_not_running` 503, `onion_unreachable` 502, `transport_failed` 502, `damaged_database` 500. Contacts: `contact_not_found`, `pairing_not_found` 404; `invite_expired`, `already_paired`, `pairing_in_progress`, `pairing_crossed`, `pairing_ended`, `pairing_waiting`, `contact_not_verified`, `key_check_refused`, `relay_changed`, `keys_not_changed`, `domain_fixed`, `contact_cap_reached`, `contacts_offline`, `epicbox_off` 409; `wrong_pairing_class` 400; `other_address`, `address_proof_missing`, `no_free_slot` 422. A code not listed here has its category's status: `usage` 400, `wrong_password` 403, `not_found` 404, `wallet_state` and `conflict` 409, `rejected` and `funds` 422, `node` and `transport` 502, `interrupted` 503, `internal` and `config` 500. 409 `in_progress`, 502, 503 and 504 carry `Retry-After` when waiting is worth it."
           },
           "category": {
             "type": "string",
@@ -4616,6 +4610,18 @@
                 "code"
               ]
             }
+          },
+          "bytes": {
+            "type": "integer",
+            "description": "With `slate_too_large`: the bytes the payment's longest post would take on the relay."
+          },
+          "limit": {
+            "type": "integer",
+            "description": "With `slate_too_large`: the most bytes the relay takes in one post."
+          },
+          "inputs": {
+            "type": "integer",
+            "description": "With `slate_too_large`: the outputs the payment would spend."
           }
         },
         "required": [
@@ -4725,24 +4731,6 @@
           "items"
         ]
       },
-      "PairRequestList": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PairRequest"
-            }
-          },
-          "next_cursor": {
-            "type": "string",
-            "description": "Absent on the last page."
-          }
-        },
-        "required": [
-          "items"
-        ]
-      },
       "PayloadList": {
         "type": "object",
         "properties": {
@@ -4768,24 +4756,6 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Quarantined"
-            }
-          },
-          "next_cursor": {
-            "type": "string",
-            "description": "Absent on the last page."
-          }
-        },
-        "required": [
-          "items"
-        ]
-      },
-      "PeerList": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Peer"
             }
           },
           "next_cursor": {
@@ -4921,17 +4891,8 @@
               "request"
             ]
           },
-          "relay_ok": {
-            "type": "boolean",
-            "description": "Allow delivery to a relay outside your list."
-          },
           "allow_plain_http": {
             "type": "boolean"
-          },
-          "legacy": {
-            "type": "boolean",
-            "default": false,
-            "description": "true: give an http(s):// or onion payee the V2 or V3 slate every wallet takes, even when its listener offers native slates (today's `tx send --legacy`)."
           },
           "deliver": {
             "type": "boolean",
@@ -4966,6 +4927,14 @@
               "$ref": "#/components/schemas/Output"
             },
             "description": "The coins it would use."
+          },
+          "slate_bytes": {
+            "type": "integer",
+            "description": "The bytes the longest post of the payment would take on the relay: the first slate, or the answer the receiver sends back. Only when `to` is an Epicbox address. Over `slate_limit` the estimate fails with `slate_too_large`, as the payment would."
+          },
+          "slate_limit": {
+            "type": "integer",
+            "description": "The most bytes the relay takes in one post: 131071. Beside `slate_bytes`."
           }
         },
         "required": [
@@ -4973,6 +4942,44 @@
           "max_amount",
           "outputs"
         ]
+      },
+      "ConsolidateOutputs": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "max_inputs": {
+            "type": "integer",
+            "description": "The most outputs to spend, at least 1; default 500. Leave it out with `inputs`."
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Commitments (hex) of the outputs to spend, instead of the smallest ones."
+          },
+          "outputs": {
+            "type": "integer",
+            "description": "How many outputs to make, 1 to 10; default 1."
+          },
+          "dry_run": {
+            "type": "boolean",
+            "description": "Answer the estimate; store and lock nothing."
+          },
+          "account": {
+            "type": "string",
+            "description": "Account label; default account when absent."
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Idempotency key, a v4 UUID; becomes the payment id. Required over owner TLS."
+          },
+          "min_confirmations": {
+            "type": "integer",
+            "description": "Confirmations an output needs to be spent; default 6."
+          }
+        }
       },
       "CreateAccount": {
         "type": "object",
@@ -5042,7 +5049,7 @@
           },
           "links": {
             "type": "boolean",
-            "description": "Read every link mailbox after a restore."
+            "description": "Read the delivery mailboxes of the wallet's epic1 addresses after the scan, as a restore does."
           }
         }
       },
@@ -5082,18 +5089,6 @@
           "amount"
         ]
       },
-      "FinalizePayment": {
-        "type": "object",
-        "properties": {
-          "answer_id": {
-            "type": "string",
-            "description": "The answer that finishes the payment (in-person codes can get up to 16)."
-          }
-        },
-        "required": [
-          "answer_id"
-        ]
-      },
       "PostPayment": {
         "type": "object",
         "properties": {
@@ -5112,18 +5107,12 @@
           "to": {
             "type": "string",
             "description": "Not supported: 400 `invalid_field`. A delivery goes to the payment's own address."
-          },
-          "relay_ok": {
-            "type": "boolean"
           }
         }
       },
       "CreateAddress": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string"
-          },
           "account": {
             "type": "string",
             "description": "Account label; default account when absent."
@@ -5139,29 +5128,11 @@
           "account": {
             "type": "string"
           },
-          "address_index": {
-            "type": "integer",
-            "description": "Default: the newest."
-          },
           "amount": {
             "$ref": "#/components/schemas/Decimal"
           },
           "message": {
             "type": "string"
-          },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "on_screen",
-              "printed"
-            ]
-          },
-          "relays": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "maxItems": 3
           }
         }
       },
@@ -5176,8 +5147,7 @@
             "type": "string",
             "enum": [
               "invite",
-              "accept",
-              "request"
+              "accept"
             ]
           },
           "label": {
@@ -5195,10 +5165,6 @@
           "invite": {
             "type": "string",
             "description": "Invite link or text; for `accept`."
-          },
-          "address": {
-            "type": "string",
-            "description": "Payments address; for `request`, e.g. `key@host`."
           },
           "expires_in": {
             "type": "string",
@@ -5339,14 +5305,6 @@
           "host"
         ]
       },
-      "AcceptPairRequest": {
-        "type": "object",
-        "properties": {
-          "label": {
-            "type": "string"
-          }
-        }
-      },
       "PatchProfile": {
         "type": "object",
         "properties": {
@@ -5374,7 +5332,7 @@
               "relays",
               "node"
             ],
-            "description": "`relays`: the collect from the contact, pairing and link mailboxes. `node`: the wallet refresh."
+            "description": "`relays`: the 30 s collect, which asks the push sessions what waits and posts what fell due. `node`: the wallet refresh."
           },
           "duration_seconds": {
             "type": "integer",
@@ -5406,7 +5364,7 @@
               "relays",
               "node"
             ],
-            "description": "`relays`: the collect from the contact, pairing and link mailboxes. `node`: the wallet refresh."
+            "description": "`relays`: the 30 s collect, which asks the push sessions what waits and posts what fell due. `node`: the wallet refresh."
           },
           "until": {
             "type": "string",

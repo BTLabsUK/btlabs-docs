@@ -26,7 +26,7 @@ the API names a payment by its slate id (`SLATE_ID`).
 <li><Link className="ldChip" to="#get-paid">Get paid<span className="ldChip-count">3</span><span className="ldSr"> recipes</span></Link></li>
 <li><Link className="ldChip" to="#pay">Pay<span className="ldChip-count">4</span><span className="ldSr"> recipes</span></Link></li>
 <li><Link className="ldChip" to="#invoices">Invoices<span className="ldChip-count">6</span><span className="ldSr"> recipes</span></Link></li>
-<li><Link className="ldChip" to="#contacts">Contacts<span className="ldChip-count">4</span><span className="ldSr"> recipes</span></Link></li>
+<li><Link className="ldChip" to="#contacts">Contacts<span className="ldChip-count">3</span><span className="ldSr"> recipes</span></Link></li>
 <li><Link className="ldChip" to="#in-person-and-links">In person and links<span className="ldChip-count">5</span><span className="ldSr"> recipes</span></Link></li>
 <li><Link className="ldChip" to="#run-as-a-service">Run as a service<span className="ldChip-count">4</span><span className="ldSr"> recipes</span></Link></li>
 <li><Link className="ldChip" to="#fix-and-restore">Fix and restore<span className="ldChip-count">5</span><span className="ldSr"> recipes</span></Link></li>
@@ -451,28 +451,6 @@ lepic contact sas CONTACT_ID match
 # verify_words on the contact are the four words
 curl --unix-socket ./w.sock -H 'content-type: application/json' \
   -d '{"result":"match"}' http://lepic/api/v1/contacts/CONTACT_ID/verify
-```
-
-</TabItem>
-</Tabs>
-
-### Answer a pair request
-
-<Tabs groupId="lepic-side" queryString>
-<TabItem value="cli" label="CLI">
-
-```bash
-lepic contact requests
-lepic contact request-accept REQUEST_ID
-```
-
-</TabItem>
-<TabItem value="curl" label="curl">
-
-```bash
-curl --unix-socket ./w.sock http://lepic/api/v1/pair-requests
-curl --unix-socket ./w.sock -H 'content-type: application/json' \
-  -d '{"label":"Alex"}' http://lepic/api/v1/pair-requests/REQUEST_ID/accept
 ```
 
 </TabItem>
