@@ -13,7 +13,7 @@ from its page, or pick one on Send. Contacts are kept on the device and are incl
 
 ## Pairing
 
-Pairing links two wallets once: with a request to a contact you have paid over Epicbox, or with
+Pairing links two wallets once, with
 your invite, scanned as a QR or opened as a link. Each wallet keeps a key made for that one
 contact; nothing is shared with anyone else.
 
@@ -21,19 +21,14 @@ After pairing, payments, transaction files and invoices between the two wallets 
 only the other wallet can read them, and the contact's identity is checked.
 
 1. Open **Contacts** and choose **Pair**.
-2. Pair with a contact, or show your invite and let them scan it.
-3. Check the words together, then **They match**. A request needs no words.
+2. Show your invite and let them scan it.
+3. Check the words together, then **They match**.
 
 Pairing needs BT Wallet on both sides. A contact that is not paired still gets ordinary transaction
 files and payments to the public Epicbox address.
 
-### Two ways to pair
+### The invite
 
-- **Pair with a contact.** For a contact you have paid, or been paid by, over Epicbox. The request
-  goes to that address and their wallet shows it when it opens. One tap, and both sides are
-  **Verified** without words. A request goes only to a wallet shown to run BT Wallet: a marked
-  payment between the two addresses in the last 30 days. For anyone else, **Pair** shows your
-  invite.
 - **Pair by invite.** **Contacts › Pair** shows an invite, good for 7 days. The other person scans
   it or opens the link. Both wallets finish over Epicbox, then compare four words. With Epicbox
   off, the same screen carries the answer and the finish link by hand, with **Share** and **Paste**.
@@ -56,7 +51,7 @@ wallets' keys, so a pairing changed on the way shows different words on the two 
 | --- | --- |
 | **Waiting** | The other wallet is not heard yet. |
 | **Paired, not verified** | The words have not been checked. |
-| **Verified** | The words matched, or a request paired the two wallets. |
+| **Verified** | The words matched, or an in-person or domain proof was done. |
 | **Keys changed** | The contact's keys are different. Sealing and invoices pause until you choose **Keep the old keys** or **Use the new keys**. Verify the contact again. |
 | **Not answering** | On a paired shop or exchange: the check after a long gap got no answer. Invoices and payments may not reach them. |
 | **Ended** | The pairing is over. |
@@ -104,6 +99,7 @@ the desktop or **Settings › This wallet › Invoices** on the phone.
 
 To ask for a payment: **Invoices › Issue** on the desktop, **Request a payment** on the phone.  nobody pays expires
 after 24 hours. The time is **Time to pay** under **Settings › Invoices**, at most 48 hours.
+Asking a contact that is not verified sends nothing and offers **Verify** to check the words.
 
 An exchange that pairs with you deposits and withdraws this way. Deposit: the exchange asks, you
 approve, the exchange posts. Withdrawal: the exchange sends the payment, your wallet answers on its
