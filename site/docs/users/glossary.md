@@ -7,7 +7,7 @@ description: The words the app uses, in plain language.
 
 The terms as the app writes them, in alphabetical order.
 
-- **Address**: Where a payment goes. An Epicbox address (`es…@server`), an epic1 link (`epic:epic1…`), an HTTP address, or a Tor address (`….onion`). Never written on the blockchain. See [Addresses](addresses.md).
+- **Address**: Where a payment goes. An Epicbox address (`es…@server`), an epic1 address (`epic1…`) or link, an HTTP address, or a Tor address (`….onion`). Never written on the blockchain. See [Addresses](addresses.md).
 - **Advanced**: The Settings page with the parts most people never need, all off to begin with. See [Advanced settings](advanced.md).
 - **Allow invoices**: The switch that lets a Verified contact ask you to pay. Off to begin with. See [Invoices](pairing.md#invoices).
 - **Awaiting finalization**: A transaction still waiting for the other wallet.
@@ -19,12 +19,12 @@ The terms as the app writes them, in alphabetical order.
 - **Direct · File Transfer**: Paying with a transaction file (`.tx`) and a response file (`.response`) passed by hand.
 - **Direct · QR Payment**: Paying phone to phone with an animated QR code. Phone app only.
 - **Domain**: A web domain a service claims, proven at `https://<domain>/.well-known/epic-wallet.json`.
-- **epic1**: Paying by link. The link carries the recipient's Epicbox server, and the payment goes through it. On by default. See [epic1 addresses and links](epic1.md).
+- **epic1**: Paying an epic1 address or link. The payment waits in the address's own mailbox on the Epicbox servers both wallets use. On by default. See [epic1 addresses and links](epic1.md).
 - **EPIC**: The coin of Epic Cash.
 - **Epicbox**: The server that carries payment messages between wallets and holds them while the other wallet is offline. See [Epicbox](epicbox.md).
 - **Export wallet data**: Saves history, notes, contacts, invoices and settings in an encrypted wallet data file (`.wfeh`). See [Backups and wallet data](backups.md).
 - **Held by**: Coins a linked device is spending, held on this device until its payment ends.
-- **Invoice**: A request to be paid, from a paired contact. See [Contacts, pairing and invoices](pairing.md#invoices).
+- **Invoice**: A request to be paid, from a verified contact. See [Contacts, pairing and invoices](pairing.md#invoices).
 - **Keys changed**: A paired contact's keys are different. Sealing and invoices pause until you choose.
 - **Kill switch**: The connection mode in which nothing connects, the node included.
 - **Link · HTTP, Link · Tor**: Paying straight to the other wallet while it is open, at a web address or a `.onion` address.
@@ -36,7 +36,7 @@ The terms as the app writes them, in alphabetical order.
 - **Node only**: The connection mode in which the wallet reaches only the node in use.
 - **Node**: A program connected to the Epic Cash network. The wallet reads the blockchain and posts through it. See [Nodes](nodes.md).
 - **Output**: One piece of the balance, like a note in a wallet.
-- **Pair, Paired, Verified**: Linking your wallet once with a contact's, so payments, files and invoices between you are sealed. Verified means the words were checked together, or a request paired the two wallets. See [Pairing](pairing.md).
+- **Pair, Paired, Verified**: Linking your wallet once with a contact's, so payments, files and invoices between you are sealed. Verified means the words were checked together, or an in-person or domain proof was done. See [Pairing](pairing.md).
 - **Paired address, Public address**: The two addresses Send offers for a paired contact. See [After pairing](pairing.md#after-pairing).
 - **Recheck balance**: Reads the whole blockchain again for this wallet's outputs.
 - **Recovery phrase**: The 24 words that are the backup and the key to the money. See [Recovery phrase](recovery-phrase.md).
