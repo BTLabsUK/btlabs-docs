@@ -75,8 +75,8 @@ final wallet = await EpicWallet.create(
   the other party and returns a `RelayCancelOutcome`: `Cancelled`, `NotFoundOrNotParticipant`,
   `Unsupported` or `NoRelayId`. It does not cancel the transaction in the wallet; call `cancelTransaction`
   afterwards, whatever the outcome. `TransactionDetails.relayCancellable` says whether the relay can be asked.
-- When the relay refuses a send or an invoice because the other party cancelled it, the call
-  throws a `WalletError` of kind `CancelledOnRelay` (code 115). The transaction is already
+- When the relay refuses a send or an answer because the other party cancelled it, the call
+  throws a `WalletError` of kind `cancelledOnRelay` (code 115). The transaction is already
   cancelled in the wallet.
 - A panic inside LEPIC arrives as a `WalletError` of kind `panic`; the runtime stays usable.
 - PIN unlock uses `EpicWallet.createWithPin` and `EpicWallet.openWithPin`. Failed password and
@@ -89,8 +89,8 @@ final wallet = await EpicWallet.create(
   [Security model](security-model.md#secrets-at-the-flutter-boundary).
 
 The [usage guide](https://github.com/BTLabsUK/lepic-flutter/blob/main/doc/guide.md) in the
-repository covers the calls in detail: direct transactions over HTTP and Tor, invoices, contact
-pairing, slates as QR codes, offline sessions, and the mapping from the app's earlier binding.
+repository covers the calls in detail: transactions over HTTP and Tor, invoices, contact pairing,
+epic1 links, slates as QR codes, offline sessions, and the mapping from the app's earlier binding.
 
 ## Native libraries
 
