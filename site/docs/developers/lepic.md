@@ -57,6 +57,11 @@ lepic wallet info     # balances, from the node
 | `serve` | Holds the wallet open and answers the wallet API (`/api/v1`) on a local socket; many other `lepic` commands on that wallet go through it, the rest stop with exit code 5 |
 | `shell` | Opens the interactive shell, which `lepic` with no command also opens at a terminal |
 
+`lepic tx send --to` takes any recipient, and the address decides the protocol: an Epicbox address
+or a listener URL gets the classic exchange, and an epic1 address or link gets the payment
+`lepic epic1 pay` makes. The two are compared in [Legacy transactions](legacy-transactions.md) and
+[epic1](epic1.md).
+
 `lepic tx cancel TX_ID` asks the Epicbox relay to cancel the transaction first, when it was
 sent through a relay that speaks protocol 3.1.0, and then cancels it in the wallet.
 `--local-only` skips the relay. With `--output json`, `relay` says what the relay answered:
