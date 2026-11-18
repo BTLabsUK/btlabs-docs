@@ -34,8 +34,8 @@ Version documented here: 0.6.0. Licence: Apache-2.0. Rust edition 2024, toolchai
 
 `lepic` is a light Epic Cash wallet for the terminal. It keeps keys and history on the machine,
 asks an Epic node for chain data, and exchanges transactions with other wallets, `epic-wallet`
-included, through slate files, an Epicbox relay, or directly over HTTP or Tor. It does not mine or
-store the chain.
+included, through slate files, an Epicbox relay, or HTTP or Tor. With epic1 addresses and paired
+contacts it exchanges sealed slates through mailboxes. It does not mine or store the chain.
 
 ```bash
 cargo xtask install   # build and install to ~/.local/bin/lepic
@@ -46,24 +46,28 @@ lepic wallet info     # balances, from the node
 | Command group | Examples |
 |---|---|
 | `wallet` | `init`, `restore` (with `--from-height`), `import-seed`, `import-history`, `info`, `address`, `scan` |
-| `tx` | `send`, `receive`, `finalize`, `post`, `list`, `show`, `cancel`, `resend`, `release` |
-| `invoice` | `issue`, `pay`, `list`, `decline` |
-| `epicbox` | `listen`, `drain`, `status`, `peer` |
+| `tx` | `send`, `receive`, `finalize`, `post`, `list`, `show`, `cancel`, `resend`, `recover` |
+| `invoice` | `issue`, `pay`, `list` |
+| `epicbox` | `listen`, `drain`, `status` |
 | `http`, `tor` | `listen`; `tor address` |
 | `node` | `status` |
 | `contact` | `invite`, `accept`, `list`, `check`, `move`, `move-home`, `allow-invoices`, `invoice`, `collect` |
+| `epic1` | `address`, `link`, `links`, `retire`, `relays`, `read`, `pay` |
 | `profile` | `show`, `set`, `domain` |
 | `serve` | Holds the wallet open and answers the wallet API (`/api/v1`) on a local socket; many other `lepic` commands on that wallet go through it, the rest stop with exit code 5 |
 | `shell` | Opens the interactive shell, which `lepic` with no command also opens at a terminal |
 
 `lepic tx cancel TX_ID` asks the Epicbox relay to cancel the transaction first, when it was
-posted through a relay that speaks protocol 3.1.0, and then always cancels it in the wallet.
+sent through a relay that speaks protocol 3.1.0, and then cancels it in the wallet.
 `--local-only` skips the relay. With `--output json`, `relay` says what the relay answered:
 `cancelled`, `not_found_or_not_participant`, `no_relay_id`, `unsupported` or `failed` (with
 `relay_error`). When the other party cancels, `epicbox listen` and `epicbox drain` cancel the
 transaction here. A send the relay refuses because it was cancelled exits with code 7, and
-`lepic serve` reports it as the error code `cancelled_on_relay`. `POST /payments/{id}/cancel` in
-`lepic serve` cancels in the wallet only. The protocol is described in
+`lepic serve` reports it as the error code `cancelled_on_relay`. A send the node already took is
+not cancelled: it exits with code 7 and a hint naming `tx recover`. `POST /payments/{id}/cancel` in
+`lepic serve` refuses a send the node already took (`use_recover`); otherwise it cancels in the
+wallet, then asks the relay once, and the relay's answer does not change the result. The protocol
+is described in
 [docs/compat/epicbox.md](https://github.com/BTLabsUK/lepic/blob/main/docs/compat/epicbox.md).
 
 The interactive shell asks for the password once, keeps the wallet open and takes `lepic`
@@ -112,7 +116,7 @@ The same guides as plain Markdown are in the repository:
 | `lepic-transport` | Transport traits, registry, format policy, the file transport | disk |
 | `lepic-epicbox` | Epicbox addresses, message crypto, relay client, `mux/1` push sessions | network |
 | `lepic-epic1` | The epic1 address and payment link (RFC 0003) | none |
-| `lepic-peer` | The native direct endpoint between LEPIC wallets | network |
+| `lepic-peer` | The epic1 inbox endpoint `/api/v1/inbox` and its client | network |
 | `lepic-legacy-rpc` | The `epic-wallet` foreign API over HTTP: client and listener | network |
 | `lepic-tor` | Tor: onion v3 addresses and the wallet's onion key, a tor child process per wallet, SOCKS5 | network, process |
 | `lepic-wallet` | The engine: accounts, selection, send, receive, finalize, cancel, scan, refresh, events | through ports |
@@ -167,11 +171,11 @@ lepic-legacy-slate -> lepic-slate, lepic-crypto, lepic-primitives
 lepic-transport   -> lepic-legacy-slate, lepic-slate, lepic-primitives, lepic-crypto
 lepic-epicbox     -> lepic-transport, lepic-slate, lepic-crypto, lepic-primitives
 lepic-epic1       -> lepic-contact, lepic-epicbox, lepic-crypto, lepic-primitives
-lepic-peer        -> lepic-primitives
-lepic-legacy-rpc  -> lepic-peer, lepic-transport, lepic-slate
+lepic-peer        -> (external only)
+lepic-legacy-rpc  -> lepic-transport, lepic-slate
 lepic-tor         -> lepic-legacy-rpc
 lepic-wallet      -> lepic-contact, lepic-store, lepic-node, lepic-transport, lepic-legacy-slate, lepic-slate, lepic-keychain, lepic-crypto, lepic-primitives
-lepic-methods     -> lepic-wallet, lepic-transport, lepic-epicbox, lepic-legacy-rpc, lepic-peer, lepic-legacy-slate, lepic-tor, lepic-node, lepic-slate, lepic-keychain, lepic-crypto, lepic-primitives
+lepic-methods     -> lepic-wallet, lepic-transport, lepic-epicbox, lepic-legacy-rpc, lepic-legacy-slate, lepic-tor, lepic-node, lepic-slate, lepic-keychain, lepic-crypto, lepic-primitives
 lepic-wallet-contacts -> all crates above
 lepic-telemetry   -> (external only)
 lepic-cli         -> lepic-wallet, lepic-wallet-contacts, lepic-methods, lepic-telemetry, lepic-epicbox, lepic-transport, lepic-node, lepic-store, lepic-keychain, lepic-primitives
