@@ -128,18 +128,29 @@ Every inbound message is idempotent on `(slate_id, stage)`: a slate received twi
 with the same reply, not paid twice. A relay message is acknowledged only after its effect is
 stored, or after it was rejected for good.
 
-## Mobile shape: listen and drain
+## Mobile shape: listen, drain and collect
 
-A phone suspends apps in the background, so the Epicbox client has two modes:
+A phone suspends apps in the background, so a wallet reads its relays in turns as well as over an
+open connection.
+
+The Epicbox address takes plain slates. The Epicbox client reads it in two modes:
 
 | Mode | What it does | Used |
 |---|---|---|
 | `listen` | Keeps a connection open and receives as messages arrive | While the app is in the foreground |
 | `drain` | Connects, processes everything waiting, disconnects | When the app returns to the foreground, and for the desktop's invoice checks |
 
-The relay holds a message until it is acknowledged, for up to 7 days, so a wallet collects what
-arrived while the app slept. The limits are in LEPIC's
-[Epicbox notes](https://github.com/BTLabsUK/lepic/blob/main/docs/compat/epicbox.md).
+Contact, pairing, previous-home and epic1 mailboxes are read by a collect cycle. The wallet claims
+each of them on a push session per relay (Epicbox `mux/1`), and the relay pushes their mail over
+that socket. A cycle starts when the app opens or resumes, on its foreground tick, when the user
+pulls to refresh, and when a session has pushed mail. `lepic serve` runs one every 30 seconds and
+reads pushed mail as it arrives. A relay that does not offer `mux/1` is reported unreachable, and
+its mailboxes are not read. The same cycle posts the messages waiting in the outbox.
+
+The relay holds a message until it is acknowledged, so a wallet collects what arrived while the
+app slept. How long a relay keeps a message is its own setting. LEPIC's
+[Epicbox notes](https://github.com/BTLabsUK/lepic/blob/main/docs/compat/epicbox.md) describe the
+protocol.
 
 Events (balance, transaction stage, sync progress, transport state) stream from the engine to the
 app through the binding.
