@@ -52,9 +52,10 @@ own, so a relay cannot join two payments by their reply mailbox. The
 ## A payment
 
 1. **Read.** `lepic epic1 read` (`epic1_read`) reads the address or link and stores nothing.
-2. **Seal.** `lepic epic1 pay` (`epic1_pay`) builds the S1 with a TTL of 1440 blocks unless the
-   send sets one, and seals it with `TxKey::Epic1` to the address's seal key. The envelope
-   carries the payer's reply key and the key of a one-time reply mailbox, and names no relay.
+2. **Seal.** `lepic epic1 pay`, or `lepic tx send --to` with the address or link, builds the S1
+   (`epic1_pay`) with a TTL of 1440 blocks unless the send sets one, and seals it with
+   `TxKey::Epic1` to the address's seal key. The envelope carries the payer's reply key and the
+   key of a one-time reply mailbox, and names no relay.
 3. **Post.** The outbox posts the payment to the address's delivery mailbox on every usable
    relay of the payer's relay list at once; it is posted when any relay takes it. A link with
    `http` or `tor` entries is posted to those entries instead, one at a time, and answered in
