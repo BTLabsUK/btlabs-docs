@@ -35,9 +35,13 @@ to a current server and share the new address.
 ## Turn Epicbox off
 
 Epicbox is a switch under **Settings › Transactions** on the desktop and **Settings › Payments** on
-the phone. Off, the wallet connects to no Epicbox
-server: no Epicbox payments or invoices, and Receive shows no Epicbox address. Payments sent to the
+the phone. It covers the wallet's classic Epicbox address only. Off, the wallet does not read that
+address or send to Epicbox addresses, and Receive shows no Epicbox address. Payments sent to the
 address wait on the server until it is on again.
+
+Contacts, linked devices, epic1 payments and pairing use mailboxes on the same servers and keep
+working with the switch off. **Node only** and **Kill switch** stop them; see
+[Connection modes](network-modes.md).
 
 The Epicbox relay protocol is described on the
 [Epic Cash Developer Hub](https://devdocs.btlabs.uk).
