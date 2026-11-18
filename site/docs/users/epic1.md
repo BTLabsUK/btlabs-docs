@@ -11,8 +11,9 @@ one that gives the address its own mailbox. It names no server. The same recover
 gives the same epic1 address, so it stays the same after a [restore](restore.md) and when the
 wallet changes its Epicbox server.
 
-An **epic1 link** is the address, written `epic:epic1…`, and it can add an amount, a message and
-up to three servers that take the payment directly. Anyone with a wallet that has epic1 can pay an
+An **epic1 link** is the address, written `epic:epic1…`, and it can add an amount and a message.
+A link made outside the app, by a shop for example, can also list up to three servers that take
+the payment directly. Anyone with a wallet that has epic1 can pay an
 epic1 address or link by pasting it, opening it or scanning its QR code. The person who pays and
 the person who gets paid do not have to be online at the same time.
 
@@ -30,10 +31,9 @@ The payment is sealed so that only the payee's wallet can open it.
 4. The payee's wallet watches its mailbox on the servers in its own list. It collects the payment,
    opens it and checks it.
 5. The payee's wallet seals its answer for the payer and posts it to the payer's reply mailbox, on
-   the server it collected the payment from. The payer's wallet asks the other servers to drop
-   their copies.
-6. The payer's wallet collects the answer, finishes the transaction and posts it to the Epic Cash
-   network.
+   the server it collected the payment from.
+6. The payer's wallet collects the answer and asks the other servers to drop their copies. It
+   finishes the transaction and posts it to the Epic Cash network.
 
 A link that lists servers is paid through those servers only, one at a time in the link's order,
 and not through the mailbox.
@@ -109,7 +109,7 @@ it completes." The phone shows **Sent** once the payee's wallet answers.
 
 - If no server took the payment, the app shows **No server took the payment yet.** The phone also
   names the server that did not take it. With a link that lists servers, **Try next server** posts
-  it to the next one.
+  it to the next one. A payment to an address went to every server at once, so it has no next one.
 - **Cancel and unlock** cancels the payment and frees its coins. The desktop then shows **Payment
   cancelled**, the phone **This payment was cancelled.**
 
@@ -128,9 +128,9 @@ or **Payment links not checked**.
 
 **Open links**, next to the epic1 switch, shows how many links are open, for example **3 of 256**.
 Each link shows **Made** with its day. Once it is paid, the desktop shows **Last paid** with the
-day, and the phone adds **Paid**. **Retire** closes a link after a check, and payments to it stop
-arriving. With 256 open, making another link stops with **Too many links are open.** and the place
-to retire one.
+day, and the phone adds **Paid**. **Retire** asks first, then closes the link, and payments to it
+stop arriving. With 256 open, making another link stops with **Too many links are open.** and the
+place to retire one.
 
 After a [restore](restore.md) with epic1 on, the wallet reads the mailboxes of the account's
 addresses once for payments waiting there.
