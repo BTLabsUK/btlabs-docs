@@ -50,6 +50,7 @@ const sidebars = {
         {type: 'doc', id: 'developers/lepic/api/v1/explorer', label: 'API explorer'},
         {type: 'doc', id: 'developers/lepic/api/v1/reference', label: 'API reference'},
         'developers/legacy-transactions',
+        'developers/epic1',
       ],
     },
     'developers/lepic-flutter',
