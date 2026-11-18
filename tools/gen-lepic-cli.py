@@ -45,7 +45,7 @@ COMPONENTS = '@site/src/components/lepic'
 
 EVERYDAY = ['wallet init', 'wallet info', 'wallet address', 'epicbox listen', 'tx send', 'tx list',
             'tx show', 'invoice issue', 'contact invite', 'serve']
-STAGES = ['Every day', 'Pair without an invite', 'Pair by hand', 'Files and app data', 'Backup',
+STAGES = ['Every day', 'Pair by hand', 'Files and app data', 'Backup',
           'Repair']
 
 
