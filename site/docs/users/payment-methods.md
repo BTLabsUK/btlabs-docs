@@ -35,8 +35,8 @@ cannot spend anything. See [Epicbox](epicbox.md).
 
 ## epic1
 
-Payment by link. The payee's wallet shares an epic1 link, and the payment goes through the Epicbox
-server the link names, so nobody has to be online at the same time. The paying wallet needs epic1.
+Payment to an epic1 address or link. The payment waits in the address's own mailbox on the Epicbox
+servers both wallets use, so nobody has to be online at the same time. The paying wallet needs epic1.
 
 The switch is called **epic1**. It also covers in-person codes and epic1 files. See
 [epic1 addresses and links](epic1.md).
