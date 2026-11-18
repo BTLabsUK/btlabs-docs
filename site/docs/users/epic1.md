@@ -95,9 +95,10 @@ connected. Once a payment arrives, the wallet answers it by itself.
 
 1. Paste the address or link on **Send**, scan its QR code, or open it. A
    [contact](pairing.md#contacts) with an epic1 address can be picked too.
-2. Check **Review payment**: **To**, **Amount**, and **Server** when the link lists servers. A
-   message from the recipient shows as **Message** on the phone and **Note from the recipient** on
-   the desktop. An amount the link asks is **Set by the recipient** and cannot be changed.
+2. Check the review, **Review payment** on the desktop and **Review** on the phone: the
+   recipient, the amount, and **Server** when the link lists servers. A message from the recipient
+   shows as **Message** on the phone and **Note from the recipient** on the desktop. An amount the
+   link asks cannot be changed; the desktop marks it **Set by the recipient**.
 3. Press **Send**.
 
 ### While it waits
@@ -126,9 +127,10 @@ or **Payment links not checked**.
 ### Open links
 
 **Open links**, next to the epic1 switch, shows how many links are open, for example **3 of 256**.
-Each link shows its **Made** and **Last paid** dates. **Retire** closes a link after
-a check, and payments to it stop arriving. With 256 open, making another link stops with **Too
-many links are open.** and the place to retire one.
+Each link shows **Made** with its day. Once it is paid, the desktop shows **Last paid** with the
+day, and the phone adds **Paid**. **Retire** closes a link after a check, and payments to it stop
+arriving. With 256 open, making another link stops with **Too many links are open.** and the place
+to retire one.
 
 After a [restore](restore.md) with epic1 on, the wallet reads the mailboxes of the account's
 addresses once for payments waiting there.
