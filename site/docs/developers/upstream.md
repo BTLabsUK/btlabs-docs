@@ -110,10 +110,10 @@ All of these are additive: a stock `epic-wallet` never receives anything it cann
   between paired wallets, carried inside ordinary Epicbox messages or files. See
   [Security model](security-model.md#contacts-invoices-and-linked-devices).
 - **Animated QR slates** in `ur:epic-slate`, which wrap the legacy slate text unchanged.
-- **A `lepic` marker** on legacy slates, which stock wallets ignore. It is a capability hint only;
-  no signature covers it.
-- **LEPIC notices** over Epicbox about invoices and cancelled payments, sent only to peers proven
-  to run LEPIC.
+- **epic1 addresses and links** (RFC 0003): a payment sealed as a `lepic.v1` slate to the
+  address's own mailbox on Epicbox relays, or posted to an `http` or `tor` entry of a link.
+  Native slates and notices go only to epic1 addresses and paired contacts. An Epicbox, HTTP, Tor
+  or file address gets the plain slates `epic-wallet` reads, with nothing added.
 - **Contact features:** the owner's profile (ADR 0041), domain proof (ADR 0043), the contact check
   and relay moves (ADR 0039, 0040), all inside the pairing's own envelopes.
 - **Transaction history import** from an `epic-wallet` database, checked against the seed and the
@@ -129,11 +129,11 @@ All of these are additive: a stock `epic-wallet` never receives anything it cann
 - **Foreign API.** The HTTP listener serves `check_version` and `receive_tx`. `build_coinbase` is
   off unless the host turns it on, and then answers this computer only unless the host opens it
   further; Tor's listeners never serve it (ADR 0046, 0048). Every other method is answered "method
-  not found". Invoices travel over Epicbox.
+  not found". Invoices travel as files, as in-person codes, or between verified contacts.
 - **Node status.** LEPIC uses only the node's foreign API and judges sync from the tip and the
   version, because public nodes do not expose the owner API.
 - **Epicbox message encryption** is kept exactly as `epic-wallet` defines it, so the two can talk.
-  LEPIC's own sealed envelope is a separate layer for paired contacts.
+  LEPIC's own sealed envelope is a separate layer for paired contacts and epic1 addresses.
 - **The onion has its own key.** In `epic-wallet` the onion address and the Epicbox address derive
   from one key. LEPIC derives the onion key from the seed under a label of its own (ADR 0044), so
   its onion address differs from what `epic-wallet` prints for the same phrase. The earlier address
