@@ -142,10 +142,12 @@ The Epicbox address takes plain slates. The Epicbox client reads it in two modes
 
 Contact, pairing, previous-home and epic1 mailboxes are read by a collect cycle. The wallet claims
 each of them on a push session per relay (Epicbox `mux/1`), and the relay pushes their mail over
-that socket. A cycle starts when the app opens or resumes, on its foreground tick, when the user
-pulls to refresh, and when a session has pushed mail. `lepic serve` runs one every 30 seconds and
-reads pushed mail as it arrives. A relay that does not offer `mux/1` is reported unreachable, and
-its mailboxes are not read. The same cycle posts the messages waiting in the outbox.
+that socket. The core runs the cycle in a loop: `lepic serve` starts it with the service, and an
+app starts it with `set_delivery` after it opens the wallet. A cycle runs when the loop starts,
+then every 30 seconds (`epicbox.collect_every_s` in the binding), and when a session has pushed
+mail, at most once a second. An app asks for one more with `delivery_wake`, for a pull to refresh.
+A lock ends the loop. A relay that does not offer `mux/1` is reported unreachable, and its
+mailboxes are not read. The same cycle posts the messages waiting in the outbox.
 
 The relay holds a message until it is acknowledged, so a wallet collects what arrived while the
 app slept. How long a relay keeps a message is its own setting. LEPIC's
