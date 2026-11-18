@@ -467,8 +467,8 @@ Common options:
 
 The payer types the amount again, and an invoice for any other amount is refused. `invoice pay` then
 shows the amount and the message, and pays only when the payer answers `y`; any other answer exits
-12 (`interrupted`). A file does not say who sent it. Without a terminal, and in the shell, the
-invoice is paid only with `--yes`; without it the command exits 2 (`usage`) and nothing is paid.
+12 (`interrupted`). Without a terminal, and in the shell, the invoice is paid only with `--yes`;
+without it the command exits 2 (`usage`) and nothing is paid.
 Control characters in the message are shown escaped. A file whose name looks like a slate id is
 given with a directory, as in `./SLATE_ID`.
 
@@ -493,11 +493,9 @@ The `contact` commands pair this wallet with another, then exchange invoices, sl
 payloads through each side's mailbox. [protocols/pairing.md](https://github.com/BTLabsUK/lepic/blob/main/docs/protocols/pairing.md) describes the
 protocol. Below, the commands are grouped by when they are needed.
 
-Two flags apply to every `contact`, `in-person` and `epic1` command:
-
-- `--offline` reaches no relay at all. Pairing by hand or in person and sealed files still work.
-- `--epicbox-off` treats Epicbox as switched off: no relay connections, and contact mailboxes
-  pause.
+`--offline` applies to every `contact`, `in-person` and `epic1` command: it reaches no relay at
+all. Pairing by hand or in person and sealed files still work. These commands go through
+mailboxes, which `tx send` and the listener's classic Epicbox address do not touch.
 
 An unknown contact id is exit code 6. `CONTACT` is the id `contact list` shows.
 
@@ -570,10 +568,11 @@ Passes slates and the host app's payloads to a contact, through its mailbox or a
   label={"Files and app data"}
 />
 
-`contact open-sealed --amount` shows the contact, the amount and the message of an invoice, and
-pays only when the payer answers `y`; any other answer exits 12 (`interrupted`). Without a
-terminal, and in the shell, the invoice is paid only with `--yes`; without it the command exits
-2 (`usage`) and nothing is paid. Text piped to standard input has no terminal to ask at.
+`contact open-sealed --amount` shows the amount and the message of an invoice, and the contact
+when the envelope is signed by one. It pays only when the payer answers `y`; any other answer
+exits 12 (`interrupted`). Without a terminal, and in the shell, the invoice is paid only with
+`--yes`; without it the command exits 2 (`usage`) and nothing is paid. Text piped to standard
+input has no terminal to ask at.
 
 LEPIC never reads a payload's bytes. `contact collect`, or `lepic serve` on its own, takes
 arriving payloads.
@@ -873,7 +872,8 @@ amount or a higher fee, because the wallet's outputs changed in between, is refu
 sent (exit code 7). A `tx send` to an epic1 address or link is reviewed and asked the same way,
 with delivery `epic1` and, when no amount is given, the amount the link asks; with neither there
 is no review and the payment is refused as `epic1 pay` refuses it. After `y` it runs as
-`epic1 pay`, which does not hold the fee to the reviewed one. `epic1 pay` itself is not reviewed.
+`epic1 pay`, which does not hold the fee to the reviewed one. `epic1 pay` typed in the shell is
+reviewed and asked about the same way, and `--yes` skips the question there too.
 
 An epic1 payment (`epic1 pay`, `tx send` to an epic1 address or link, `tx send --to-contact`)
 draws a short seal animation while the send runs, then one line says the payment was sealed. It
@@ -1002,8 +1002,8 @@ checked. Serve answers every request with its version in `x-lepic-version`. A
 A command given an option serve cannot take runs on its own and meets the lock. These
 keep a command off serve: `--to-file`, `--to-contact`, `--purpose`, `--allow-plain-http`,
 `--tor-binary`, `--lib-dir`, `--fluff` and `--ttl-blocks` on `tx send` (`--ttl-blocks` also on
-`in-person read`, `in-person pay` and `epic1 pay`), a non-default `--selection`, `--offline` and
-`--epicbox-off`, `--kind` on `contact invite`, `--out` on the in-person
+`in-person read`, `in-person pay` and `epic1 pay`), a non-default `--selection`, `--offline`,
+`--kind` on `contact invite`, `--out` on the in-person
 commands, `contact payload ack` with several ids, and `epictx open` with text on the command
 line. `tx send` to an onion, `tx show --slate-id` and `epicbox status --listing` do not go
 through serve either.
