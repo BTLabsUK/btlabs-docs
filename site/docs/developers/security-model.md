@@ -111,7 +111,8 @@ Everything from the network, a file, a peer, a node or the host app is untrusted
   stored, or after it was rejected for good. A crash between receive and store loses nothing: the
   relay delivers it again.
 - Inbound processing is idempotent: a redelivered or repeated slate is not a second payment.
-- LEPIC notices (non-slate messages about invoices) go only to peers that proved they run LEPIC.
+- Native messages go only to epic1 addresses and paired contacts, sealed to their keys. An
+  Epicbox, HTTP, Tor or file address gets the plain slates `epic-wallet` reads, with nothing added.
 
 Protocol detail is on the [Epic Cash developer docs](https://devdocs.btlabs.uk).
 
@@ -136,8 +137,8 @@ user guide's [Tor](../users/tor.md) page.
 
 ## Contacts, invoices and linked devices
 
-- **Pairing.** There is one pairing flow: a QR code, or a one-time invite (a link or five pairing
-  words). Then both sides compare four emoji with their names. Pairing keys come from their own
+- **Pairing.** There is one pairing flow: a one-time invite, opened as a link or scanned as its QR
+  code. Then both sides compare four emoji with their names. Pairing keys come from their own
   branch of the seed and are never the Epicbox, Tor or payment-proof key. See
   [Pairing](../users/pairing.md).
 - **Profile.** A wallet's profile travels in the feature word of its pairing messages, to paired
@@ -152,10 +153,14 @@ user guide's [Tor](../users/tor.md) page.
 - **Sealed slates.** Between contacts, slates travel in an envelope sealed with HPKE (X25519,
   HKDF-SHA256, ChaCha20-Poly1305) and signed with Ed25519, so only the contact opens it and the
   sender is authenticated.
-- **Invoices.** A wallet accepts an invoice only from a verified, paired contact the user allowed,
-  through that contact's mailbox, sealed and signed by that contact. **Allow invoices** is a
-  per-contact switch on the paying side, off by default, available once the contact is verified.
-  An invoice never pays itself: paying needs the user's action and the invoiced amount.
+- **epic1 addresses.** An epic1 address holds two public keys from the seed: a seal key that
+  payments are sealed to, and a delivery key that names its mailbox. It holds no signing key, and
+  its payments carry no payment proof.
+- **Invoices.** Through a mailbox, a wallet accepts an invoice only from a verified, paired contact
+  the user allowed, sealed and signed by that contact. An invoice file can come from anyone.
+  **Allow invoices** is a per-contact switch on the paying side, off by default, available once the
+  contact is verified. An invoice never pays itself: paying needs the user's action and the
+  invoiced amount.
 - **Linked devices.** Devices on one wallet exchange notices through a private pairing, sealed in
   HPKE PSK mode. A notice must come through the pairing of a linked device and name that device,
   is size-limited before parsing, deduplicated and applied in order. A notice can hold or release
