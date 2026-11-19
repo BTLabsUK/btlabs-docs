@@ -59,7 +59,7 @@ Core is the ten everyday commands. Repair commands fix a transaction, a pairing 
 after something went wrong. `lepic GROUP --help` lists a group.
 
 <CommandGroups
-  groups={[{"name": "wallet", "core": ["wallet init", "wallet info", "wallet address"], "other": ["wallet restore", "wallet import-seed", "wallet import-history", "wallet outputs", "wallet consolidate", "wallet password"], "repair": ["wallet scan"]}, {"name": "tx", "core": ["tx send", "tx list", "tx show"], "other": ["tx receive", "tx finalize", "tx cancel"], "repair": ["tx resend", "tx post", "tx recover"]}, {"name": "invoice", "core": ["invoice issue"], "other": ["invoice pay", "invoice list"], "repair": []}, {"name": "epicbox", "core": ["epicbox listen"], "other": ["epicbox drain", "epicbox status"], "repair": []}, {"name": "http", "core": [], "other": ["http listen"], "repair": []}, {"name": "tor", "core": [], "other": ["tor address", "tor listen"], "repair": []}, {"name": "node", "core": [], "other": ["node status"], "repair": []}, {"name": "contact", "core": ["contact invite"], "other": ["contact open", "contact accept", "contact enter", "contact collect", "contact sas", "contact list", "contact label", "contact allow-invoices", "contact invoice", "contact invoices", "contact pay-invoice", "contact decline", "contact send-slate", "contact seal", "contact open-sealed", "contact payload post", "contact payload list", "contact payload ack", "contact export", "contact import"], "repair": ["contact check", "contact key-check", "contact keys", "contact quarantine", "contact move", "contact move-home", "contact remove"]}, {"name": "in-person", "core": [], "other": ["in-person invoice", "in-person send", "in-person read", "in-person pay", "in-person receive", "in-person post", "in-person answers", "in-person take", "in-person finalize"], "repair": []}, {"name": "epic1", "core": [], "other": ["epic1 address", "epic1 link", "epic1 read", "epic1 pay", "epic1 answers"], "repair": ["epic1 post-next", "epic1 restore"]}, {"name": "mailbox", "core": [], "other": ["mailbox list", "mailbox add", "mailbox remove", "mailbox probe"], "repair": []}, {"name": "epictx", "core": [], "other": ["epictx open"], "repair": []}, {"name": "profile", "core": [], "other": ["profile show", "profile set", "profile domain show", "profile domain file", "profile domain attach"], "repair": []}, {"name": "serve", "core": ["serve"], "other": [], "repair": []}, {"name": "api", "core": [], "other": ["api client add", "api client list", "api client remove"], "repair": []}, {"name": "shell", "core": [], "other": ["shell"], "repair": []}]}
+  groups={[{"name": "wallet", "core": ["wallet init", "wallet info", "wallet address"], "other": ["wallet restore", "wallet import-seed", "wallet import-history", "wallet outputs", "wallet consolidate", "wallet password", "wallet backup"], "repair": ["wallet scan", "wallet start-over"]}, {"name": "tx", "core": ["tx send", "tx list", "tx show"], "other": ["tx receive", "tx finalize", "tx cancel"], "repair": ["tx resend", "tx post", "tx recover"]}, {"name": "invoice", "core": ["invoice issue"], "other": ["invoice pay", "invoice list"], "repair": []}, {"name": "epicbox", "core": ["epicbox listen"], "other": ["epicbox drain", "epicbox status"], "repair": []}, {"name": "http", "core": [], "other": ["http listen"], "repair": []}, {"name": "tor", "core": [], "other": ["tor address", "tor listen"], "repair": []}, {"name": "node", "core": [], "other": ["node status"], "repair": []}, {"name": "contact", "core": ["contact invite"], "other": ["contact open", "contact accept", "contact enter", "contact collect", "contact sas", "contact list", "contact label", "contact allow-invoices", "contact invoice", "contact invoices", "contact pay-invoice", "contact decline", "contact send-slate", "contact seal", "contact open-sealed", "contact payload post", "contact payload list", "contact payload ack", "contact export", "contact import"], "repair": ["contact check", "contact key-check", "contact keys", "contact quarantine", "contact move", "contact move-home", "contact remove"]}, {"name": "in-person", "core": [], "other": ["in-person invoice", "in-person send", "in-person read", "in-person pay", "in-person receive", "in-person post", "in-person answers", "in-person take", "in-person finalize"], "repair": []}, {"name": "epic1", "core": [], "other": ["epic1 address", "epic1 link", "epic1 read", "epic1 pay", "epic1 answers"], "repair": ["epic1 post-next", "epic1 restore"]}, {"name": "mailbox", "core": [], "other": ["mailbox list", "mailbox add", "mailbox remove", "mailbox probe"], "repair": []}, {"name": "epictx", "core": [], "other": ["epictx open"], "repair": []}, {"name": "profile", "core": [], "other": ["profile show", "profile set", "profile domain show", "profile domain file", "profile domain attach"], "repair": []}, {"name": "serve", "core": ["serve"], "other": [], "repair": []}, {"name": "api", "core": [], "other": ["api client add", "api client list", "api client remove"], "repair": []}, {"name": "shell", "core": [], "other": ["shell"], "repair": []}]}
 />
 
 ## Data directory and files
@@ -129,6 +129,7 @@ These go before or after the command group. Each has a variable and a config.tom
 | `--profile NAMES` | `LEPIC_PROFILE` | Profile bits told to paired contacts: `no-payments`, `automated` |
 | `--profile-bits N` | `LEPIC_PROFILE` | The same bits as a number, 0 to 65535 or `0x` hex |
 | `--domain DOMAIN` | `LEPIC_DOMAIN` | A domain to claim to paired contacts |
+| `--connection-mode all\|tor-only\|offline` | `LEPIC_CONNECTION_MODE` | Which connections to make; default `all`, see [Tor for the relay and the node](#tor-for-the-relay-and-the-node) |
 
 A flag beats its variable, the variable beats config.toml, and config.toml beats the default.
 
@@ -176,9 +177,22 @@ Common options:
 | `wallet outputs [-a LABEL]` | Lists the outputs, spent ones included |
 | `wallet consolidate [--max-inputs N \| --input COMMITMENT...] [--outputs K] [--min-confirmations C] [-a LABEL] [--slate-id UUID] [--dry-run]` | Spends the wallet's outputs to itself as fewer outputs |
 | `wallet password` | Changes the password |
+| `wallet backup DIR` | Copies the vault and the database to the new folder `DIR`, also while the wallet is in use |
 | `wallet scan` | Scans the chain and brings the wallet in line with it |
+| `wallet start-over [scan options]` | Makes a new, empty database where a damaged one was set aside, then scans the chain |
 
 `wallet init` prints the 24 words once, then how to receive: give the sender the address `lepic wallet address` prints, or answer their slate file with `lepic tx receive FILE`.
+
+`wallet backup DIR` runs in the CLI process and asks for the wallet password, even while `lepic serve` has the wallet open. It does not go through serve: serve holds the data-directory lock and never opens a path a client names. The copy is one consistent snapshot of the database (a read-only connection, so serve and other commands keep working). `DIR` must not exist, its parent must; it is made owner-only (folder 0700, files 0600) and holds three files: `wallet.vault`, `wallet.enc.sqlite3` and its `.check` file. Both stay encrypted under the wallet password; the password and the recovery phrase are never written. The Epicbox and Tor state, the settings file and the API clients are not copied. A database that is not yet encrypted (made by an older build) is refused: run `lepic wallet info` once, then back up again. To restore, copy the three files into an empty owner-only folder and use it as the data directory (`lepic --data-dir DIR wallet info`); the same password opens it.
+
+When the database is damaged, the first command moves it aside as `wallet.enc.sqlite3.damaged-<unix seconds>` (`wallet.sqlite3.damaged-<unix seconds>` for a plain one) and fails with `damaged_database`
+(exit 1). Every later command fails with `damaged_database_kept` (exit 5, `wallet_state`; serve
+answers 409) and makes nothing. `wallet start-over` asks for the wallet password and makes a new
+database from the vault. It holds the accounts and nothing else: the transaction history, open
+payments, contacts, the outbox, the event log and the records of earlier idempotency ids stay in
+the damaged file, which is left where it is. Coins come back from a scan from genesis, which runs
+now unless `--no-scan`; run `lepic wallet scan` before sending or receiving. A database that
+opens is opened as it is.
 
 `wallet scan` options:
 
@@ -356,7 +370,7 @@ sealed.
 | `--min-confirmations N` | Confirmations an output needs to be spent; default 6 |
 | `--change-outputs N` | Outputs the change is split into; default 1 |
 | `--selection smallest\|all` | Fewest small outputs that cover the amount, or every eligible output; default `smallest` |
-| `--ttl-blocks N` | Blocks after which the payee must refuse the slate. A V2 slate (Epicbox, HTTP) has no TTL field: the wallet keeps the height and expires the send at refresh if it is still unanswered |
+| `--ttl-blocks N` | Blocks after which the payee must refuse the slate. A V2 slate (Epicbox, HTTP) has no TTL field: the wallet keeps the height and expires the send at refresh if it is still unanswered. Without it the wallet keeps `send_ttl_blocks`, 10,080, as its own cutoff and the slate carries none, so `tx resend` can deliver it by any route |
 | `--purpose P` | `payment`, `deposit`, `withdrawal`, `refund` or `request`; only with `--to-contact` |
 | `--fluff` | Broadcast to all peers at once instead of through the stem phase |
 
@@ -429,9 +443,11 @@ accept the recovery. `tx show --json` of the send gives the recovery's `fee` wit
 so the other party's wallet cancels it too. The relay's answer is printed (`relay` in JSON:
 `cancelled`, `not_found_or_not_participant`, `unsupported`, `no_relay_id`, or `failed` with
 `relay_error`), and the transaction is then cancelled here whatever the relay said.
-`--local-only` cancels it here only. When the relay reports that the other party cancelled a
-transaction, `epicbox listen` and `epicbox drain` cancel it here and unlock its inputs; a send the
-relay refuses for that reason fails with exit code 7 (`rejected`) and is cancelled here.
+`--local-only` cancels it here only. A cancellation the relay reports from the other party
+changes nothing here: `epicbox listen` and `epicbox drain` acknowledge it and keep the
+transaction as it is. A send the relay refuses because the other party cancelled it there fails
+with exit code 7 (`rejected`, serve code `cancelled_on_relay`); the transaction stays, its inputs
+locked until `tx cancel` or its expiry.
 
 </details>
 
@@ -493,7 +509,7 @@ The `contact` commands pair this wallet with another, then exchange invoices, sl
 payloads through each side's mailbox. [protocols/pairing.md](https://github.com/BTLabsUK/lepic/blob/main/docs/protocols/pairing.md) describes the
 protocol. Below, the commands are grouped by when they are needed.
 
-`--offline` applies to every `contact`, `in-person` and `epic1` command: it reaches no relay at
+`--offline` applies to every `contact`, `in-person` and `epic1` command: it reaches no mailbox at
 all. Pairing by hand or in person and sealed files still work. These commands go through
 mailboxes, which `tx send` and the listener's classic Epicbox address do not touch.
 
@@ -513,8 +529,8 @@ A pairing has four steps. Both wallets run steps 3 and 4.
    (`1h`, `24h` or `7d`; default `24h`). `--name N` sets the name the wallet gives itself in its
    card, and `--qr` also draws the link as a QR code.
 2. The other side runs `contact open LINK` to see what the invite says, then `contact accept LINK`.
-   The reply goes to the inviter's relay.
-3. Both run `contact collect`. It fetches pairing and contact messages from the home relays once
+   The reply goes to the inviter's mailbox.
+3. Both run `contact collect`. It fetches pairing and contact messages from the home mailboxes once
    and sends what waits.
 4. Both compare the four SAS words on the two screens and record the result with `contact sas
    CONTACT match`, `mismatch` or `skip`.
@@ -541,23 +557,26 @@ Common options:
 Lists and names contacts, and asks a paired contact for a payment or pays one.
 
 <CommandList
-  items={[{"cmd": "contact list", "href": "/developers/lepic/cli/reference/#lepic-contact-list", "text": [{"t": "text", "v": "Lists the contacts, with their state and moves asked for"}]}, {"cmd": "contact label CONTACT LABEL", "href": "/developers/lepic/cli/reference/#lepic-contact-label", "text": [{"t": "text", "v": "Gives a contact a name of the wallet's own"}]}, {"cmd": "contact allow-invoices CONTACT on|off", "href": "/developers/lepic/cli/reference/#lepic-contact-allow-invoices", "text": [{"t": "text", "v": "Allows or stops invoices from a verified contact"}]}, {"cmd": "contact invoice CONTACT AMOUNT", "href": "/developers/lepic/cli/reference/#lepic-contact-invoice", "text": [{"t": "text", "v": "Invoices a contact through its mailbox; takes "}, {"t": "code", "v": "--purpose"}, {"t": "text", "v": ", "}, {"t": "code", "v": "--reference"}, {"t": "text", "v": ", "}, {"t": "code", "v": "-m"}, {"t": "text", "v": ", "}, {"t": "code", "v": "--ttl-blocks"}, {"t": "text", "v": ", "}, {"t": "code", "v": "-a"}, {"t": "text", "v": ", "}, {"t": "code", "v": "--slate-id"}]}, {"cmd": "contact invoices", "href": "/developers/lepic/cli/reference/#lepic-contact-invoices", "text": [{"t": "text", "v": "Lists the invoices parked from contacts"}]}, {"cmd": "contact pay-invoice SLATE_ID AMOUNT", "href": "/developers/lepic/cli/reference/#lepic-contact-pay-invoice", "text": [{"t": "text", "v": "Pays a parked invoice; takes "}, {"t": "code", "v": "-a"}, {"t": "text", "v": ", "}, {"t": "code", "v": "-m"}, {"t": "text", "v": ", "}, {"t": "code", "v": "--min-confirmations"}, {"t": "text", "v": ", "}, {"t": "code", "v": "--change-outputs"}, {"t": "text", "v": ", "}, {"t": "code", "v": "--selection"}, {"t": "text", "v": " and "}, {"t": "code", "v": "--ttl-blocks"}, {"t": "text", "v": " as "}, {"t": "code", "v": "tx send"}, {"t": "text", "v": " does"}]}, {"cmd": "contact decline SLATE_ID", "href": "/developers/lepic/cli/reference/#lepic-contact-decline", "text": [{"t": "text", "v": "Declines a parked invoice; the contact is told"}]}, {"cmd": "contact collect", "href": "/developers/lepic/cli/reference/#lepic-contact-collect", "text": [{"t": "text", "v": "Fetches pairing and contact messages from the home relays once and sends what waits"}]}, {"cmd": "contact sas CONTACT match|mismatch|skip", "href": "/developers/lepic/cli/reference/#lepic-contact-sas", "text": [{"t": "text", "v": "Records the result of comparing the four SAS words"}]}]}
+  items={[{"cmd": "contact list", "href": "/developers/lepic/cli/reference/#lepic-contact-list", "text": [{"t": "text", "v": "Lists the contacts, with their state and moves asked for"}]}, {"cmd": "contact label CONTACT LABEL", "href": "/developers/lepic/cli/reference/#lepic-contact-label", "text": [{"t": "text", "v": "Gives a contact a name of the wallet's own"}]}, {"cmd": "contact allow-invoices CONTACT on|off", "href": "/developers/lepic/cli/reference/#lepic-contact-allow-invoices", "text": [{"t": "text", "v": "Allows or stops invoices from a verified contact"}]}, {"cmd": "contact invoice CONTACT AMOUNT", "href": "/developers/lepic/cli/reference/#lepic-contact-invoice", "text": [{"t": "text", "v": "Invoices a contact through its mailbox; takes "}, {"t": "code", "v": "--purpose"}, {"t": "text", "v": ", "}, {"t": "code", "v": "--reference"}, {"t": "text", "v": ", "}, {"t": "code", "v": "-m"}, {"t": "text", "v": ", "}, {"t": "code", "v": "--ttl-blocks"}, {"t": "text", "v": ", "}, {"t": "code", "v": "-a"}, {"t": "text", "v": ", "}, {"t": "code", "v": "--slate-id"}]}, {"cmd": "contact invoices", "href": "/developers/lepic/cli/reference/#lepic-contact-invoices", "text": [{"t": "text", "v": "Lists the invoices parked from contacts"}]}, {"cmd": "contact pay-invoice SLATE_ID AMOUNT", "href": "/developers/lepic/cli/reference/#lepic-contact-pay-invoice", "text": [{"t": "text", "v": "Pays a parked invoice; takes "}, {"t": "code", "v": "-a"}, {"t": "text", "v": ", "}, {"t": "code", "v": "-m"}, {"t": "text", "v": ", "}, {"t": "code", "v": "--min-confirmations"}, {"t": "text", "v": ", "}, {"t": "code", "v": "--change-outputs"}, {"t": "text", "v": ", "}, {"t": "code", "v": "--selection"}, {"t": "text", "v": " and "}, {"t": "code", "v": "--ttl-blocks"}, {"t": "text", "v": " as "}, {"t": "code", "v": "tx send"}, {"t": "text", "v": " does"}]}, {"cmd": "contact decline SLATE_ID", "href": "/developers/lepic/cli/reference/#lepic-contact-decline", "text": [{"t": "text", "v": "Declines a parked invoice; the contact is told"}]}, {"cmd": "contact collect", "href": "/developers/lepic/cli/reference/#lepic-contact-collect", "text": [{"t": "text", "v": "Fetches pairing and contact messages from the home mailboxes once and sends what waits"}]}, {"cmd": "contact sas CONTACT match|mismatch|skip", "href": "/developers/lepic/cli/reference/#lepic-contact-sas", "text": [{"t": "text", "v": "Records the result of comparing the four SAS words"}]}]}
   label={"Every day"}
 />
 
 `tx send --to-contact ID` pays a contact; `contact collect` posts what is still queued and takes
-the answer. A send the contact cannot take locks nothing.
+the answer. A send the contact cannot take locks nothing. When a mailbox refuses a post,
+`contact collect` lists it under `refused` in JSON, with the `slate_id`, the `mailbox`, its
+`reason`, `retry_after_secs` and `retryable`; `epic1 pay` gives the same object as `refusal` on
+the attempt that was refused.
 
 ### Pair by hand
 
 Pairs with no relay between the wallets: the reply and confirm links travel by other means.
 
 <CommandList
-  items={[{"cmd": "contact open LINK", "href": "/developers/lepic/cli/reference/#lepic-contact-open", "text": [{"t": "text", "v": "Shows what an invite link says, before answering it"}]}, {"cmd": "contact accept LINK --by-hand", "href": "/developers/lepic/cli/reference/#lepic-contact-accept", "text": [{"t": "text", "v": "Prints the reply link to send back by other means instead of posting it to the inviter's relay"}]}, {"cmd": "contact enter LINK", "href": "/developers/lepic/cli/reference/#lepic-contact-enter", "text": [{"t": "text", "v": "Takes a reply link or a confirm link that was sent by hand"}]}]}
+  items={[{"cmd": "contact open LINK", "href": "/developers/lepic/cli/reference/#lepic-contact-open", "text": [{"t": "text", "v": "Shows what an invite link says, before answering it"}]}, {"cmd": "contact accept LINK --by-hand", "href": "/developers/lepic/cli/reference/#lepic-contact-accept", "text": [{"t": "text", "v": "Prints the reply link to send back by other means instead of posting it to the inviter's mailbox"}]}, {"cmd": "contact enter LINK", "href": "/developers/lepic/cli/reference/#lepic-contact-enter", "text": [{"t": "text", "v": "Takes a reply link or a confirm link that was sent by hand"}]}]}
   label={"Pair by hand"}
 />
 
-Add `--offline` to reach no relay at all.
+Add `--offline` to reach no mailbox at all.
 
 ### Files and app data
 
@@ -590,10 +609,10 @@ The API allows `contact export` and `contact import` on the socket only, not ove
 
 ### Repair
 
-Checks a pairing, settles one whose keys changed, moves one to another relay, and removes one.
+Checks a pairing, settles one whose keys changed, moves one to another mailbox, and removes one.
 
 <CommandList
-  items={[{"cmd": "contact check CONTACT", "href": "/developers/lepic/cli/reference/#lepic-contact-check", "text": [{"t": "text", "v": "Asks a contact to answer with its current card; "}, {"t": "code", "v": "contact collect"}, {"t": "text", "v": " takes the answer"}]}, {"cmd": "contact key-check NEW OLD", "href": "/developers/lepic/cli/reference/#lepic-contact-key-check", "text": [{"t": "text", "v": "Asks whether a new pairing's contact still holds the keys of an older pairing with the same contact; "}, {"t": "code", "v": "contact collect"}, {"t": "text", "v": " takes the answer"}]}, {"cmd": "contact keys NEW keep-old|use-new", "href": "/developers/lepic/cli/reference/#lepic-contact-keys", "text": [{"t": "text", "v": "For a pairing in "}, {"t": "code", "v": "keys-changed"}, {"t": "text", "v": ": keeps the old pairing and deletes the new, or uses the new one, not verified, and deletes the old"}]}, {"cmd": "contact quarantine", "href": "/developers/lepic/cli/reference/#lepic-contact-quarantine", "text": [{"t": "text", "v": "Lists contact messages kept in quarantine; the host app retries and discards them"}]}, {"cmd": "contact move CONTACT --apply HOST", "href": "/developers/lepic/cli/reference/#lepic-contact-move", "text": [{"t": "text", "v": "Moves to the relay a contact asked for; "}, {"t": "code", "v": "contact list"}, {"t": "text", "v": " shows the request"}]}, {"cmd": "contact move-home HOST [--drain-days N]", "href": "/developers/lepic/cli/reference/#lepic-contact-move-home", "text": [{"t": "text", "v": "Moves this wallet's home relay for every contact"}]}, {"cmd": "contact remove CONTACT", "href": "/developers/lepic/cli/reference/#lepic-contact-remove", "text": [{"t": "text", "v": "Removes a pairing; the contact is not told"}]}]}
+  items={[{"cmd": "contact check CONTACT", "href": "/developers/lepic/cli/reference/#lepic-contact-check", "text": [{"t": "text", "v": "Asks a contact to answer with its current card; "}, {"t": "code", "v": "contact collect"}, {"t": "text", "v": " takes the answer"}]}, {"cmd": "contact key-check NEW OLD", "href": "/developers/lepic/cli/reference/#lepic-contact-key-check", "text": [{"t": "text", "v": "Asks whether a new pairing's contact still holds the keys of an older pairing with the same contact; "}, {"t": "code", "v": "contact collect"}, {"t": "text", "v": " takes the answer"}]}, {"cmd": "contact keys NEW keep-old|use-new", "href": "/developers/lepic/cli/reference/#lepic-contact-keys", "text": [{"t": "text", "v": "For a pairing in "}, {"t": "code", "v": "keys-changed"}, {"t": "text", "v": ": keeps the old pairing and deletes the new, or uses the new one, not verified, and deletes the old"}]}, {"cmd": "contact quarantine", "href": "/developers/lepic/cli/reference/#lepic-contact-quarantine", "text": [{"t": "text", "v": "Lists contact messages kept in quarantine; the host app retries and discards them"}]}, {"cmd": "contact move CONTACT --apply HOST", "href": "/developers/lepic/cli/reference/#lepic-contact-move", "text": [{"t": "text", "v": "Moves to the mailbox a contact asked for; "}, {"t": "code", "v": "contact list"}, {"t": "text", "v": " shows the request"}]}, {"cmd": "contact move-home HOST [--drain-days N]", "href": "/developers/lepic/cli/reference/#lepic-contact-move-home", "text": [{"t": "text", "v": "Moves this wallet's home mailbox for every contact"}]}, {"cmd": "contact remove CONTACT", "href": "/developers/lepic/cli/reference/#lepic-contact-remove", "text": [{"t": "text", "v": "Removes a pairing; the contact is not told"}]}]}
   label={"Repair"}
 />
 
@@ -603,7 +622,7 @@ default 0.
 ## In-person codes
 
 `in-person` makes or answers a payment through one code, shown on a screen and scanned once. The
-answer goes to the relay the code names, or is shown back by hand.
+answer goes to the mailbox the code names, or is shown back by hand.
 
 | Side | Commands |
 |---|---|
@@ -619,7 +638,7 @@ answer whose check code the other screen shows.
 
 ## epic1 links
 
-An epic1 address carries its own mailbox: a payer posts to it on any relay. A link is an address
+An epic1 address carries its own mailbox: a payer posts to it on any mailbox. A link is an address
 with an amount and a message. [protocols/epic1.md](https://github.com/BTLabsUK/lepic/blob/main/docs/protocols/epic1.md) describes the format.
 Addresses start with `epic1`.
 
@@ -640,7 +659,7 @@ account's address like any other, with the payer's amount and message.
 Payments go through the [mailbox list](#mailboxes). A link names no mailbox: the payer posts to
 the address's slot on every mailbox of its own list. A `mailbox=` entry in a link is read past
 and never used; `epic1 read` counts such entries. `--http-host` and `--tor` add hosts the payment may be posted to instead, at most three. An `http` host on the
-local network is refused unless it is in the relay list.
+local network is refused unless it is in the mailbox list.
 
 `contact collect` takes the payments at the slot of each account's address on every mailbox of
 the list and posts each answer to every mailbox of the list and to each mailbox it read a copy
@@ -656,7 +675,7 @@ mailboxes, and stores nothing. It takes `-a`, `-m`, `--min-confirmations`,
 `--change-outputs`, `--selection` and `--ttl-blocks` as `tx send` does. Both `epic1 pay` and `tx send --to` take a bare epic1
 address as well as a link; a bare address is paid as a link without an amount, and both make the
 same payment with the same checks and report. A link without entries is posted to the address's
-mailbox on every usable relay of the relay list, and is posted when any relay takes it. A link with
+slot on every usable mailbox of the list, and is posted when any mailbox takes it. A link with
 entries, at most three, goes to its first entry: an `http` host over HTTPS, or a `tor` onion,
 which `lepic` cannot reach (it has no Tor); it never falls back to the mailbox. A post that was
 not sent or was refused goes to the next entry at once. A post
@@ -688,7 +707,7 @@ address does in the upstream wallet, so a name with a hyphen is refused.
 
 | Command | What it does |
 |---|---|
-| `mailbox list` | Lists each mailbox: `shipped` or `added`, whether it offered push, its last success, failures and last error |
+| `mailbox list` | Lists each mailbox: `shipped` or `added`, whether it offered push, `no_mux` when it is known to lack mux/1 (not the same as down), its last success, failures and last error |
 | `mailbox probe HOST` | Tests TLS, the greeting and push (mux/1); changes nothing |
 | `mailbox add HOST [--anyway]` | Tests the mailbox, then adds it |
 | `mailbox remove HOST` | Takes the mailbox off the list |
@@ -701,7 +720,7 @@ an IP address, a single label or a private-network name (`.lan`, `.internal`, `.
 another, and the last mailbox cannot be removed. A removed shipped mailbox that is added again
 comes back as shipped. Health never takes a mailbox off the list.
 
-With `local_mailbox` set (see [configuration](https://github.com/BTLabsUK/lepic/blob/main/docs/configuration.md)), the list is the loopback relay
+With `local_mailbox` set (see [configuration](https://github.com/BTLabsUK/lepic/blob/main/docs/configuration.md)), the list is the loopback mailbox
 alone, shown as `shipped`, and `mailbox add` and `remove` are refused with exit code 2.
 
 The wallet API has the same calls: `GET /mailboxes`, `POST /mailboxes` with
@@ -724,7 +743,7 @@ optionally, a domain.
 | `profile show` | Prints the profile bits this wallet tells its contacts, as `Profile 0` |
 | `profile set NAMES` or `profile set --bits N` | Tells every contact a new profile |
 | `profile domain show` | Shows the domain claim |
-| `profile domain file [--path P] [--relay HOST:PORT] [--force]` | Writes `./epic-wallet.json`, or `--path`; `--relay` names a relay in the file and can repeat; `--force` replaces an existing file |
+| `profile domain file [--path P] [--relay HOST:PORT] [--force]` | Writes `./epic-wallet.json`, or `--path`; `--relay` names a mailbox in the file and can repeat; `--force` replaces an existing file |
 | `profile domain attach` | Tells every contact the domain |
 
 The domain serves the file at `https://DOMAIN/.well-known/epic-wallet.json` over HTTPS, with no
@@ -744,6 +763,35 @@ Two config.toml keys route Epicbox through Tor. Only one can be set:
 
 With either key set, `lepic serve` and the CLI commands post to an epic1 link's `tor` entry
 through that tor. With neither, a post to a `tor` entry fails and makes no clear-net connection.
+
+With either key set, Tor is expected. A route that would connect directly to another computer
+is refused with "tor is expected and ... would connect directly", and nothing connects:
+
+- `tx send --to https://...`, and the resend and invoice that use an HTTP payee;
+- the `http` entry of an epic1 link, which the payer leaves out (a link with only `http`
+  entries is refused);
+- the `lepic serve` webhook, which is held: its state shows `config_error` with the reason, and
+  no attempt counts.
+
+A payee or webhook on this computer (`localhost` or a loopback address) is still reached
+directly. `http_direct = true` (`LEPIC_HTTP_DIRECT`) reaches the others directly too.
+
+`connection_mode` (`--connection-mode`, `LEPIC_CONNECTION_MODE`) narrows the connections of
+every command and of `lepic serve`:
+
+| Mode | Connections |
+|---|---|
+| `all` | The default: the rules above |
+| `tor-only` | Only through the tor the `epicbox_tor` keys name, node calls included (`node_over_tor` is implied); `http_direct` is refused. Without such a key it is `offline` |
+| `offline` | None: no node, relay, mailbox, HTTP, onion or webhook connection |
+
+Offline, a send or invoice to a payee fails with exit code 3 and an error that names the mode,
+such as "connection_mode is offline: this command needs the network". A command that asks the
+node or the relay fails with its node or transport error, and the hint names the mode. The
+wallet API answers 409 with code `offline`. Local work goes on: sends and receives by file,
+signing and the lists (`wallet info` refreshes from the node, so it fails offline). A send offline builds on the chain tip an earlier refresh
+confirmed; a wallet that never refreshed online cannot send yet. Nothing falls back to a
+clear-net connection.
 
 ## QR codes
 
@@ -966,19 +1014,23 @@ strings in EPIC. [api/README.md](/developers/lepic/api/v1/) is the guide for peo
 <details>
 <summary>Mailboxes over mux/1</summary>
 
-Where the relay offers mux/1, serve holds push sessions to it and attaches the payments address and
-every live contact, pairing, epic1 link, epic1 reply and in-person reply mailbox. Mail is read when
-the relay pushes it or a session attaches, at most once a second. Every 30 seconds serve asks each
-session how much waits, which ends the pairings whose mailboxes were read after their deadline,
-counts the wait of contacts not heard from and reports relays that do not answer, ends what expired
+Where the mailbox offers mux/1, serve holds push sessions to it and attaches the payments address and
+every live contact, pairing, epic1 link, epic1 reply and in-person reply slot. Mail is read when
+the mailbox pushes it or a session attaches, at most once a second. Every 30 seconds serve asks each
+session how much waits, which ends the pairings whose slots were read after their deadline,
+counts the wait of contacts not heard from and reports mailboxes that do not answer, ends what expired
 and posts the outbox rows and replies that fell due. Mail that came while a session was down is read
-when it attaches again. These mailboxes are read by push only: `contact collect` and serve list a
-relay without mux/1 under `unreachable` and do not read it. A mailbox on another relay than the
-wallet's own or a mailbox of the list is read over TLS, and only on a name: one on an IP address, on this
+when it attaches again. These slots are read by push only: `contact collect` and serve list a
+mailbox without mux/1 under `unreachable` and do not read it; `contact collect` also names it under
+`no_mux`, and `mailbox list` and `/api/v1/mailboxes` show `no_mux: true`. A native post never goes to such a
+mailbox, and there is no polling fallback for its slots. A slot on another mailbox than the
+wallet's own or one of the list is read over TLS, and only on a name: one on an IP address, on this
 device or on port 0 is not read and counts under `not_reached`. When another instance of the same
-wallet takes a mailbox over, this one leaves it alone and counts it under `replaced` until
-`contact collect` runs or the app is opened or pulled; then it claims the mailbox again. The
-`relay_sockets` setting (`shared` or `split`) picks one socket per relay or two; see
+wallet takes a slot over, this one leaves it to the other and counts it under `replaced` until
+its hold-off of 10 minutes ends or the wallet is opened again; then it attaches the slot again.
+A pull does not take it back. `contact collect` starts a new session, so it takes the slot at
+once. The
+`relay_sockets` setting (`shared` or `split`) picks one socket per mailbox or two; see
 [configuration](https://github.com/BTLabsUK/lepic/blob/main/docs/configuration.md#relay-sockets).
 
 The public listeners answer only `/v2/foreign` and `/api/v1/inbox`, the endpoint between LEPIC
@@ -1088,6 +1140,15 @@ A failure prints an `error` object, with `kind` named as in the exit code table:
 {"error":{"kind":"wrong_password","exit_code":4,"message":"wallet operation failed","causes":["password did not unlock the wallet"]}}
 ```
 
+When a mailbox or peer refused a payment or a classic send and named a wait (`tx send`,
+`epic1 pay`, `tx resend`), the error object also carries `retry_after_secs`, the seconds to wait
+before the next try. The serve API's problem document carries the same member, and its
+`Retry-After` header uses it in place of the fixed 5 seconds:
+
+```json
+{"error":{"kind":"transport","exit_code":10,"message":"the payment was not delivered","causes":["the mailbox refused the post: Rate limit exceeded; retry in 12 s."],"retry_after_secs":12}}
+```
+
 A command line that does not parse is a `usage` error too: with `--output json` it prints the
 same object (exit code 2, the parser's message as `message`) and nothing on stderr. A command
 group without a subcommand, such as `lepic tx`, names the group and lists its subcommands; in
@@ -1125,16 +1186,22 @@ the fields.
 | 7 | `rejected` | The slate or request was refused; nothing was stored |
 | 8 | `insufficient_funds` | Not enough spendable funds |
 | 9 | `node` | The node could not be reached or answered badly |
-| 10 | `transport` | The slate file, the relay or the HTTP listener failed |
+| 10 | `transport` | The slate file, the mailbox or the HTTP listener failed |
 | 11 | `incomplete` | Stored, but not delivered or not posted |
 | 12 | `interrupted` | Stopped before it finished |
-| 13 | `slate_too_large` | The payment needs too many inputs for the relay; nothing was stored |
+| 13 | `slate_too_large` | The payment needs too many inputs for the mailbox; nothing was stored |
 | 14 | `no_shared_mailbox` | The payer's mailbox list holds none of the shipped mailboxes; nothing was sent |
+| 15 | `not_delivered` | A payment to a contact or an epic1 address is stored, but no mailbox took it yet |
 
 Code 11 means the transaction exists: `tx resend` delivers it and `tx post` posts it.
 
+Code 15 comes from `tx send --to-contact` or a send to an epic1 address when the post went to no mailbox in this run. The
+payment is stored and its report prints, with `delivered: false` and, when a mailbox refused,
+its `reason` and `next_attempt_at`. The outbox posts it again by itself. `tx show` marks a send
+that no mailbox took for a long time as stuck, and `lepic tx cancel TX_ID` drops it.
+
 Code 13 comes from a send over Epicbox whose slate, or the answer the receiver would send back,
-is longer than the relay's 131,071 bytes. The error names the bytes, the limit and the inputs.
+is longer than the mailbox's 131,071 bytes. The error names the bytes, the limit and the inputs.
 Merge the wallet's outputs with `lepic wallet consolidate`, or pay a smaller amount. A send's
 JSON report carries `slate_bytes` and `slate_limit` when the slate went over Epicbox.
 

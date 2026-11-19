@@ -65,16 +65,16 @@ mailbox cannot join two payments by their reply slot. The
    (`epic1_pay`) with a TTL of 1440 blocks unless the send sets one, and seals it with
    `TxKey::Epic1` to the address's seal key. The envelope carries the payer's reply key and the
    key of a one-time reply slot, and names no mailbox.
-3. **Post.** The outbox posts the payment to the address's delivery slot on every mailbox of the
-   payer's list, one copy per mailbox; it is posted when any mailbox takes it. A mailbox's
+3. **Post.** The outbox posts the payment to the address's delivery slot on at most the three healthiest
+   mailboxes of the payer's list that the payee reads, one copy per mailbox; it is posted when any mailbox takes it. A mailbox's
    health is shown and never drops it from the list. When the payer and payee share no mailbox,
    the payment fails at once with `NoSharedMailbox`, which lists the shipped mailboxes. A link
    with `http` or `tor` entries is posted to those entries instead, one at a time, and answered
    in the same request.
 4. **Collect.** The payee's collect reads its delivery slot by push, opens the envelope with the
    account's seal key, checks it and signs the S2. Any amount is taken.
-5. **Answer.** The payee seals the S2 to the reply key and posts it to the reply slot on every
-   mailbox of its list and on every mailbox it read a copy of the payment on
+5. **Answer.** The payee seals the S2 to the reply key and posts it to the reply slot on the
+   mailbox it read the payment on and the two healthiest others
    ([ADR 0065](https://github.com/BTLabsUK/lepic/blob/main/docs/adr/0065-mail-goes-where-the-receiver-reads.md)).
 6. **Finalize.** The payer's collect reads the answer, checks it is the S2 of its S1, finalizes
    it and posts the transaction. For a payment that went to the mailbox, it then sends the
@@ -94,8 +94,10 @@ the added and the removed entries (`added` and `removed` in `settings.toml`), so
 changes the shipped list reaches every install. [Delivery](https://github.com/BTLabsUK/lepic/blob/main/docs/protocols/delivery.md#the-mailbox-list)
 has the rules.
 
-- A message goes to every mailbox of the list. Mail to a contact also goes to the mailbox on the
-  contact's card. An answer also goes to every mailbox a copy was read on.
+- A message goes to at most the three healthiest mailboxes of the list that the payee reads. An
+  answer goes to the mailbox its payment was read on plus the two healthiest others. A mailbox that
+  fails a post is held back for 30 seconds, doubling to 10 minutes, and owed a copy for after the
+  hold. Mail to a contact also goes to the mailbox on the contact's card.
 - A link names no mailbox: a `mailbox=` entry is reported as ignored, and no reply mailbox
   travels inside a payment.
 - The core never adds, removes or drops a mailbox on its own. The user does, with

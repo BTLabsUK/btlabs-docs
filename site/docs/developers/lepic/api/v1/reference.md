@@ -115,11 +115,11 @@ Answers 202. The scan runs in the background and reports as `wallet.progress` ev
 
 ### `POST /sync` {#post-sync}
 
-Refresh against the node and collect from the relays now.
+Refresh against the node and collect from the mailboxes now.
 
 Role: `receive`.
 
-Serve refreshes from the node every 60 s by itself. Where a relay offers mux/1, it holds push sessions for the payments address and every live contact, pairing, epic1 and reply mailbox, and reads mail as the relay pushes it, at most once a second; on a relay without mux/1 that mail is not read. Every 30 s it collects: it asks each push session how much waits, which ends drained pairings, counts the wait of contacts not heard from and reports relays that do not answer, ends what expired and posts the outbox rows and replies that fell due. This call refreshes and collects now. Events, SSE and webhooks are the same for both paths.
+Serve refreshes from the node every 60 s by itself. Where a mailbox offers mux/1, it holds push sessions for the payments address and every live contact, pairing, epic1 and reply slot, and reads mail as the mailbox pushes it, at most once a second; on a relay without mux/1 that mail is not read. Every 30 s it collects: it asks each push session how much waits, which ends drained pairings, counts the wait of contacts not heard from and reports relays that do not answer, ends what expired and posts the outbox rows and replies that fell due. This call refreshes and collects now. Events, SSE and webhooks are the same for both paths.
 
 **Request body** (optional, `application/json`): [`SyncRequest`](#schema-syncrequest)
 
@@ -130,17 +130,17 @@ Serve refreshes from the node every 60 s by itself. Where a relay offers mux/1, 
 | 200 | OK: [`Wallet`](#schema-wallet) |
 | 400 | Bad input |
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
-| 502 | The node or a relay failed |
+| 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
-| 504 | The node or a relay timed out |
+| 504 | The node or a mailbox timed out |
 
 ### `POST /sync/boost` {#post-sync-boost}
 
-Collect from the relays, or refresh against the node, more often for a while.
+Collect from the mailboxes, or refresh against the node, more often for a while.
 
 Role: `receive`.
 
-Runs the poller at most every `interval_seconds` for `duration_seconds` from now, then goes back to its base interval (30 s for `relays`, 60 s for `node`). Each call starts its own boost: a poller with several runs at the shortest interval among them until the last ends, and `DELETE /sync/boost/{id}` ends one before its window does. The interval is at least 5 s and the duration at most 600 s: values outside are clamped. The answer is the boost's `id` and the poller's window with it. Serve boosts `relays` for 120 s at 5 s by itself after `POST /payments`, `POST /contacts` and `POST /links`.
+Runs the poller at most every `interval_seconds` for `duration_seconds` from now, then goes back to its base interval (30 s for `relays`, 60 s for `node`). Each call starts its own boost: a poller with several runs at the shortest interval among them until the last ends, and `DELETE /sync/boost/{id}` ends one before its window does. The interval is at least 5 s and the duration at most 600 s: values outside are clamped. The answer is the boost's `id` and the poller's window with it. Serve boosts `relays` for 120 s at 5 s by itself after `POST /payments` and `POST /contacts`.
 
 **Request body** (required, `application/json`): [`BoostRequest`](#schema-boostrequest)
 
@@ -249,7 +249,7 @@ Role: at least `receive`.
 
 Starts a send (`kind: send`, default) or an invoice (`kind: invoice`). Returns 201, or 200 with the stored payment on an idempotent repeat (same `id`, same body). A different body with the same `id` is 409 `idempotency_mismatch`; a repeat while the first call runs is 409 `in_progress` with `Retry-After`. A payment with an `id` goes on being made when the caller leaves, and a repeat after it ends answers 200 with its `handoff`. A create that serve's stop cuts short answers 503 `interrupted`, its record is kept, and a repeat makes the payment. Such payments count against `api.max_connections` while they are made; over it a new create answers 503 `busy` with `Retry-After` and makes and keeps nothing. A repeat of a payment that exists is answered at any count. Over owner TLS `id` is required. A send needs the `full` role; an invoice needs `receive`.
 
-`to` forms: `key@host` (Epicbox address), `http://` or `https://` URL, `.onion` address, `epic:` link, `contact:ID`, `account:LABEL`. An `epic:` link carries its amount and message: a classic one (`epic:ADDRESS?amount=&message=`) is paid to its address, at its amount only, and an epic1 link as `lepic epic1 pay` pays it, at the body's `amount` and `message` when given and at the link's otherwise. An invoice goes to `contact:ID` or is handed back (`via: file` or `deliver: false`); to an address or a classic `epic:` link it is 400 `invoice_to_address` and nothing is stored, to an epic1 link 400 `invalid_field`.
+`to` forms: `key@host` (Epicbox address), `http://` or `https://` URL, `.onion` address, `epic:` link, a bare epic1 address (as `GET /addresses` returns it, paid as its epic1 link), `contact:ID`, `account:LABEL`. An `epic:` link carries its amount and message: a classic one (`epic:ADDRESS?amount=&message=`) is paid to its address, and an epic1 link as `lepic epic1 pay` pays it; for both, the body's `amount` and `message` win when given and the link's are used otherwise. An invoice goes to `contact:ID` or is handed back (`via: file` or `deliver: false`); to an address or a classic `epic:` link it is 400 `invoice_to_address` and nothing is stored, to an epic1 link 400 `invalid_field`.
 
 **Request body** (required, `application/json`): [`CreatePayment`](#schema-createpayment)
 
@@ -263,9 +263,9 @@ Starts a send (`kind: send`, default) or an invoice (`kind: invoice`). Returns 2
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 | 409 | Conflict with the object's state or an idempotency key |
 | 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
-| 502 | The node or a relay failed |
+| 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
-| 504 | The node or a relay timed out |
+| 504 | The node or a mailbox timed out |
 
 ### `POST /payments/estimate` {#post-payments-estimate}
 
@@ -348,9 +348,9 @@ Needs the `full` role. `amount` must equal the invoice's amount: another amount 
 | 404 | Not found |
 | 409 | Conflict with the object's state or an idempotency key |
 | 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
-| 502 | The node or a relay failed |
+| 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
-| 504 | The node or a relay timed out |
+| 504 | The node or a mailbox timed out |
 
 ### `POST /payments/{id}/decline` {#post-payments-id-decline}
 
@@ -397,9 +397,9 @@ On an epic1 payment whose post is `uncertain` or `failed`, posts it on the link'
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 | 404 | Not found |
 | 409 | Conflict with the object's state or an idempotency key |
-| 502 | The node or a relay failed |
+| 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
-| 504 | The node or a relay timed out |
+| 504 | The node or a mailbox timed out |
 
 ### `POST /payments/{id}/post` {#post-payments-id-post}
 
@@ -424,9 +424,9 @@ Role: at least `receive`.
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 | 404 | Not found |
 | 409 | Conflict with the object's state or an idempotency key |
-| 502 | The node or a relay failed |
+| 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
-| 504 | The node or a relay timed out |
+| 504 | The node or a mailbox timed out |
 
 ### `POST /payments/{id}/cancel` {#post-payments-id-cancel}
 
@@ -450,9 +450,9 @@ In `awaiting_answer` or `finalized` it cancels the payment in this wallet. A `po
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 | 404 | Not found |
 | 409 | Conflict with the object's state or an idempotency key |
-| 502 | The node or a relay failed |
+| 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
-| 504 | The node or a relay timed out |
+| 504 | The node or a mailbox timed out |
 
 ### `POST /payments/{id}/recover` {#post-payments-id-recover}
 
@@ -480,9 +480,9 @@ The recovery's fee is 0.004 EPIC for one input, 0.001 EPIC less for each further
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 | 404 | Not found |
 | 409 | Conflict with the object's state or an idempotency key |
-| 502 | The node or a relay failed |
+| 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
-| 504 | The node or a relay timed out |
+| 504 | The node or a mailbox timed out |
 
 ### `GET /payments/{id}/handoff` {#get-payments-id-handoff}
 
@@ -528,9 +528,9 @@ A sealed file answers `type: sealed` with the amount, the `contact_id` when the 
 | 200 | OK: [`Inspection`](#schema-inspection) |
 | 400 | Bad input |
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
-| 502 | The node or a relay failed |
+| 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
-| 504 | The node or a relay timed out |
+| 504 | The node or a mailbox timed out |
 
 ### `POST /open` {#post-open}
 
@@ -558,9 +558,9 @@ An invoice past its expiry height answers 422 `payment_expired` and nothing is s
 | 404 | Not found |
 | 409 | Conflict with the object's state or an idempotency key |
 | 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
-| 502 | The node or a relay failed |
+| 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
-| 504 | The node or a relay timed out |
+| 504 | The node or a mailbox timed out |
 
 ## Coins
 
@@ -607,9 +607,9 @@ Spends the wallet's outputs to itself as fewer outputs, for the usual fee. Witho
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 | 409 | Conflict with the object's state or an idempotency key |
 | 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
-| 502 | The node or a relay failed |
+| 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
-| 504 | The node or a relay timed out |
+| 504 | The node or a mailbox timed out |
 
 ## Addresses and links
 
@@ -697,9 +697,9 @@ Role: `full`.
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 | 409 | Conflict with the object's state or an idempotency key |
 | 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
-| 502 | The node or a relay failed |
+| 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
-| 504 | The node or a relay timed out |
+| 504 | The node or a mailbox timed out |
 
 ### `GET /contacts/{id}` {#get-contacts-id}
 
@@ -763,9 +763,9 @@ On a pairing that waits, it cancels it: an invite of yours is cancelled, a late 
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 | 404 | Not found |
 | 409 | Conflict with the object's state or an idempotency key |
-| 502 | The node or a relay failed |
+| 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
-| 504 | The node or a relay timed out |
+| 504 | The node or a mailbox timed out |
 
 ### `POST /contacts/{id}/verify` {#post-contacts-id-verify}
 
@@ -810,9 +810,9 @@ Role: `full`.
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 | 404 | Not found |
 | 409 | Conflict with the object's state or an idempotency key |
-| 502 | The node or a relay failed |
+| 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
-| 504 | The node or a relay timed out |
+| 504 | The node or a mailbox timed out |
 
 ### `POST /contacts/{id}/keys` {#post-contacts-id-keys}
 
@@ -838,11 +838,11 @@ Role: `full`.
 
 ### `POST /contacts/{id}/move` {#post-contacts-id-move}
 
-Answer the contact's request to move relays: accept moves there, refuse records the answer.
+Answer the contact's request to move mailboxes: accept moves there, refuse records the answer.
 
 Role: `full`.
 
-`host` is the relay the user was shown. If `requested_relay` has changed since, the call fails with 409 `relay_changed` and nothing moves. With `accept: false` the wallet clears `requested_relay`, sets `refused_relay` and tells nobody. The wallet does not move on its own.
+`host` is the mailbox the user was shown. If `requested_relay` has changed since, the call fails with 409 `relay_changed` and nothing moves. With `accept: false` the wallet clears `requested_relay`, sets `refused_relay` and tells nobody. The wallet does not move on its own.
 
 | Parameter | In | Type | Description |
 |---|---|---|---|
@@ -859,9 +859,9 @@ Role: `full`.
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 | 404 | Not found |
 | 409 | Conflict with the object's state or an idempotency key |
-| 502 | The node or a relay failed |
+| 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
-| 504 | The node or a relay timed out |
+| 504 | The node or a mailbox timed out |
 
 ### `POST /contacts/{id}/payloads` {#post-contacts-id-payloads}
 
@@ -886,9 +886,9 @@ Answers 204.
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 | 404 | Not found |
 | 409 | Conflict with the object's state or an idempotency key |
-| 502 | The node or a relay failed |
+| 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
-| 504 | The node or a relay timed out |
+| 504 | The node or a mailbox timed out |
 
 ### `POST /contacts/export` {#post-contacts-export}
 
@@ -1039,7 +1039,7 @@ Role: `read`.
 
 ### `POST /relay/move` {#post-relay-move}
 
-Move this wallet's home relay and tell every contact; keep reading the old one for drain_days.
+Move this wallet's home mailbox and tell every contact; keep reading the old one for drain_days.
 
 Role: `full`.
 
@@ -1054,9 +1054,9 @@ Role: `full`.
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 | 409 | Conflict with the object's state or an idempotency key |
 | 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
-| 502 | The node or a relay failed |
+| 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
-| 504 | The node or a relay timed out |
+| 504 | The node or a mailbox timed out |
 
 ### `GET /mailboxes` {#get-mailboxes}
 
@@ -1092,17 +1092,17 @@ Tests the mailbox first: a TLS connection, its greeting, and push. A failed test
 | 400 | Bad input |
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 | 409 | Conflict with the object's state or an idempotency key |
-| 502 | The node or a relay failed |
+| 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
-| 504 | The node or a relay timed out |
+| 504 | The node or a mailbox timed out |
 
 ### `POST /mailboxes/probe` {#post-mailboxes-probe}
 
 Test one mailbox: TLS, greeting and push. Changes nothing.
 
-Role: `read`.
+Role: `full`.
 
-One connection over the wallet's relay route (Tor when the wallet uses it), greeted and closed. A step after a failed one is `not_reached`. The answer is 200 whether the test passed or not; read `passed`.
+One connection over the wallet's mailbox route (Tor when the wallet uses it), greeted and closed. It needs the `full` role: it makes serve connect to a host and port the caller names. A step after a failed one is `not_reached`. The answer is 200 whether the test passed or not; read `passed`.
 
 **Request body** (required, `application/json`): [`ProbeMailbox`](#schema-probemailbox)
 
@@ -1149,9 +1149,9 @@ Role: `read`.
 |---|---|
 | 200 | OK: [`Node`](#schema-node) |
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
-| 502 | The node or a relay failed |
+| 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
-| 504 | The node or a relay timed out |
+| 504 | The node or a mailbox timed out |
 
 ## Profile
 
@@ -1194,7 +1194,7 @@ Role: `read`.
 
 | Parameter | In | Type | Description |
 |---|---|---|---|
-| `relay` | query | `string` | Relay host. |
+| `relay` | query | `string` | Mailbox host. |
 
 **Responses**
 
@@ -1215,12 +1215,12 @@ Role: `read`.
 
 As JSON, a page oldest first after `after`, with `next_cursor` as for any list. With `Accept: text/event-stream`, a live stream that resumes from `Last-Event-ID` or `?after=`. Events are kept 30 days by default; a client that asks for older ids first gets `events.skipped` with the count.
 
-The stream sends a `: keepalive` comment every 15 s. Without `Last-Event-ID` or `after` it starts at the next event. `events.skipped` carries a `reason` of `lagged` or `pruned`: read the objects again, then go on from the new id. `contact.state_changed` for a failed pairing carries a `reason`: `changed_on_the_way`, `kind_differs`, `expired`, `not_confirmed`, `refused`, `other_address`, `address_proof_missing` or `crossed`. After a restart, `from_state` is present when the log holds the object; otherwise the entry has `to_state` only, and a `contact.updated` that does not know the fields has no `changed`. `payment.confirmations_reached` comes once per payment, when the tip reaches its `payment_confirmations`-th confirmation (6 unless the setting says 1 to 1440); after a restart serve logs those reached meanwhile, none twice. `payment.recovery_changed` comes each time the state of a payment's `recovery` changes; `data.object` is the payment, and its own state change follows as `payment.state_changed`. `payment.post_failed` comes when a push of a payment's transaction to the node fails for the first time, and again each time the outcome or the node's text changes; `data.error` carries the text and `data.object` the payment. It changes no state: a state change it brings is logged before it as `payment.state_changed`. `payment.delivery_changed` comes when the post of an epic1 payment turns `uncertain`, when it fails with no route tried next, and with `sent` when the payment goes out after an earlier post was uncertain or failed; a payment that goes out on its first post raises none; `data.object` is the payment, `data.state` the new `delivery.state` and `data.route` the route it was posted on.
+The stream sends a `: keepalive` comment every 15 s. Without `Last-Event-ID` or `after` it starts at the next event. `events.skipped` carries a `reason` of `lagged` or `pruned`: read the objects again, then go on from the new id. `contact.state_changed` for a failed pairing carries a `reason`: `changed_on_the_way`, `kind_differs`, `expired`, `not_confirmed`, `refused`, `other_address`, `address_proof_missing` or `crossed`. After a restart, `from_state` is present when the log holds the object; otherwise the entry has `to_state` only, and a `contact.updated` that does not know the fields has no `changed`. `payment.confirmations_reached` comes once per payment, when the tip reaches its `final_confirmations`-th confirmation (6 unless the setting says 1 to 1440; `payment_confirmations` is the old name of that setting); after a restart serve logs those reached meanwhile, none twice. `payment.recovery_changed` comes each time the state of a payment's `recovery` changes; `data.object` is the payment, and its own state change follows as `payment.state_changed`. `payment.post_failed` comes when a push of a payment's transaction to the node fails for the first time, and again each time the outcome or the node's text changes; `data.error` carries the text and `data.object` the payment. It changes no state: a state change it brings is logged before it as `payment.state_changed`. `payment.delivery_changed` comes when the post of an epic1 payment turns `uncertain`, when it fails with no route tried next, and with `sent` when the payment goes out after an earlier post was uncertain or failed; a payment that goes out on its first post raises none; `data.object` is the payment, `data.state` the new `delivery.state` and `data.route` the route it was posted on. `payment.declined` comes once when the receiver of a send this wallet made declined it unanswered. The wallet erased that send and freed its inputs, so no payment object is left: `data.payment_id` names it and `data.declined_at` says when. `GET /payments/{id}` answers 404 `payment_declined` with the same `declined_at`. There is nothing to cancel.
 
 | Parameter | In | Type | Description |
 |---|---|---|---|
 | `after` | query | `integer` | Return events with an id greater than this. |
-| `types` | query | `string` | Comma list of event types; `payment.*` style wildcards allowed. |
+| `types` | query | `string` | Comma list of event types; `payment.*` style wildcards allowed. `events.skipped` is always delivered, whatever this names, so a reader that lost events learns so; the list takes at most 31 types unless it names `events.skipped` or `events.*`. |
 | `cursor` | query | `string` | Opaque cursor from `next_cursor`. Other query parameters must stay the same across pages. |
 | `limit` | query | `integer` (1..500, default 50) | Page size. |
 | `Last-Event-ID` | header | `string` | Stream resume point: the sequence number of the last event received. |
@@ -1288,9 +1288,9 @@ Errors are RFC 9457 problem documents (`application/problem+json`), the [`Proble
 | `NotFound` | Not found (404). |
 | `Conflict` | Conflict with the object's state or an idempotency key (409). |
 | `Unprocessable` | Valid but impossible, e.g. insufficient funds or invoice changed (422). |
-| `BadGateway` | The node or a relay failed (502). |
+| `BadGateway` | The node or a mailbox failed (502). |
 | `Unavailable` | Not ready: scan running or serve stopping (503). May set Retry-After. |
-| `GatewayTimeout` | The node or a relay timed out (504). |
+| `GatewayTimeout` | The node or a mailbox timed out (504). |
 
 ## Schemas
 
@@ -1344,6 +1344,7 @@ Errors are RFC 9457 problem documents (`application/problem+json`), the [`Proble
 | `actions` | array of one of `approve`, `decline`, `deliver`, `post`, `cancel`, `recover` | yes | The calls that work on this payment now, as the wallet computes them. A call not listed fails with 409 `action_not_available`. `post` is not listed once the wallet's last known height reaches the height from which it no longer posts the payment. `recover` is listed for a send the wallet would recover by what it holds; the node may still refuse it. Clients must accept values they do not know. |
 | `expires_at_height` | `integer` |  |  |
 | `confirmations` | `integer` |  |  |
+| `final` | `boolean` |  | Present with `confirmations`: true once they reach the `final_confirmations` setting (6 unless set, 1 to 1440). The same count raises `payment.confirmations_reached`. |
 | `confirmed_height` | `integer` |  |  |
 | `kernel_excess` | `string` (pattern ^[0-9a-f]+$) |  | Hex. |
 | `source` | one of `wallet`, `imported`, `scan` | yes |  |
@@ -1351,8 +1352,8 @@ Errors are RFC 9457 problem documents (`application/problem+json`), the [`Proble
 | `created_at` | `string` (date-time) | yes |  |
 | `updated_at` | `string` (date-time) | yes |  |
 | `handoff` | [`Handoff`](#schema-handoff) |  | In create and open responses, when you deliver by hand. |
-| `slate_bytes` | `integer` |  | In a send's create response: the bytes the longest post of the payment takes on the relay, the first slate or the answer the receiver sends back. Only when the slate goes over Epicbox. |
-| `slate_limit` | `integer` |  | The most bytes the relay takes in one post: 131071. Beside `slate_bytes`. |
+| `slate_bytes` | `integer` |  | In a send's create response: the bytes the longest post of the payment takes on the mailbox, the first slate or the answer the receiver sends back. Only when the slate goes over Epicbox. |
+| `slate_limit` | `integer` |  | The most bytes the mailbox takes in one post: 131071. Beside `slate_bytes`. |
 
 ### Account {#schema-account}
 
@@ -1384,13 +1385,13 @@ Errors are RFC 9457 problem documents (`application/problem+json`), the [`Proble
 | `verify_words` | array of `string` |  |  |
 | `allow_invoices` | `boolean` | yes | Only for verified contacts. |
 | `seal` | `boolean` | yes | Files to this contact are sealed. |
-| `home_relay` | `string` | yes | Relay host. |
+| `home_relay` | `string` | yes | Mailbox host. |
 | `requested_relay` | `string` |  | They asked you to move there. Answer with `POST /contacts/{id}/move`. |
 | `refused_relay` | `string` |  | A move you refused. The contact was not told. |
 | `profile` | `object` |  |  |
 | `profile.flags` | array of `string` | yes |  |
 | `profile.domain` | `string` |  |  |
-| `profile.domain_proven` | `boolean` | yes |  |
+| `profile.domain_proven` | `boolean` | yes | Always `false` for now: `domain` is what the contact claims, and serve does not fetch the domain's file to prove it. |
 | `pairing` | `object` |  |  |
 | `pairing.method` | one of `invite`, `accept` | yes |  |
 | `pairing.invite_link` | `string` |  |  |
@@ -1461,14 +1462,14 @@ Errors are RFC 9457 problem documents (`application/problem+json`), the [`Proble
 | `listeners` | `object` | yes |  |
 | `listeners.epicbox` | `object` | yes |  |
 | `listeners.epicbox.state` | one of `connecting`, `connected`, `disconnected`, `stopped` |  | Absent until the listener reports one. |
-| `listeners.epicbox.relays` | array of `object` | yes | The push sessions serve holds, one for each relay and group; empty when it holds none. `connected_since` and `last_mail_at` are what this serve saw: absent until it saw them, and gone after a restart. |
-| `listeners.epicbox.relays[].host` | `string` | yes | The relay as `domain:port`. |
+| `listeners.epicbox.relays` | array of `object` | yes | The push sessions serve holds, one for each mailbox and group; empty when it holds none. `connected_since` and `last_mail_at` are what this serve saw: absent until it saw them, and gone after a restart. |
+| `listeners.epicbox.relays[].host` | `string` | yes | The mailbox as `domain:port`. |
 | `listeners.epicbox.relays[].group` | `string` | yes | `wallet`; `payments` or `contacts` when `relay_sockets` is `split`. |
-| `listeners.epicbox.relays[].state` | one of `connecting`, `attached`, `waiting`, `not_offered`, `stopped` | yes | `waiting` is the pause before the next attempt; `not_offered` is a relay without mux/1: serve reads the payments address on a plain socket and reads no contact, pairing or epic1 mail there. |
-| `listeners.epicbox.relays[].push` | `boolean` |  | Whether the relay offers mux/1; absent before it answered the first greeting. |
+| `listeners.epicbox.relays[].state` | one of `connecting`, `attached`, `waiting`, `not_offered`, `stopped` | yes | `waiting` is the pause before the next attempt; `not_offered` is a mailbox without mux/1: serve reads the payments address on a plain socket and reads no contact, pairing or epic1 mail there. |
+| `listeners.epicbox.relays[].push` | `boolean` |  | Whether the mailbox offers mux/1; absent before it answered the first greeting. |
 | `listeners.epicbox.relays[].last_error` | `string` |  | Why the session last lost its socket, as plain text cut to 256 characters; absent once it attached again. |
 | `listeners.epicbox.relays[].connected_since` | `string` (date-time) |  | Since when the session is attached; absent while it is not. |
-| `listeners.epicbox.relays[].last_mail_at` | `string` (date-time) |  | When the relay last pushed mail to the session. |
+| `listeners.epicbox.relays[].last_mail_at` | `string` (date-time) |  | When the mailbox last pushed mail to the session. |
 | `listeners.http` | `object` |  | Present when serve runs with `--http`. |
 | `listeners.http.port` | `integer` |  |  |
 | `listeners.http.exposure` | `string` |  |  |
@@ -1567,18 +1568,20 @@ InspectRequest plus `expect`, `message`, `deliver`.
 | `title` | `string` | yes |  |
 | `status` | `integer` | yes |  |
 | `detail` | `string` |  |  |
-| `code` | `string` | yes | Stable, fine-grained error name, e.g. `insufficient_funds`. Clients must accept codes they do not know and fall back on `category`. Any call: `no_route` 404, `method_not_allowed` 405 (with `Allow`), `body_too_slow` 408, `body_too_large` 413, `role_required` 403, `socket_only` 403, `client_not_listed` 403, `serve_version_differs` and `serve_settings_differ` 409, `invalid_request`, `invalid_body`, `invalid_field`, `invalid_cursor`, `cursor_filters_changed` 400, `not_found` 404, `internal` 500, `interrupted` and `cancelled` 503. Payment creates: `busy` 503. Creates: `idempotency_mismatch`, `in_progress`, `account_exists` 409. Payments: `action_not_available`, `format_not_available`, `no_handoff`, `nothing_to_open`, `too_many_held`, `no_more_routes` 409; `unexpected_input`, `insufficient_funds` 422; `invoice_already_paid`, `invoice_locked_above_tip`, `inputs_spent_elsewhere`, `inputs_spent_by_own_transaction`, `peer_inputs_spent`, `on_chain`, `in_pool`, `recovery_open`, `not_recoverable`, `use_recover`, `changed_during_cancel` 409; `plain_http_not_allowed`, `http_url_invalid`, `onion_address_invalid`, `slate_too_large`, `invoice_to_address` 400; `change_too_small`, `too_heavy`, `nothing_to_consolidate`, `invalid_slate`, `payment_expired`, `invoice_changed`, `amount_mismatch`, `not_posted`, `not_delivered` by category. Wallet and node: `wrong_password` 403, `wallet_not_found` 404, `wallet_already_exists`, `wallet_busy`, `locked`, `foreign_wallet`, `offline`, `wallet_too_new`, `wrong_key` 409, `restore_scan_required` 503, `scan_running` 409 or 503, `node_unreachable` 502 (504 on a timeout), `tor_not_running` 503, `onion_unreachable` 502, `transport_failed` 502, `damaged_database` 500. Contacts: `contact_not_found`, `pairing_not_found` 404; `invite_expired`, `already_paired`, `pairing_in_progress`, `pairing_crossed`, `pairing_ended`, `pairing_waiting`, `contact_not_verified`, `key_check_refused`, `relay_changed`, `keys_not_changed`, `domain_fixed`, `contact_cap_reached`, `contacts_offline` 409; `wrong_pairing_class` 400; `other_address`, `address_proof_missing`, `no_free_slot` 422. A code not listed here has its category's status: `usage` 400, `wrong_password` 403, `not_found` 404, `wallet_state` and `conflict` 409, `rejected` and `funds` 422, `node` and `transport` 502, `interrupted` 503, `internal` and `config` 500. 409 `in_progress`, 502, 503 and 504 carry `Retry-After` when waiting is worth it. |
+| `code` | `string` | yes | Stable, fine-grained error name, e.g. `insufficient_funds`. Clients must accept codes they do not know and fall back on `category`. Any call: `no_route` 404, `method_not_allowed` 405 (with `Allow`), `body_too_slow` 408, `body_too_large` 413, `role_required` 403, `socket_only` 403, `client_not_listed` 403, `serve_version_differs` and `serve_settings_differ` 409, `invalid_request`, `invalid_body`, `invalid_field`, `invalid_cursor`, `cursor_filters_changed` 400, `not_found` 404, `payment_declined` 404 (with `declined_at`), `internal` 500, `interrupted` and `cancelled` 503. Payment creates: `busy` 503. Creates: `idempotency_mismatch`, `in_progress`, `account_exists` 409. Payments: `action_not_available`, `format_not_available`, `no_handoff`, `nothing_to_open`, `too_many_held`, `no_more_routes` 409; `unexpected_input`, `insufficient_funds` 422; `invoice_already_paid`, `invoice_locked_above_tip`, `inputs_spent_elsewhere`, `inputs_spent_by_own_transaction`, `peer_inputs_spent`, `on_chain`, `in_pool`, `recovery_open`, `not_recoverable`, `use_recover`, `changed_during_cancel` 409; `plain_http_not_allowed`, `http_url_invalid`, `onion_address_invalid`, `slate_too_large`, `invoice_to_address`, `via_mismatch` 400; `change_too_small`, `too_heavy`, `nothing_to_consolidate`, `invalid_slate`, `payment_expired`, `invoice_changed`, `amount_mismatch`, `not_posted`, `not_delivered` by category. Wallet and node: `wrong_password` 403, `wallet_not_found` 404, `wallet_already_exists`, `wallet_busy`, `receipts_full` (a payment nobody asked for refused because the open-receipt cap is full), `locked`, `foreign_wallet`, `offline`, `tor_expected`, `damaged_database_kept`, `wallet_too_new`, `wrong_key` 409, `restore_scan_required` 503, `scan_running` 409 or 503, `node_unreachable` 502 (504 on a timeout), `tor_not_running` 503, `onion_unreachable` 502, `transport_failed` 502, `damaged_database` 500. Contacts: `contact_not_found`, `pairing_not_found` 404; `invite_expired`, `already_paired`, `pairing_in_progress`, `pairing_crossed`, `pairing_ended`, `pairing_waiting`, `contact_not_verified`, `key_check_refused`, `relay_changed`, `keys_not_changed`, `domain_fixed`, `contact_cap_reached`, `contacts_offline` 409; `wrong_pairing_class` 400; `other_address`, `address_proof_missing`, `no_free_slot` 422. A code not listed here has its category's status: `usage` 400, `wrong_password` 403, `not_found` 404, `wallet_state` and `conflict` 409, `rejected` and `funds` 422, `node` and `transport` 502, `interrupted` 503, `internal` and `config` 500. 409 `in_progress`, 502, 503 and 504 carry `Retry-After` when waiting is worth it. |
 | `category` | one of `usage`, `config`, `wrong_password`, `wallet_state`, `not_found`, `rejected`, `funds`, `node`, `transport`, `internal`, `interrupted`, `conflict` | yes |  |
 | `param` | `string` |  | JSON pointer to the bad field, when one field is to blame. `payment_id` and `contact_id` name the object an error is about; `errors` lists several faults. |
 | `payment_id` | `string` (uuid) |  |  |
+| `declined_at` | `string` (date-time) |  | `payment_declined`: when the receiver declined the send. |
 | `contact_id` | `string` |  |  |
 | `errors` | array of `object` |  |  |
 | `errors[].code` | `string` | yes |  |
 | `errors[].detail` | `string` |  |  |
 | `errors[].param` | `string` |  |  |
-| `bytes` | `integer` |  | With `slate_too_large`: the bytes the payment's longest post would take on the relay. |
-| `limit` | `integer` |  | With `slate_too_large`: the most bytes the relay takes in one post. |
+| `bytes` | `integer` |  | With `slate_too_large`: the bytes the payment's longest post would take on the mailbox. |
+| `limit` | `integer` |  | With `slate_too_large`: the most bytes the mailbox takes in one post. |
 | `inputs` | `integer` |  | With `slate_too_large`: the outputs the payment would spend. |
+| `retry_after_secs` | `integer` |  | Seconds to wait before trying again; present whenever `Retry-After` is, with the same value. For a send, resend or delivery a mailbox or peer refused with a wait (a rate limit, a full slot), it is the wait the mailbox named, so `Retry-After` carries it instead of the fixed 5 seconds. Otherwise it is that fixed wait on 502, 503 and 504, and on 409 `in_progress`. |
 
 ### PaymentList {#schema-paymentlist}
 
@@ -1644,16 +1647,16 @@ Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unl
 |---|---|---|---|
 | `id` | `string` (uuid) |  | Optional caller-chosen id. A send uses it as its slate id, and so does an invoice given a version-4 UUID; an invoice given another UUID takes a slate id of the wallet's own and keeps this one as an alias that `GET /payments/{id}` also answers. Read `id` from the answer. Idempotency key: a repeat with the same id and body returns the stored payment with 200; a different body is 409 `idempotency_mismatch`. Required over owner TLS. |
 | `kind` | one of `send`, `invoice` |  |  |
-| `to` | `string` |  | Destination. Forms: `key@host` (Epicbox address); `http://` or `https://` URL; `.onion` address; `epic:` link (classic or epic1); `contact:ID`; `account:LABEL` (own account), which serve refuses with 400 `invalid_field` at `/to`. Without `to`, `via` must be `file`, or `deliver` must be `false`. |
-| `via` | one of `epicbox`, `http`, `tor`, `contact`, `link`, `in_person`, `file`, `peer`, `chain` |  | Route. Same values as Payment.via; `file` produces a handoff. Serve refuses `in_person`, `link`, `peer` and `chain` here with 400 `invalid_field` at `/via`. |
+| `to` | `string` |  | Destination. Forms: `key@host` (Epicbox address); `http://` or `https://` URL; `.onion` address; `epic:` link (classic or epic1); bare epic1 address; `contact:ID`; `account:LABEL` (own account), which serve refuses with 400 `invalid_field` at `/to`. Without `to`, `via` must be `file`, or `deliver` must be `false`. |
+| `via` | one of `epicbox`, `http`, `tor`, `contact`, `link`, `in_person`, `file`, `peer`, `chain` |  | Route. Same values as Payment.via; `file` produces a handoff. When given for a delivered payment it must name the route `to` takes (`epicbox`, `http` or `tor` for an address, `link` for an epic1 link or address, `contact` for a contact): another route answers 400 `via_mismatch` at `/via`. `contact` with a bare contact id routes to that contact. A value outside the list answers 400 `invalid_field` at `/via`, and so do `in_person`, `peer` and `chain`, which serve does not support. |
 | `account` | `string` |  | Account label; default account when absent. |
-| `amount` | [`Decimal`](#schema-decimal) or one of `max` |  | Amount, or the string `max` (estimate only). May be left out when `to` is an `epic:` link that names one. For a classic link, if both name one they must be equal (400 `invalid_field` at `/amount`); an epic1 link is paid the amount given. |
+| `amount` | [`Decimal`](#schema-decimal) or one of `max` |  | Amount, or the string `max` (estimate only). May be left out when `to` is an `epic:` link that names one. When both name one, the amount given is paid, for a classic link and an epic1 link alike. |
 | `message` | `string` |  | Signed into the slate, at most 256 bytes. Shows as `message` on this payment and as `their_message` on the other party's, an invoice to a contact included. For an epic1 link, left out means the link's message, and an empty string or only spaces means no message. |
 | `mailboxes` | array of `string` |  | For an epic1 payment to the payee's mailbox: the mailboxes it is posted through in place of the wallet's list, each `domain` or `domain:port`. 400 `invalid_field` at `/mailboxes` for any other payment or a host that is not a public name. 422 `no_shared_mailbox` when the payee's address names none of the wallet's shipped mailboxes and no `mailboxes` is given. |
 | `min_confirmations` | `integer` |  |  |
 | `selection` | one of `all`, `smallest` |  |  |
 | `change_outputs` | `integer` |  | Number of change outputs; `account:default` with 3 splits coins. |
-| `ttl_blocks` | `integer` |  | Blocks after which the other party must refuse the slate. For a send, a V2 slate (Epicbox, HTTP) has no TTL field: the wallet keeps the height and expires the send at refresh if it is still unanswered. For an invoice, the I1 carries it, the payment shows it as `expires_at_height`, and a refresh past it expires the invoice. |
+| `ttl_blocks` | `integer` |  | Blocks after which the other party must refuse the slate. For a send, a V2 slate (Epicbox, HTTP) has no TTL field: the wallet keeps the height and expires the send at refresh if it is still unanswered. A send that names none waits the service's `send_ttl_blocks`, 10080 blocks (7 days) unless set, kept by the wallet and not in the slate; an epic1 payment carries it in the slate. For an invoice, the I1 carries it, the payment shows it as `expires_at_height`, and a refresh past it expires the invoice. |
 | `fluff` | `boolean` |  |  |
 | `purpose` | one of `payment`, `deposit`, `withdrawal`, `refund`, `request` |  |  |
 | `allow_plain_http` | `boolean` |  |  |
@@ -1667,8 +1670,8 @@ Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unl
 | `fee` | [`Decimal`](#schema-decimal) | yes | EPIC amount as a decimal string |
 | `max_amount` | [`Decimal`](#schema-decimal) | yes | The most you can send. |
 | `outputs` | array of [`Output`](#schema-output) | yes | The coins it would use. |
-| `slate_bytes` | `integer` |  | The bytes the longest post of the payment would take on the relay: the first slate, or the answer the receiver sends back. Only when `to` is an Epicbox address. Over `slate_limit` the estimate fails with `slate_too_large`, as the payment would. |
-| `slate_limit` | `integer` |  | The most bytes the relay takes in one post: 131071. Beside `slate_bytes`. |
+| `slate_bytes` | `integer` |  | The bytes the longest post of the payment would take on the mailbox: the first slate, or the answer the receiver sends back. Only when `to` is an Epicbox address. Over `slate_limit` the estimate fails with `slate_too_large`, as the payment would. |
+| `slate_limit` | `integer` |  | The most bytes the mailbox takes in one post: 131071. Beside `slate_bytes`. |
 
 ### ConsolidateOutputs {#schema-consolidateoutputs}
 
@@ -1807,7 +1810,7 @@ Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unl
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `host` | `string` | yes | The relay the user was shown; must equal the contact's `requested_relay`. |
+| `host` | `string` | yes | The mailbox the user was shown; must equal the contact's `requested_relay`. |
 | `accept` | `boolean` (default true) |  |  |
 
 ### Mailboxes {#schema-mailboxes}
@@ -1815,6 +1818,7 @@ Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unl
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `mailboxes` | array of [`Mailbox`](#schema-mailbox) | yes |  |
+| `left_out` | array of `string` |  | Hosts the settings name that the wallet does not use, because the list holds at most 16. Absent when there are none. |
 
 ### MailboxProbe {#schema-mailboxprobe}
 
@@ -1910,11 +1914,15 @@ Type: `string` (pattern ^-?[0-9]+(\.[0-9]{1,8})?$, example "1.5")
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `state` | one of `queued`, `sent`, `uncertain`, `held`, `failed`, `refused`, `by_hand` | yes | Serve sets five of these: `by_hand` for a payment handed over as a file or text, `queued` while an epic1 post waits for its turn, `uncertain` when the slate went out and is not known to have arrived, `failed` when an epic1 post failed on its last route, and `sent` otherwise. A send the receiver refused reads `sent`. |
-| `to` | `string` |  | Address, URL, onion, contact id, or the relay used. |
+| `to` | `string` |  | Address, URL, onion, contact id, or the mailbox used. |
 | `relays_left` | `integer` |  |  |
 | `attempts` | `integer` | yes |  |
 | `updated_at` | `string` (date-time) | yes |  |
 | `error` | `string` |  |  |
+| `undelivered` | `boolean` | yes | No route took the slate yet: no mailbox or endpoint holds it. The outbox keeps posting it until the payment's cutoff. `false` for a payment handed over by hand. |
+| `stuck` | `boolean` | yes | Undelivered for longer than the outbox allows before it marks a payment. A mark only: the outbox keeps trying, and `POST /payments/{id}/cancel` ends the payment. |
+| `stuck_at` | `string` (date-time) |  | When the payment is, or will be, marked stuck. |
+| `next_attempt_at` | `string` (date-time) |  | When the outbox posts the slate next. |
 
 ### PaymentRecovery {#schema-paymentrecovery}
 
@@ -1991,7 +1999,7 @@ The pushes of the payment's transaction to the node, by this wallet or a refresh
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `id` | `integer` | yes | Sequence number, rising, never reused. |
-| `type` | `string` | yes | `resource.what_happened`. An open set: new types may be added, and clients must skip types they do not know. Known types: payment.created, payment.state_changed, payment.updated, payment.confirmations_reached, payment.recovery_changed, payment.post_failed, payment.delivery_changed, contact.created, contact.state_changed, contact.updated, contact.removed, payload.received, quarantine.added, account.balance_changed, wallet.progress, relay.updated, slate.unmatched, events.skipped. |
+| `type` | `string` | yes | `resource.what_happened`. An open set: new types may be added, and clients must skip types they do not know. Known types: payment.created, payment.state_changed, payment.updated, payment.confirmations_reached, payment.recovery_changed, payment.post_failed, payment.delivery_changed, payment.declined, contact.created, contact.state_changed, contact.updated, contact.removed, payload.received, quarantine.added, account.balance_changed, wallet.progress, relay.updated, slate.unmatched, events.skipped. |
 | `created_at` | `string` (date-time) | yes |  |
 | `data` | `object` | yes |  |
 | `data.object` | [`Payment`](#schema-payment) or [`Contact`](#schema-contact) or [`Payload`](#schema-payload) or [`Quarantined`](#schema-quarantined) or [`Account`](#schema-account) or [`Relay`](#schema-relay) or [`Wallet`](#schema-wallet) |  | Snapshot after the change. |
@@ -2002,12 +2010,13 @@ The pushes of the payment's transaction to the node, by this wallet or a refresh
 | `data.state` | one of `queued`, `sent`, `uncertain`, `failed` |  | `payment.delivery_changed`: the outcome of that post. The carried payment shows its delivery as it stood then; `GET /payments/{id}` reads the current one. |
 | `data.route` | `string` |  | `payment.delivery_changed`: the route the payment was posted on, such as an Epicbox address `key@host`. |
 | `data.changed` | array of `string` |  | The top-level fields of `object` that changed (`*.updated`, `relay.updated`). |
-| `data.payment_id` | `string` |  | `payment.state_changed` for a payment the wallet no longer holds, such as a parked invoice that expired. |
+| `data.payment_id` | `string` |  | `payment.state_changed` for a payment the wallet no longer holds, such as a parked invoice that expired; `payment.declined`. |
+| `data.declined_at` | `string` (date-time) |  | `payment.declined`: when the receiver declined the send. |
 | `data.contact_id` | `string` |  | `quarantine.added`, `payload.received`, and `contact.state_changed` for a contact the wallet no longer holds. |
 | `data.slate_id` | `string` (uuid) |  | `slate.unmatched`. |
 | `data.stage` | `string` |  | `slate.unmatched`: the slate's stage, such as `S2` or `I2`. |
-| `data.sender` | `string` |  | `slate.unmatched`: where it came from, as the relay reported it. |
-| `data.host` | `string` |  | `relay.updated` with reason `home_unreachable`: the relay. |
+| `data.sender` | `string` |  | `slate.unmatched`: where it came from, as the mailbox reported it. |
+| `data.host` | `string` |  | `relay.updated` with reason `home_unreachable`: the mailbox. |
 | `data.height` | `integer` |  | `wallet.progress`: the height scanned to. |
 | `data.target_height` | `integer` |  | `wallet.progress`: the height the scan runs to. |
 | `data.count` | `integer` |  | `events.skipped`: how many events the reader missed. |
@@ -2019,6 +2028,7 @@ The pushes of the payment's transaction to the node, by this wallet or a refresh
 | `host` | `string` | yes | `domain` or `domain:port`; the port is left out when it is the default one. |
 | `origin` | one of `shipped`, `added` | yes | `shipped`: in the list the wallet came with; `added`: added by the user. |
 | `push` | `boolean` |  | Whether the mailbox offered push at its last greeting; left out before any answer. |
+| `no_mux` | `boolean` | yes | The mailbox is known to lack mux/1: it answered without it, so the wallet neither reads it nor posts to it. Not the same as unreachable, which shows as `failures` and `last_error`. Asked again from time to time; `false` once it offers mux/1. |
 | `last_success_at` | `string` (date-time) |  | When a session last attached to it; left out when none has since serve started. |
 | `failures` | `integer` | yes | Sessions lost since the last success. |
 | `last_error` | `string` |  |  |

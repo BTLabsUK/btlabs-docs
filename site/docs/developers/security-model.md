@@ -157,8 +157,9 @@ user guide's [Tor](../users/tor.md) page.
   payments are sealed to, and a delivery key that names its slot on every mailbox. It holds no
   signing key, and its payments carry no payment proof. An account has one address, and a request
   link only fills in the payer's Send screen, so the payee keeps no record of a link.
-- **Mailbox list.** A payment goes to every mailbox of the payer's list, and the answer goes to
-  every mailbox a copy was read on, so no one mailbox decides whether mail arrives. A mailbox
+- **Mailbox list.** A payment goes to at most the three healthiest mailboxes of the payer's list that the
+  payee reads, and the answer to the mailbox the payment was read on plus the two healthiest others,
+  so no one mailbox decides whether mail arrives. A mailbox
   host the user adds is probed first, and local and private hosts are refused. Links and
   payments name no mailbox, so a payer cannot be steered to one by a link.
 - **Invoices.** Through a mailbox, a wallet accepts an invoice only from a verified, paired contact
