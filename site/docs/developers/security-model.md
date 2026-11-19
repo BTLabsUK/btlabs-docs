@@ -154,8 +154,13 @@ user guide's [Tor](../users/tor.md) page.
   HKDF-SHA256, ChaCha20-Poly1305) and signed with Ed25519, so only the contact opens it and the
   sender is authenticated.
 - **epic1 addresses.** An epic1 address holds two public keys from the seed: a seal key that
-  payments are sealed to, and a delivery key that names its mailbox. It holds no signing key, and
-  its payments carry no payment proof.
+  payments are sealed to, and a delivery key that names its slot on every mailbox. It holds no
+  signing key, and its payments carry no payment proof. An account has one address, and a request
+  link only fills in the payer's Send screen, so the payee keeps no record of a link.
+- **Mailbox list.** A payment goes to every mailbox of the payer's list, and the answer goes to
+  every mailbox a copy was read on, so no one mailbox decides whether mail arrives. A mailbox
+  host the user adds is probed first, and local and private hosts are refused. Links and
+  payments name no mailbox, so a payer cannot be steered to one by a link.
 - **Invoices.** Through a mailbox, a wallet accepts an invoice only from a verified, paired contact
   the user allowed, sealed and signed by that contact. An invoice file can come from anyone.
   **Allow invoices** is a per-contact switch on the paying side, off by default, available once the

@@ -130,6 +130,17 @@ and a delivery key, 117 characters on mainnet, and its delivery key names its ma
 posts to the relays in its own settings. A link adds an amount, a message and up to three `http`
 or `tor` entries, and names no relay. The address holds no signing key.
 
+**0065 Mail goes where the receiver reads.** *Accepted.* A wallet has one mailbox list: the shipped
+mailboxes, plus the user's additions, minus the user's removals. A native message goes to every
+mailbox of the sender's list, to the mailbox on a contact's card, and, for an answer, to every
+mailbox a copy was read on. Links and payments name no mailbox. A payer who shares none with the
+payee fails at once with `NoSharedMailbox`.
+
+**0066 One epic1 address per account.** *Accepted.* Each account has one address, at index 0. The
+payment link is the address; a request link adds an amount, a message or both and only fills in
+the payer's Send screen. The payee stores nothing for a link, and any amount is taken. Numbered
+addresses and links of earlier builds are not read.
+
 ## Tor
 
 **0018 Tor on desktop through a bundled tor child process.** *Accepted; the onion key superseded

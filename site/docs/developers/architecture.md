@@ -147,7 +147,9 @@ app starts it with `set_delivery` after it opens the wallet. A cycle runs when t
 then every 30 seconds (`epicbox.collect_every_s` in the binding), and when a session has pushed
 mail, at most once a second. An app asks for one more with `delivery_wake`, for a pull to refresh.
 A lock ends the loop. A relay that does not offer `mux/1` is reported unreachable, and its
-mailboxes are not read. The same cycle posts the messages waiting in the outbox.
+mailboxes are not read. The relays (mailbox servers) are the wallet's one mailbox list: the shipped mailboxes plus the
+user's additions, minus the user's removals. A native message is posted to every one of them, and
+a relay's health is shown and never used to drop it from the list. The same cycle posts the messages waiting in the outbox.
 
 The relay holds a message until it is acknowledged, so a wallet collects what arrived while the
 app slept. How long a relay keeps a message is its own setting. LEPIC's
