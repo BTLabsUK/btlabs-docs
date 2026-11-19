@@ -31,17 +31,24 @@ does not create it on the other device.
 3. Both show the same four pictures while they link. There is nothing to tap: the app checks them.
 
 One other device can be linked: remove it to link a different one. **Pause sync** stops the notices;
-while paused, they wait on the servers for up to 7 days. Node only and Kill switch pause it too.
+while paused, they wait on the mailboxes for up to 7 days. Node only and Kill switch pause it too.
 
-Both devices answer payments to the address, and the sender takes the first answer. The payment shows
-once, as received on the device the sender used. A third app on the same recovery phrase is not
-supported: it hears nothing of the link, and its payments show once the chain confirms them.
+A third app on the same recovery phrase is not supported: it hears nothing of the link, and its
+payments show once the chain confirms them.
+
+### Two installs on one address
+
+Two installs on one recovery phrase share the one epic1 address. A mailbox has one reader at a
+time for it. The install that connected last reads; the other is replaced, and it connects again
+after 10 minutes. Mail that arrived in between is delivered again then. A payment the other
+install took shows as **Received on** the device's name when it is a linked device, or as
+**Received by another device**, with the amount only, when it is not.
 
 ## Security
 
 - **Own keys for each link.** They are made when the devices link and cannot be worked out from the
   recovery phrase alone.
-- **Encrypted end to end.** Only the linked devices can read a notice. The servers carry it and
+- **Encrypted end to end.** Only the linked devices can read a notice. The mailboxes carry it and
   cannot read it.
 - **Removing a device ends the link on both.** Either device can do it. Neither gets more notices,
   and the device that did not remove it shows who did.
@@ -52,8 +59,7 @@ supported: it hears nothing of the link, and its payments show once the chain co
 - **Only while the app is open.** Nothing syncs in the background. The app catches up when it
   starts, resumes, unlocks or refreshes.
 - **The chain decides.** A notice is a heads-up; a payment counts once the chain shows it.
-- **A server down delays notices.** Notices go through the first one or two servers of the Epicbox
-  list, shown under the device.
+- **A mailbox down delays notices.** Notices go through the mailboxes in the list.
 
 ## A lost device
 

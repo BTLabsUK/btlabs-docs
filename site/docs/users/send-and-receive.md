@@ -11,18 +11,23 @@ In Epic Cash both wallets take part in every payment (see
 ## Receive
 
 1. Open **Receive**.
-2. Copy the **Epicbox address**, or show its QR code, and give it to the person who pays.
+2. Copy the **epic1 address**, or show its QR code, and give it to the person who pays. To ask
+   for an amount, use **Ask for an amount**: it makes a request link.
 3. The payment shows up in Activity on its own.
 
-The Epicbox address is about 52 characters starting with `es`, then `@` and the name of the Epicbox
-server, for example `es…@epicbox.epiccash.com`. It is safe to share: people need it to
-pay you, and nobody can take anything with it.
+The epic1 address is one address for the account, 117 characters starting with `epic1`. It is safe
+to share: people need it to pay you, and nobody can take anything with it. See
+[epic1 addresses and links](epic1.md).
+
+With **Legacy Epicbox address** on, Receive also has the Legacy Epicbox address, about 52
+characters starting with `es`, then `@` and the name of the Epicbox server, for example
+`es…@epicbox.epiccash.com`. Stock Epic Cash wallets pay that address.
 
 - **Desktop:** receiving starts by itself after unlock, once the node is synced. If the wallet is
-  closed when someone pays, Epicbox holds the payment and the wallet collects it at the next
+  closed when someone pays, the mailbox holds the payment and the wallet collects it at the next
   unlock.
 - **Phone:** receiving works while the app is open and the node is synced. A payment sent while
-  the app is closed waits on the Epicbox server and arrives at the next unlock.
+  the app is closed waits on the mailbox and arrives at the next unlock.
 
 A new payment first waits for the sender's wallet to finish it, then shows as **Confirming**.
 After the set number of confirmations (6 by default) it can be spent.
@@ -37,7 +42,7 @@ After the set number of confirmations (6 by default) it can be spent.
 4. **Review** on the desktop, **Continue** on the phone, check, then **Send … EPIC**. The desktop asks
    for the wallet password, the phone for the PIN.
 
-Now the recipient's wallet has to answer. Over Epicbox they do not have to be online right now:
+Now the recipient's wallet has to answer. Through a mailbox they do not have to be online right now:
 the payment waits until their wallet opens. Meanwhile the outputs the send uses are locked, so
 they cannot be spent twice. When the answer comes back, the wallet finishes the transaction and
 posts it to the network by itself.
@@ -53,8 +58,8 @@ An address of a known exchange can bring up a hint: **Looks like an exchange add
 the message.** Exchanges may call the message the on-chain note. The hint does not change the
 address or the amount, and does not stop the send.
 
-Sending needs a synced node. An Epicbox address also needs the Epicbox server to answer; a Link
-address needs the recipient's wallet open and reachable at that moment.
+Sending needs a synced node. An epic1 address needs a mailbox that both wallets list; a Legacy
+Epicbox address needs its Epicbox server to answer; a Link address needs the recipient's wallet open and reachable at that moment.
 
 ## Payment links
 
@@ -66,7 +71,8 @@ A payment link opens by tapping, scanning, pasting or sharing, and fills in Send
 - **A plain `epic:` link**, for example
   `epic:<address>?amount=0.01&message=VEND-0026&require=message&min=0.01`. The desktop app registers
   `epic:` and `epiccash:` on every platform.
-- **An epic1 link**, `epic:epic1…`. It opens the epic1 payment. See
+- **An epic1 link**, `epic:epic1…`, a payment link or a request link. It opens the epic1 payment.
+  A request link fills in the amount and the message, and you can change both. See
   [epic1 addresses and links](epic1.md).
 
 ## Other ways to pay
@@ -74,7 +80,7 @@ A payment link opens by tapping, scanning, pasting or sharing, and fills in Send
 Send picks the method from the address in the To field. For the other methods, and when to use
 them, see [Payment methods](payment-methods.md):
 
-- **[epic1](epic1.md)**: an epic1 address or link, paid through the Epicbox servers both wallets use.
+- **[epic1](epic1.md)**: an epic1 address or link, paid through the mailboxes both wallets list.
 - **Link · HTTP** and **Link · Tor**: straight to the other wallet while it is open.
 - **Direct · File Transfer**: a transaction file passed by hand.
 - **Direct · QR Payment**: phone to phone, with an animated QR code.
