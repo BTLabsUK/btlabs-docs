@@ -19,8 +19,8 @@ hand (**Direct**).
 | **Direct · QR Payment** | side by side | none | phone |
 
 Each method has a switch under **Settings › Transactions** on the desktop and **Settings › Payments**
-on the phone. **Epicbox** and **epic1** are on by default. A method that is off does not appear on
-Send and Receive. **Default method** picks the method Send opens with; you can still change it for
+on the phone. The Epicbox switch is named **Legacy Epicbox address**; it and **epic1** are on by
+default. A method that is off does not appear on Send and Receive. **Default method** picks the method Send opens with; you can still change it for
 one payment. On a phone, **Link · HTTP** has no switch: it only sends, to any http(s) address you
 paste. Direct · File Transfer on the phone needs its switch in [Advanced](advanced.md).
 

@@ -32,12 +32,13 @@ Tor at its onion address when [Tor](tor.md) is on. Its former name, `flooepicbox
 is retired and takes no payments: a wallet that still has an address ending in it needs to switch
 to a current server and share the new address.
 
-## Turn Epicbox off
+## Turn off Legacy Epicbox address
 
-Epicbox is a switch under **Settings › Transactions** on the desktop and **Settings › Payments** on
-the phone. It covers the wallet's classic Epicbox address only. Off, the wallet does not read that
-address or send to Epicbox addresses, and Receive shows no Epicbox address. Payments sent to the
-address wait on the server until it is on again.
+**Legacy Epicbox address** is a switch under **Settings › Transactions** on the desktop and
+**Settings › Payments** on the phone. It covers the wallet's legacy Epicbox address only, the one
+stock Epic Cash wallets use. Off, the wallet does not read that address or send to legacy Epicbox
+addresses, and Receive shows no Epicbox address. Payments sent to the address wait on the server
+until the switch is on again.
 
 Contacts, linked devices, epic1 payments and pairing use mailboxes on the same servers and keep
 working with the switch off. **Node only** and **Kill switch** stop them; see
