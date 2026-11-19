@@ -122,8 +122,8 @@ cancelled**, the phone **This payment was cancelled.**
 
 If your list has no default mailbox, a payment can fail at once with **No shared mailbox**.
 Nothing was sent and no coins are locked. The step asks for the **Recipient's mailbox** (a host or
-host:port) and offers **Add and pay**. The mailbox is added to your list, then the payment is
-sent. **Cancel** returns to the review with your amount and message kept. A wallet that keeps a
+host:port) and offers **Add and pay**. The wallet tests the mailbox, adds it to your list, then
+sends the payment. If the test fails, **Add anyway and pay** adds it all the same. **Cancel** returns to the review with your amount and message kept. A wallet that keeps a
 default mailbox does not see this step.
 
 ### Turn it on or off
