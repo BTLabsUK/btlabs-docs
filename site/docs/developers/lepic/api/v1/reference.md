@@ -18,15 +18,15 @@ Every path below is relative to `/api/v1`. `Role` is the least role of an owner 
 ## Operations
 
 - **Service**: [`GET /status`](#get-status), [`GET /openapi.json`](#get-openapi-json)
-- **Wallet**: [`GET /wallet`](#get-wallet), [`PATCH /wallet`](#patch-wallet), [`PUT /wallet/password`](#put-wallet-password), [`POST /wallet/scan`](#post-wallet-scan), [`POST /sync`](#post-sync), [`POST /sync/boost`](#post-sync-boost), [`DELETE /sync/boost/{id}`](#delete-sync-boost-id), [`GET /accounts`](#get-accounts), [`POST /accounts`](#post-accounts)
+- **Wallet**: [`GET /wallet`](#get-wallet), [`PUT /wallet/password`](#put-wallet-password), [`POST /wallet/scan`](#post-wallet-scan), [`POST /sync`](#post-sync), [`POST /sync/boost`](#post-sync-boost), [`DELETE /sync/boost/{id}`](#delete-sync-boost-id), [`GET /accounts`](#get-accounts), [`POST /accounts`](#post-accounts)
 - **Payments**: [`GET /payments`](#get-payments), [`POST /payments`](#post-payments), [`POST /payments/estimate`](#post-payments-estimate), [`GET /payments/{id}`](#get-payments-id), [`PATCH /payments/{id}`](#patch-payments-id), [`POST /payments/{id}/approve`](#post-payments-id-approve), [`POST /payments/{id}/decline`](#post-payments-id-decline), [`POST /payments/{id}/deliver`](#post-payments-id-deliver), [`POST /payments/{id}/post`](#post-payments-id-post), [`POST /payments/{id}/cancel`](#post-payments-id-cancel), [`POST /payments/{id}/recover`](#post-payments-id-recover), [`GET /payments/{id}/handoff`](#get-payments-id-handoff)
 - **Inspect and open**: [`POST /inspect`](#post-inspect), [`POST /open`](#post-open)
 - **Coins**: [`GET /outputs`](#get-outputs), [`POST /outputs/consolidate`](#post-outputs-consolidate)
-- **Addresses and links**: [`GET /addresses`](#get-addresses), [`POST /addresses`](#post-addresses), [`GET /links`](#get-links), [`POST /links`](#post-links), [`POST /links/{id}/retire`](#post-links-id-retire)
+- **Addresses and links**: [`GET /addresses`](#get-addresses), [`POST /links`](#post-links)
 - **Contacts**: [`GET /contacts`](#get-contacts), [`POST /contacts`](#post-contacts), [`GET /contacts/{id}`](#get-contacts-id), [`PATCH /contacts/{id}`](#patch-contacts-id), [`DELETE /contacts/{id}`](#delete-contacts-id), [`POST /contacts/{id}/verify`](#post-contacts-id-verify), [`POST /contacts/{id}/check`](#post-contacts-id-check), [`POST /contacts/{id}/keys`](#post-contacts-id-keys), [`POST /contacts/{id}/move`](#post-contacts-id-move), [`POST /contacts/{id}/payloads`](#post-contacts-id-payloads), [`POST /contacts/export`](#post-contacts-export), [`POST /contacts/import`](#post-contacts-import)
 - **Payloads**: [`GET /payloads`](#get-payloads), [`DELETE /payloads/{id}`](#delete-payloads-id)
 - **Quarantine**: [`GET /quarantine`](#get-quarantine), [`POST /quarantine/{id}/retry`](#post-quarantine-id-retry), [`DELETE /quarantine/{id}`](#delete-quarantine-id)
-- **Network**: [`GET /relay`](#get-relay), [`POST /relay/move`](#post-relay-move), [`GET /node`](#get-node)
+- **Network**: [`GET /relay`](#get-relay), [`POST /relay/move`](#post-relay-move), [`GET /mailboxes`](#get-mailboxes), [`POST /mailboxes`](#post-mailboxes), [`POST /mailboxes/probe`](#post-mailboxes-probe), [`DELETE /mailboxes/{host}`](#delete-mailboxes-host), [`GET /node`](#get-node)
 - **Profile**: [`GET /profile`](#get-profile), [`PATCH /profile`](#patch-profile), [`GET /profile/domain-file`](#get-profile-domain-file)
 - **Events**: [`GET /events`](#get-events)
 - **Webhooks**: [`GET /webhook`](#get-webhook), [`POST /webhook/resume`](#post-webhook-resume)
@@ -63,7 +63,7 @@ Role: `read`.
 
 ### `GET /wallet` {#get-wallet}
 
-Network, chain height, node behind, scan progress, address issuing.
+Network, chain height, node behind, scan progress.
 
 Role: `read`.
 
@@ -73,25 +73,6 @@ Role: `read`.
 |---|---|
 | 200 | OK: [`Wallet`](#schema-wallet) |
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
-
-### `PATCH /wallet` {#patch-wallet}
-
-Make this install the one that issues new epic1 addresses.
-
-Role: `full`.
-
-Only `issues_addresses: true` is accepted.
-
-**Request body** (required, `application/json`): [`PatchWallet`](#schema-patchwallet)
-
-**Responses**
-
-| Status | Meaning |
-|---|---|
-| 200 | OK: [`Wallet`](#schema-wallet) |
-| 400 | Bad input |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
-| 409 | Conflict with the object's state or an idempotency key |
 
 ### `PUT /wallet/password` {#put-wallet-password}
 
@@ -235,7 +216,7 @@ List payments, newest first.
 
 Role: `read`.
 
-Newest first. `state`, `kind`, `direction`, `via`, `account`, `contact_id`, `link_id`, `delivery` and `updated_after` filter the list.
+Newest first. `state`, `kind`, `direction`, `via`, `account`, `contact_id`, `delivery` and `updated_after` filter the list.
 
 | Parameter | In | Type | Description |
 |---|---|---|---|
@@ -245,7 +226,6 @@ Newest first. `state`, `kind`, `direction`, `via`, `account`, `contact_id`, `lin
 | `direction` | query | one of `in`, `out`, `self` |  |
 | `via` | query | one of `epicbox`, `http`, `tor`, `contact`, `link`, `in_person`, `file`, `peer`, `chain` |  |
 | `contact_id` | query | `string` |  |
-| `link_id` | query | `string` (pattern ^[0-9]+\.[0-9]+$) | `<account>.<index>`, as `GET /links` lists it. |
 | `delivery` | query | one of `queued`, `sent`, `uncertain`, `held`, `failed`, `refused`, `by_hand` | Delivery state. |
 | `updated_after` | query | `string` (date-time) |  |
 | `limit` | query | `integer` (1..500, default 50) | Page size. |
@@ -269,7 +249,7 @@ Role: at least `receive`.
 
 Starts a send (`kind: send`, default) or an invoice (`kind: invoice`). Returns 201, or 200 with the stored payment on an idempotent repeat (same `id`, same body). A different body with the same `id` is 409 `idempotency_mismatch`; a repeat while the first call runs is 409 `in_progress` with `Retry-After`. A payment with an `id` goes on being made when the caller leaves, and a repeat after it ends answers 200 with its `handoff`. A create that serve's stop cuts short answers 503 `interrupted`, its record is kept, and a repeat makes the payment. Such payments count against `api.max_connections` while they are made; over it a new create answers 503 `busy` with `Retry-After` and makes and keeps nothing. A repeat of a payment that exists is answered at any count. Over owner TLS `id` is required. A send needs the `full` role; an invoice needs `receive`.
 
-`to` forms: `key@host` (Epicbox address), `http://` or `https://` URL, `.onion` address, `epic:` link, `contact:ID`, `account:LABEL`. An `epic:` link carries its amount and message: a classic one (`epic:ADDRESS?amount=&message=`) is paid to its address, an epic1 link as `lepic epic1 pay` pays it. An invoice goes to `contact:ID` or is handed back (`via: file` or `deliver: false`); to an address or a classic `epic:` link it is 400 `invoice_to_address` and nothing is stored, to an epic1 link 400 `invalid_field`.
+`to` forms: `key@host` (Epicbox address), `http://` or `https://` URL, `.onion` address, `epic:` link, `contact:ID`, `account:LABEL`. An `epic:` link carries its amount and message: a classic one (`epic:ADDRESS?amount=&message=`) is paid to its address, at its amount only, and an epic1 link as `lepic epic1 pay` pays it, at the body's `amount` and `message` when given and at the link's otherwise. An invoice goes to `contact:ID` or is handed back (`via: file` or `deliver: false`); to an address or a classic `epic:` link it is 400 `invoice_to_address` and nothing is stored, to an epic1 link 400 `invalid_field`.
 
 **Request body** (required, `application/json`): [`CreatePayment`](#schema-createpayment)
 
@@ -639,11 +619,12 @@ Your addresses.
 
 Role: `read`.
 
+The epic1 address of each account, and the legacy Epicbox address, which belongs to the default account. `used` is always `false`.
+
 | Parameter | In | Type | Description |
 |---|---|---|---|
 | `account` | query | `string` |  |
 | `type` | query | one of `epicbox`, `epic1`, `onion`, `http` |  |
-| `index` | query | `integer` |  |
 | `limit` | query | `integer` (1..500, default 50) | Page size. |
 | `cursor` | query | `string` | Opaque cursor from `next_cursor`. Other query parameters must stay the same across pages. |
 
@@ -655,50 +636,13 @@ Role: `read`.
 | 400 | Bad input |
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 
-### `POST /addresses` {#post-addresses}
-
-Issue the next numbered epic1 address of an account.
-
-Role: `receive`.
-
-**Request body** (optional, `application/json`): [`CreateAddress`](#schema-createaddress)
-
-**Responses**
-
-| Status | Meaning |
-|---|---|
-| 201 | Created: [`Address`](#schema-address) |
-| 400 | Bad input |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
-| 409 | Conflict with the object's state or an idempotency key |
-| 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
-
-### `GET /links` {#get-links}
-
-Your epic1 links whose mailboxes are read.
-
-Role: `read`.
-
-| Parameter | In | Type | Description |
-|---|---|---|---|
-| `limit` | query | `integer` (1..500, default 50) | Page size. |
-| `cursor` | query | `string` | Opaque cursor from `next_cursor`. Other query parameters must stay the same across pages. |
-
-**Responses**
-
-| Status | Meaning |
-|---|---|
-| 200 | OK: [`LinkList`](#schema-linklist) |
-| 400 | Bad input |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
-
 ### `POST /links` {#post-links}
 
-Make a link for the next numbered epic1 address of an account.
+Make a request link: the epic1 address of an account with an amount and a message.
 
 Role: `receive`.
 
-The link's `id` is `<account>.<index>`, the account and the index of its address. 409 `too_many_open` when the account has 256 open numbered addresses, from this create and `POST /addresses`. A link is retired with `POST /links/{id}/retire`, an address made by `POST /addresses` with the CLI, `lepic epic1 retire N`.
+Stores nothing: the same body gives the same link. A payment to the link arrives at the account's epic1 address with the payer's amount and message; the wallet does not match it to the link.
 
 **Request body** (optional, `application/json`): [`CreateLink`](#schema-createlink)
 
@@ -706,30 +650,11 @@ The link's `id` is `<account>.<index>`, the account and the index of its address
 
 | Status | Meaning |
 |---|---|
-| 200 | Idempotent repeat: the stored link: [`Link`](#schema-link) |
-| 201 | Created: [`Link`](#schema-link) |
+| 200 | The link: [`Link`](#schema-link) |
 | 400 | Bad input |
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 | 409 | Conflict with the object's state or an idempotency key |
 | 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
-
-### `POST /links/{id}/retire` {#post-links-id-retire}
-
-Retire a link: its open address closes and its delivery mailbox is read no more.
-
-Role: `receive`.
-
-| Parameter | In | Type | Description |
-|---|---|---|---|
-| `id` | path (required) | `string` (pattern ^[0-9]+\.[0-9]+$) | `<account>.<index>`, as `GET /links` lists it. |
-
-**Responses**
-
-| Status | Meaning |
-|---|---|
-| 200 | OK: [`Link`](#schema-link) |
-| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
-| 404 | Not found |
 
 ## Contacts
 
@@ -1133,6 +1058,85 @@ Role: `full`.
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
 | 504 | The node or a relay timed out |
 
+### `GET /mailboxes` {#get-mailboxes}
+
+The mailbox list native mail goes to, each with its origin and health.
+
+Role: `read`.
+
+The shipped mailboxes left after the user's removals, then the ones the user added, in the order sessions use them. The health is what serve's sessions saw since serve started: a mailbox not tried yet has no `last_success_at` and `failures` 0.
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| 200 | OK: [`Mailboxes`](#schema-mailboxes) |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+
+### `POST /mailboxes` {#post-mailboxes}
+
+Test a mailbox and add it to the list; `anyway` adds it when the test fails.
+
+Role: `full`.
+
+Tests the mailbox first: a TLS connection, its greeting, and push. A failed test is 502 `mailbox_test_failed` and nothing changes, unless `anyway` is true. Adding a shipped mailbox the user removed puts it back. The change is written to the settings file (`[mailboxes] added` and `removed`) and serve's sessions follow it without a restart. 201 when the mailbox was added, 200 when it was in the list already. 400 `mailbox_invalid` at `/host` when the host is not a domain name with an optional port, 400 `mailbox_not_public` at `/host` for this device, an address or a private network's name, 409 `mailbox_list_full` when the list holds 16. 409 `config` when serve runs without a settings file.
+
+**Request body** (required, `application/json`): [`AddMailbox`](#schema-addmailbox)
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| 200 | In the list already: [`MailboxAdded`](#schema-mailboxadded) |
+| 201 | Added: [`MailboxAdded`](#schema-mailboxadded) |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 409 | Conflict with the object's state or an idempotency key |
+| 502 | The node or a relay failed |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+| 504 | The node or a relay timed out |
+
+### `POST /mailboxes/probe` {#post-mailboxes-probe}
+
+Test one mailbox: TLS, greeting and push. Changes nothing.
+
+Role: `read`.
+
+One connection over the wallet's relay route (Tor when the wallet uses it), greeted and closed. A step after a failed one is `not_reached`. The answer is 200 whether the test passed or not; read `passed`.
+
+**Request body** (required, `application/json`): [`ProbeMailbox`](#schema-probemailbox)
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| 200 | OK: [`MailboxProbe`](#schema-mailboxprobe) |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
+
+### `DELETE /mailboxes/{host}` {#delete-mailboxes-host}
+
+Take a mailbox off the list.
+
+Role: `full`.
+
+A shipped mailbox is marked removed; an added one leaves the list. Written to the settings file and followed by serve's sessions without a restart. Answers the list after the change. 404 `not_found` when the mailbox is not in the list, 409 `last_mailbox` when it is the last one.
+
+| Parameter | In | Type | Description |
+|---|---|---|---|
+| `host` | path (required) | `string` | The mailbox: `domain` or `domain:port`; the port is left out when it is the default one. |
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| 200 | OK: [`Mailboxes`](#schema-mailboxes) |
+| 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
+
 ### `GET /node` {#get-node}
 
 The node's version, tip and whether it is in sync.
@@ -1240,7 +1244,7 @@ Role: `full`.
 
 The webhook is set in the settings (`webhook_url`), not here. 404 `not_found` when none is set.
 
-Settings: `webhook_url` (`https://` only), `webhook_secret_file` (owner-only, one `whsec_` secret per line, read before each delivery), `webhook_types` (as `GET /events` takes them; all when unset) and `webhook_allow_private` (allows `http://` and private addresses). Each request is one event with Standard Webhooks headers: `webhook-id` (`evt_` 16 hex digits `_` event id, the same on a retry), `webhook-timestamp` (Unix seconds) and `webhook-signature` (`v1,` base64 HMAC-SHA256 of `id.timestamp.body` per secret, space-separated). `data.object` holds only `id`, `kind`, `direction`, `state`, `state_reason`, `account`, `amount`, `fee`, `link_id`, `message`, `their_message`, `purpose`, `metadata`, `confirmations`, `confirmed_height`, `expires_at_height`, `created_at` and `updated_at`.
+Settings: `webhook_url` (`https://` only), `webhook_secret_file` (owner-only, one `whsec_` secret per line, read before each delivery), `webhook_types` (as `GET /events` takes them; all when unset) and `webhook_allow_private` (allows `http://` and private addresses). Each request is one event with Standard Webhooks headers: `webhook-id` (`evt_` 16 hex digits `_` event id, the same on a retry), `webhook-timestamp` (Unix seconds) and `webhook-signature` (`v1,` base64 HMAC-SHA256 of `id.timestamp.body` per secret, space-separated). `data.object` holds only `id`, `kind`, `direction`, `state`, `state_reason`, `account`, `amount`, `fee`, `message`, `their_message`, `purpose`, `metadata`, `confirmations`, `confirmed_height`, `expires_at_height`, `created_at` and `updated_at`.
 
 A 2xx within 10 s (5 s to connect) is delivered; a redirect, another status, a timeout or a dropped connection fails. One request at a time, in id order, at most 10 a second. A failed event is retried after 5 s, 5 min, 30 min, 2 h, 5 h, 10 h and 10 h, each plus or minus 20 %, then the state is `disabled`. The cursor and schedule survive a restart.
 
@@ -1321,7 +1325,6 @@ Errors are RFC 9457 problem documents (`application/problem+json`), the [`Proble
 | `our_address` | `object` |  | Which of our addresses it reached. |
 | `our_address.type` | one of `epicbox`, `epic1`, `listing` | yes |  |
 | `our_address.index` | `integer` |  |  |
-| `link_id` | `string` |  | For a payment taken at one of this wallet's epic1 links: the link's id, as `GET /links` lists it. An account issues each index once, so a link id is never used again. |
 | `purpose` | one of `payment`, `deposit`, `withdrawal`, `refund`, `request` |  | Set by the sender, between contacts. |
 | `message` | `string` |  | Ours. |
 | `their_message` | `string` |  |  |
@@ -1359,30 +1362,14 @@ Errors are RFC 9457 problem documents (`application/problem+json`), the [`Proble
 | `index` | `integer` | yes |  |
 | `balance` | [`Balance`](#schema-balance) | yes |  |
 
-### Address {#schema-address}
-
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `type` | one of `epicbox`, `epic1`, `onion`, `http` | yes |  |
-| `text` | `string` | yes |  |
-| `account` | `string` | yes |  |
-| `index` | `integer` |  |  |
-| `issued_at` | `string` (date-time) |  |  |
-| `used` | `boolean` | yes | Always `false`. |
-
 ### Link {#schema-link}
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `id` | `string` | yes | `<account>.<index>`: the account and the index of the epic1 address the link is. |
 | `text` | `string` | yes | The `epic:` link. |
 | `account` | `string` | yes |  |
 | `amount` | [`Decimal`](#schema-decimal) |  | EPIC amount as a decimal string |
 | `message` | `string` |  |  |
-| `issued_at` | `string` (date-time) | yes |  |
-| `last_paid_at` | `string` (date-time) |  |  |
-| `retired_at` | `string` (date-time) |  |  |
-| `metadata` | map of `string` |  |  |
 
 ### Contact {#schema-contact}
 
@@ -1460,7 +1447,6 @@ Errors are RFC 9457 problem documents (`application/problem+json`), the [`Proble
 | `network` | `string` | yes |  |
 | `height` | `integer` | yes |  |
 | `node_behind` | `boolean` | yes |  |
-| `issues_addresses` | `boolean` | yes |  |
 | `scan` | `object` |  |  |
 | `scan.state` | one of `running`, `done`, `failed` | yes |  |
 | `scan.height` | `integer` | yes |  |
@@ -1615,13 +1601,6 @@ InspectRequest plus `expect`, `message`, `deliver`.
 | `items` | array of [`Address`](#schema-address) | yes |  |
 | `next_cursor` | `string` |  | Absent on the last page. |
 
-### LinkList {#schema-linklist}
-
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `items` | array of [`Link`](#schema-link) | yes |  |
-| `next_cursor` | `string` |  | Absent on the last page. |
-
 ### ContactList {#schema-contactlist}
 
 | Field | Type | Required | Description |
@@ -1668,8 +1647,9 @@ Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unl
 | `to` | `string` |  | Destination. Forms: `key@host` (Epicbox address); `http://` or `https://` URL; `.onion` address; `epic:` link (classic or epic1); `contact:ID`; `account:LABEL` (own account), which serve refuses with 400 `invalid_field` at `/to`. Without `to`, `via` must be `file`, or `deliver` must be `false`. |
 | `via` | one of `epicbox`, `http`, `tor`, `contact`, `link`, `in_person`, `file`, `peer`, `chain` |  | Route. Same values as Payment.via; `file` produces a handoff. Serve refuses `in_person`, `link`, `peer` and `chain` here with 400 `invalid_field` at `/via`. |
 | `account` | `string` |  | Account label; default account when absent. |
-| `amount` | [`Decimal`](#schema-decimal) or one of `max` |  | Amount, or the string `max` (estimate only). May be left out when `to` is an `epic:` link that names one; if both name one, they must be equal (400 `invalid_field` at `/amount`). |
-| `message` | `string` |  | Signed into the slate, at most 256 bytes. Shows as `message` on this payment and as `their_message` on the other party's, an invoice to a contact included. |
+| `amount` | [`Decimal`](#schema-decimal) or one of `max` |  | Amount, or the string `max` (estimate only). May be left out when `to` is an `epic:` link that names one. For a classic link, if both name one they must be equal (400 `invalid_field` at `/amount`); an epic1 link is paid the amount given. |
+| `message` | `string` |  | Signed into the slate, at most 256 bytes. Shows as `message` on this payment and as `their_message` on the other party's, an invoice to a contact included. For an epic1 link, left out means the link's message, and an empty string or only spaces means no message. |
+| `mailboxes` | array of `string` |  | For an epic1 payment to the payee's mailbox: the mailboxes it is posted through in place of the wallet's list, each `domain` or `domain:port`. 400 `invalid_field` at `/mailboxes` for any other payment or a host that is not a public name. 422 `no_shared_mailbox` when the payee's address names none of the wallet's shipped mailboxes and no `mailboxes` is given. |
 | `min_confirmations` | `integer` |  |  |
 | `selection` | one of `all`, `smallest` |  |  |
 | `change_outputs` | `integer` |  | Number of change outputs; `account:default` with 3 splits coins. |
@@ -1715,12 +1695,6 @@ Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unl
 | `node` | `boolean` (default true) |  |  |
 | `relays` | `boolean` (default true) |  |  |
 
-### PatchWallet {#schema-patchwallet}
-
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `issues_addresses` | `boolean` (always true) | yes | Only `true` is accepted. |
-
 ### ChangePassword {#schema-changepassword}
 
 | Field | Type | Required | Description |
@@ -1765,17 +1739,10 @@ Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unl
 | `relay` | `string` |  | Not supported: 400 `invalid_field`. A delivery goes to the payment's own address. |
 | `to` | `string` |  | Not supported: 400 `invalid_field`. A delivery goes to the payment's own address. |
 
-### CreateAddress {#schema-createaddress}
-
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `account` | `string` |  | Account label; default account when absent. |
-
 ### CreateLink {#schema-createlink}
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `id` | `string` |  |  |
 | `account` | `string` |  |  |
 | `amount` | [`Decimal`](#schema-decimal) |  | EPIC amount as a decimal string |
 | `message` | `string` |  |  |
@@ -1842,6 +1809,45 @@ Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unl
 |---|---|---|---|
 | `host` | `string` | yes | The relay the user was shown; must equal the contact's `requested_relay`. |
 | `accept` | `boolean` (default true) |  |  |
+
+### Mailboxes {#schema-mailboxes}
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `mailboxes` | array of [`Mailbox`](#schema-mailbox) | yes |  |
+
+### MailboxProbe {#schema-mailboxprobe}
+
+`tls`: the connection, its TLS handshake and the websocket upgrade; `greeting`: the mailbox answered the greeting; `push`: it offers push, which the wallet reads by.
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `host` | `string` | yes | `domain` or `domain:port`; the port is left out when it is the default one. |
+| `tls` | [`ProbeStep`](#schema-probestep) | yes |  |
+| `greeting` | [`ProbeStep`](#schema-probestep) | yes |  |
+| `push` | [`ProbeStep`](#schema-probestep) | yes |  |
+| `passed` | `boolean` | yes | Every step passed. |
+
+### MailboxAdded {#schema-mailboxadded}
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `added` | `boolean` | yes | False when the mailbox was in the list already; nothing was written. |
+| `probe` | [`MailboxProbe`](#schema-mailboxprobe) | yes | `tls`: the connection, its TLS handshake and the websocket upgrade; `greeting`: the mailbox answered the greeting; `push`: it offers push, which the wallet reads by. |
+| `mailboxes` | array of [`Mailbox`](#schema-mailbox) | yes | The list after the change. |
+
+### AddMailbox {#schema-addmailbox}
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `host` | `string` | yes | `domain` or `domain:port`; the port is left out when it is the default one. |
+| `anyway` | `boolean` (default false) |  | Add the mailbox when its test fails. |
+
+### ProbeMailbox {#schema-probemailbox}
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `host` | `string` | yes | `domain` or `domain:port`; the port is left out when it is the default one. |
 
 ### MoveRelay {#schema-moverelay}
 
@@ -1961,6 +1967,15 @@ The pushes of the payment's transaction to the node, by this wallet or a refresh
 | `coinbase` | `boolean` | yes |  |
 | `payment_id` | `string` (uuid) |  |  |
 
+### Address {#schema-address}
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `type` | one of `epicbox`, `epic1`, `onion`, `http` | yes |  |
+| `text` | `string` | yes |  |
+| `account` | `string` | yes |  |
+| `used` | `boolean` | yes | Always `false`. |
+
 ### Payload {#schema-payload}
 
 | Field | Type | Required | Description |
@@ -1996,3 +2011,21 @@ The pushes of the payment's transaction to the node, by this wallet or a refresh
 | `data.height` | `integer` |  | `wallet.progress`: the height scanned to. |
 | `data.target_height` | `integer` |  | `wallet.progress`: the height the scan runs to. |
 | `data.count` | `integer` |  | `events.skipped`: how many events the reader missed. |
+
+### Mailbox {#schema-mailbox}
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `host` | `string` | yes | `domain` or `domain:port`; the port is left out when it is the default one. |
+| `origin` | one of `shipped`, `added` | yes | `shipped`: in the list the wallet came with; `added`: added by the user. |
+| `push` | `boolean` |  | Whether the mailbox offered push at its last greeting; left out before any answer. |
+| `last_success_at` | `string` (date-time) |  | When a session last attached to it; left out when none has since serve started. |
+| `failures` | `integer` | yes | Sessions lost since the last success. |
+| `last_error` | `string` |  |  |
+
+### ProbeStep {#schema-probestep}
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `result` | one of `passed`, `failed`, `not_reached` | yes |  |
+| `error` | `string` |  | Why the step failed. |

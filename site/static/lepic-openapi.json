@@ -3,7 +3,7 @@
   "info": {
     "title": "LEPIC wallet API",
     "version": "1.0.0",
-    "description": "HTTP API of `lepic serve` for one LEPIC wallet.\n**One wallet per serve.** Every path is relative to `/api/v1` and names no wallet. To serve several wallets, run one `lepic serve` per wallet, each with its own socket and port.\n\n**Transports.** Two ways in. The Unix socket `lepic.sock` is created with owner-only permissions (mode 0600); there are no tokens, and OpenAPI cannot express it, so it has no security scheme here. Optional mutual TLS 1.3 (`--owner-tls`) admits clients listed in `api-clients` by key (`ownerTls`), each with one role: `read`, `receive` (also create invoices, addresses and links; a `receive` client is refused calls that spend, with 403 `role_required`) or `full`. A call above a client role answers 403 with code `role_required`. The socket is always `full`. Operations marked `x-socket-only: true` (`PUT /wallet/password`, `POST /contacts/export`, `POST /contacts/import`) answer 403 with code `socket_only` over TLS. Over TLS, `POST /payments` needs a caller-chosen `id`.\n\n**Wire protocols outside this API.** `/v2/foreign` (stock wallets, JSON-RPC) and `/api/v1/inbox` (LEPIC native) are the endpoints other wallets call. They are wire protocols and are not described here.\n\n**Conventions.** Field names are snake_case; amounts are decimal strings in EPIC with up to 8 decimals; times are RFC 3339 UTC; optional fields are left out when empty, never null; enum values are lower snake_case and clients must accept values they do not know. Lists return `{items, next_cursor}`. Errors are RFC 9457 problem documents. Besides the statuses each operation lists, any call may answer 408 `body_too_slow` or 413 `body_too_large` while serve reads its body, and 500 `internal` on a bug. On the socket, a request that carries the `x-lepic-*` headers of a forwarded CLI command answers 409 `serve_version_differs` or `serve_settings_differ` when they name another version or other settings than serve runs with; other clients do not send them. Every response carries `x-lepic-version`."
+    "description": "HTTP API of `lepic serve` for one LEPIC wallet.\n**One wallet per serve.** Every path is relative to `/api/v1` and names no wallet. To serve several wallets, run one `lepic serve` per wallet, each with its own socket and port.\n\n**Transports.** Two ways in. The Unix socket `lepic.sock` is created with owner-only permissions (mode 0600); there are no tokens, and OpenAPI cannot express it, so it has no security scheme here. Optional mutual TLS 1.3 (`--owner-tls`) admits clients listed in `api-clients` by key (`ownerTls`), each with one role: `read`, `receive` (also create invoices and links; a `receive` client is refused calls that spend, with 403 `role_required`) or `full`. A call above a client role answers 403 with code `role_required`. The socket is always `full`. Operations marked `x-socket-only: true` (`PUT /wallet/password`, `POST /contacts/export`, `POST /contacts/import`) answer 403 with code `socket_only` over TLS. Over TLS, `POST /payments` needs a caller-chosen `id`.\n\n**Wire protocols outside this API.** `/v2/foreign` (stock wallets, JSON-RPC) and `/api/v1/inbox` (LEPIC native) are the endpoints other wallets call. They are wire protocols and are not described here.\n\n**Conventions.** Field names are snake_case; amounts are decimal strings in EPIC with up to 8 decimals; times are RFC 3339 UTC; optional fields are left out when empty, never null; enum values are lower snake_case and clients must accept values they do not know. Lists return `{items, next_cursor}`. Errors are RFC 9457 problem documents. Besides the statuses each operation lists, any call may answer 408 `body_too_slow` or 413 `body_too_large` while serve reads its body, and 500 `internal` on a bug. On the socket, a request that carries the `x-lepic-*` headers of a forwarded CLI command answers 409 `serve_version_differs` or `serve_settings_differ` when they name another version or other settings than serve runs with; other clients do not send them. Every response carries `x-lepic-version`."
   },
   "servers": [
     {
@@ -126,7 +126,7 @@
       "get": {
         "operationId": "getWallet",
         "x-role": "read",
-        "summary": "Network, chain height, node behind, scan progress, address issuing.",
+        "summary": "Network, chain height, node behind, scan progress.",
         "tags": [
           "Wallet"
         ],
@@ -145,46 +145,6 @@
             "$ref": "#/components/responses/Forbidden"
           }
         }
-      },
-      "patch": {
-        "operationId": "updateWallet",
-        "x-role": "full",
-        "summary": "Make this install the one that issues new epic1 addresses.",
-        "tags": [
-          "Wallet"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PatchWallet"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Wallet"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "409": {
-            "$ref": "#/components/responses/Conflict"
-          }
-        },
-        "description": "Only `issues_addresses: true` is accepted."
       }
     },
     "/wallet/password": {
@@ -520,15 +480,6 @@
             }
           },
           {
-            "name": "link_id",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "pattern": "^[0-9]+\\.[0-9]+$"
-            },
-            "description": "`<account>.<index>`, as `GET /links` lists it."
-          },
-          {
             "name": "delivery",
             "in": "query",
             "schema": {
@@ -569,7 +520,7 @@
             "$ref": "#/components/responses/Forbidden"
           }
         },
-        "description": "Newest first. `state`, `kind`, `direction`, `via`, `account`, `contact_id`, `link_id`, `delivery` and `updated_after` filter the list."
+        "description": "Newest first. `state`, `kind`, `direction`, `via`, `account`, `contact_id`, `delivery` and `updated_after` filter the list."
       },
       "post": {
         "operationId": "createPayment",
@@ -579,7 +530,7 @@
         "tags": [
           "Payments"
         ],
-        "description": "Starts a send (`kind: send`, default) or an invoice (`kind: invoice`). Returns 201, or 200 with the stored payment on an idempotent repeat (same `id`, same body). A different body with the same `id` is 409 `idempotency_mismatch`; a repeat while the first call runs is 409 `in_progress` with `Retry-After`. A payment with an `id` goes on being made when the caller leaves, and a repeat after it ends answers 200 with its `handoff`. A create that serve's stop cuts short answers 503 `interrupted`, its record is kept, and a repeat makes the payment. Such payments count against `api.max_connections` while they are made; over it a new create answers 503 `busy` with `Retry-After` and makes and keeps nothing. A repeat of a payment that exists is answered at any count. Over owner TLS `id` is required. A send needs the `full` role; an invoice needs `receive`.\n\n`to` forms: `key@host` (Epicbox address), `http://` or `https://` URL, `.onion` address, `epic:` link, `contact:ID`, `account:LABEL`. An `epic:` link carries its amount and message: a classic one (`epic:ADDRESS?amount=&message=`) is paid to its address, an epic1 link as `lepic epic1 pay` pays it. An invoice goes to `contact:ID` or is handed back (`via: file` or `deliver: false`); to an address or a classic `epic:` link it is 400 `invoice_to_address` and nothing is stored, to an epic1 link 400 `invalid_field`.",
+        "description": "Starts a send (`kind: send`, default) or an invoice (`kind: invoice`). Returns 201, or 200 with the stored payment on an idempotent repeat (same `id`, same body). A different body with the same `id` is 409 `idempotency_mismatch`; a repeat while the first call runs is 409 `in_progress` with `Retry-After`. A payment with an `id` goes on being made when the caller leaves, and a repeat after it ends answers 200 with its `handoff`. A create that serve's stop cuts short answers 503 `interrupted`, its record is kept, and a repeat makes the payment. Such payments count against `api.max_connections` while they are made; over it a new create answers 503 `busy` with `Retry-After` and makes and keeps nothing. A repeat of a payment that exists is answered at any count. Over owner TLS `id` is required. A send needs the `full` role; an invoice needs `receive`.\n\n`to` forms: `key@host` (Epicbox address), `http://` or `https://` URL, `.onion` address, `epic:` link, `contact:ID`, `account:LABEL`. An `epic:` link carries its amount and message: a classic one (`epic:ADDRESS?amount=&message=`) is paid to its address, at its amount only, and an epic1 link as `lepic epic1 pay` pays it, at the body's `amount` and `message` when given and at the link's otherwise. An invoice goes to `contact:ID` or is handed back (`via: file` or `deliver: false`); to an address or a classic `epic:` link it is 400 `invoice_to_address` and nothing is stored, to an epic1 link 400 `invalid_field`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -1386,13 +1337,6 @@
             }
           },
           {
-            "name": "index",
-            "in": "query",
-            "schema": {
-              "type": "integer"
-            }
-          },
-          {
             "$ref": "#/components/parameters/limit"
           },
           {
@@ -1416,90 +1360,15 @@
           "403": {
             "$ref": "#/components/responses/Forbidden"
           }
-        }
-      },
-      "post": {
-        "operationId": "createAddress",
-        "x-role": "receive",
-        "summary": "Issue the next numbered epic1 address of an account.",
-        "tags": [
-          "Addresses and links"
-        ],
-        "requestBody": {
-          "required": false,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateAddress"
-              }
-            }
-          }
         },
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Address"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "409": {
-            "$ref": "#/components/responses/Conflict"
-          },
-          "422": {
-            "$ref": "#/components/responses/Unprocessable"
-          }
-        }
+        "description": "The epic1 address of each account, and the legacy Epicbox address, which belongs to the default account. `used` is always `false`."
       }
     },
     "/links": {
-      "get": {
-        "operationId": "listLinks",
-        "x-role": "read",
-        "summary": "Your epic1 links whose mailboxes are read.",
-        "tags": [
-          "Addresses and links"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/limit"
-          },
-          {
-            "$ref": "#/components/parameters/cursor"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LinkList"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          }
-        }
-      },
       "post": {
         "operationId": "createLink",
         "x-role": "receive",
-        "summary": "Make a link for the next numbered epic1 address of an account.",
+        "summary": "Make a request link: the epic1 address of an account with an amount and a message.",
         "tags": [
           "Addresses and links"
         ],
@@ -1515,17 +1384,7 @@
         },
         "responses": {
           "200": {
-            "description": "Idempotent repeat: the stored link.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Link"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Created",
+            "description": "The link.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1547,40 +1406,7 @@
             "$ref": "#/components/responses/Unprocessable"
           }
         },
-        "description": "The link's `id` is `<account>.<index>`, the account and the index of its address. 409 `too_many_open` when the account has 256 open numbered addresses, from this create and `POST /addresses`. A link is retired with `POST /links/{id}/retire`, an address made by `POST /addresses` with the CLI, `lepic epic1 retire N`."
-      }
-    },
-    "/links/{id}/retire": {
-      "post": {
-        "operationId": "retireLink",
-        "x-role": "receive",
-        "summary": "Retire a link: its open address closes and its delivery mailbox is read no more.",
-        "tags": [
-          "Addresses and links"
-        ],
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/LinkId"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Link"
-                }
-              }
-            }
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          }
-        }
+        "description": "Stores nothing: the same body gives the same link. A payment to the link arrives at the account's epic1 address with the payer's amount and message; the wallet does not match it to the link."
       }
     },
     "/contacts": {
@@ -2407,6 +2233,173 @@
         }
       }
     },
+    "/mailboxes": {
+      "get": {
+        "operationId": "listMailboxes",
+        "x-role": "read",
+        "summary": "The mailbox list native mail goes to, each with its origin and health.",
+        "tags": [
+          "Network"
+        ],
+        "description": "The shipped mailboxes left after the user's removals, then the ones the user added, in the order sessions use them. The health is what serve's sessions saw since serve started: a mailbox not tried yet has no `last_success_at` and `failures` 0.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mailboxes"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "post": {
+        "operationId": "addMailbox",
+        "x-role": "full",
+        "summary": "Test a mailbox and add it to the list; `anyway` adds it when the test fails.",
+        "tags": [
+          "Network"
+        ],
+        "description": "Tests the mailbox first: a TLS connection, its greeting, and push. A failed test is 502 `mailbox_test_failed` and nothing changes, unless `anyway` is true. Adding a shipped mailbox the user removed puts it back. The change is written to the settings file (`[mailboxes] added` and `removed`) and serve's sessions follow it without a restart. 201 when the mailbox was added, 200 when it was in the list already. 400 `mailbox_invalid` at `/host` when the host is not a domain name with an optional port, 400 `mailbox_not_public` at `/host` for this device, an address or a private network's name, 409 `mailbox_list_full` when the list holds 16. 409 `config` when serve runs without a settings file.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddMailbox"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "In the list already",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxAdded"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxAdded"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "504": {
+            "$ref": "#/components/responses/GatewayTimeout"
+          }
+        }
+      }
+    },
+    "/mailboxes/probe": {
+      "post": {
+        "operationId": "probeMailbox",
+        "x-role": "read",
+        "summary": "Test one mailbox: TLS, greeting and push. Changes nothing.",
+        "tags": [
+          "Network"
+        ],
+        "description": "One connection over the wallet's relay route (Tor when the wallet uses it), greeted and closed. A step after a failed one is `not_reached`. The answer is 200 whether the test passed or not; read `passed`.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProbeMailbox"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MailboxProbe"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/mailboxes/{host}": {
+      "delete": {
+        "operationId": "removeMailbox",
+        "x-role": "full",
+        "summary": "Take a mailbox off the list.",
+        "tags": [
+          "Network"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/MailboxHost"
+          }
+        ],
+        "description": "A shipped mailbox is marked removed; an added one leaves the list. Written to the settings file and followed by serve's sessions without a restart. Answers the list after the change. 404 `not_found` when the mailbox is not in the list, 409 `last_mailbox` when it is the last one.",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Mailboxes"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
     "/node": {
       "get": {
         "operationId": "getNode",
@@ -2635,7 +2628,7 @@
         "tags": [
           "Webhooks"
         ],
-        "description": "The webhook is set in the settings (`webhook_url`), not here. 404 `not_found` when none is set.\n\nSettings: `webhook_url` (`https://` only), `webhook_secret_file` (owner-only, one `whsec_` secret per line, read before each delivery), `webhook_types` (as `GET /events` takes them; all when unset) and `webhook_allow_private` (allows `http://` and private addresses). Each request is one event with Standard Webhooks headers: `webhook-id` (`evt_` 16 hex digits `_` event id, the same on a retry), `webhook-timestamp` (Unix seconds) and `webhook-signature` (`v1,` base64 HMAC-SHA256 of `id.timestamp.body` per secret, space-separated). `data.object` holds only `id`, `kind`, `direction`, `state`, `state_reason`, `account`, `amount`, `fee`, `link_id`, `message`, `their_message`, `purpose`, `metadata`, `confirmations`, `confirmed_height`, `expires_at_height`, `created_at` and `updated_at`.\n\nA 2xx within 10 s (5 s to connect) is delivered; a redirect, another status, a timeout or a dropped connection fails. One request at a time, in id order, at most 10 a second. A failed event is retried after 5 s, 5 min, 30 min, 2 h, 5 h, 10 h and 10 h, each plus or minus 20 %, then the state is `disabled`. The cursor and schedule survive a restart.\n\nServe resolves the host before each attempt and refuses an address that is not public: loopback, private, link-local, shared (100.64.0.0/10), benchmarking (198.18.0.0/15), IETF protocol (192.0.0.0/24), reserved (240.0.0.0/4), NAT64 (64:ff9b::/32), 6to4 (2002::/16), Teredo (2001::/32), IPv4-compatible (::/96), site-local (fec0::/10), discard (100::/64), multicast, unspecified, documentation or broadcast. It follows no redirect and uses no proxy. In `config_error` serve reads the secret file again each minute and on each new event.",
+        "description": "The webhook is set in the settings (`webhook_url`), not here. 404 `not_found` when none is set.\n\nSettings: `webhook_url` (`https://` only), `webhook_secret_file` (owner-only, one `whsec_` secret per line, read before each delivery), `webhook_types` (as `GET /events` takes them; all when unset) and `webhook_allow_private` (allows `http://` and private addresses). Each request is one event with Standard Webhooks headers: `webhook-id` (`evt_` 16 hex digits `_` event id, the same on a retry), `webhook-timestamp` (Unix seconds) and `webhook-signature` (`v1,` base64 HMAC-SHA256 of `id.timestamp.body` per secret, space-separated). `data.object` holds only `id`, `kind`, `direction`, `state`, `state_reason`, `account`, `amount`, `fee`, `message`, `their_message`, `purpose`, `metadata`, `confirmations`, `confirmed_height`, `expires_at_height`, `created_at` and `updated_at`.\n\nA 2xx within 10 s (5 s to connect) is delivered; a redirect, another status, a timeout or a dropped connection fails. One request at a time, in id order, at most 10 a second. A failed event is retried after 5 s, 5 min, 30 min, 2 h, 5 h, 10 h and 10 h, each plus or minus 20 %, then the state is `disabled`. The cursor and schedule survive a restart.\n\nServe resolves the host before each attempt and refuses an address that is not public: loopback, private, link-local, shared (100.64.0.0/10), benchmarking (198.18.0.0/15), IETF protocol (192.0.0.0/24), reserved (240.0.0.0/4), NAT64 (64:ff9b::/32), 6to4 (2002::/16), Teredo (2001::/32), IPv4-compatible (::/96), site-local (fec0::/10), discard (100::/64), multicast, unspecified, documentation or broadcast. It follows no redirect and uses no proxy. In `config_error` serve reads the secret file again each minute and on each new event.",
         "responses": {
           "200": {
             "description": "OK",
@@ -2745,6 +2738,15 @@
         },
         "description": "Contact id."
       },
+      "MailboxHost": {
+        "name": "host",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "The mailbox: `domain` or `domain:port`; the port is left out when it is the default one."
+      },
       "PayloadId": {
         "name": "id",
         "in": "path",
@@ -2762,16 +2764,6 @@
           "type": "string"
         },
         "description": "Quarantine item id."
-      },
-      "LinkId": {
-        "name": "id",
-        "in": "path",
-        "required": true,
-        "schema": {
-          "type": "string",
-          "pattern": "^[0-9]+\\.[0-9]+$"
-        },
-        "description": "`<account>.<index>`, as `GET /links` lists it."
       }
     },
     "responses": {
@@ -3049,10 +3041,6 @@
               "type"
             ],
             "description": "Which of our addresses it reached."
-          },
-          "link_id": {
-            "type": "string",
-            "description": "For a payment taken at one of this wallet's epic1 links: the link's id, as `GET /links` lists it. An account issues each index once, so a link id is never used again."
           },
           "purpose": {
             "type": "string",
@@ -3443,13 +3431,6 @@
           "account": {
             "type": "string"
           },
-          "index": {
-            "type": "integer"
-          },
-          "issued_at": {
-            "type": "string",
-            "format": "date-time"
-          },
           "used": {
             "type": "boolean",
             "description": "Always `false`."
@@ -3465,10 +3446,6 @@
       "Link": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "`<account>.<index>`: the account and the index of the epic1 address the link is."
-          },
           "text": {
             "type": "string",
             "description": "The `epic:` link."
@@ -3481,31 +3458,11 @@
           },
           "message": {
             "type": "string"
-          },
-          "issued_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "last_paid_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "retired_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "metadata": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "string"
-            }
           }
         },
         "required": [
-          "id",
           "text",
-          "account",
-          "issued_at"
+          "account"
         ]
       },
       "Contact": {
@@ -3831,9 +3788,6 @@
           "node_behind": {
             "type": "boolean"
           },
-          "issues_addresses": {
-            "type": "boolean"
-          },
           "scan": {
             "type": "object",
             "properties": {
@@ -3862,8 +3816,7 @@
         "required": [
           "network",
           "height",
-          "node_behind",
-          "issues_addresses"
+          "node_behind"
         ]
       },
       "Status": {
@@ -4695,24 +4648,6 @@
           "items"
         ]
       },
-      "LinkList": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Link"
-            }
-          },
-          "next_cursor": {
-            "type": "string",
-            "description": "Absent on the last page."
-          }
-        },
-        "required": [
-          "items"
-        ]
-      },
       "ContactList": {
         "type": "object",
         "properties": {
@@ -4843,7 +4778,7 @@
             "description": "Account label; default account when absent."
           },
           "amount": {
-            "description": "Amount, or the string `max` (estimate only). May be left out when `to` is an `epic:` link that names one; if both name one, they must be equal (400 `invalid_field` at `/amount`).",
+            "description": "Amount, or the string `max` (estimate only). May be left out when `to` is an `epic:` link that names one. For a classic link, if both name one they must be equal (400 `invalid_field` at `/amount`); an epic1 link is paid the amount given.",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/Decimal"
@@ -4858,7 +4793,15 @@
           },
           "message": {
             "type": "string",
-            "description": "Signed into the slate, at most 256 bytes. Shows as `message` on this payment and as `their_message` on the other party's, an invoice to a contact included."
+            "description": "Signed into the slate, at most 256 bytes. Shows as `message` on this payment and as `their_message` on the other party's, an invoice to a contact included. For an epic1 link, left out means the link's message, and an empty string or only spaces means no message."
+          },
+          "mailboxes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 16,
+            "description": "For an epic1 payment to the payee's mailbox: the mailboxes it is posted through in place of the wallet's list, each `domain` or `domain:port`. 400 `invalid_field` at `/mailboxes` for any other payment or a host that is not a public name. 422 `no_shared_mailbox` when the payee's address names none of the wallet's shipped mailboxes and no `mailboxes` is given."
           },
           "min_confirmations": {
             "type": "integer"
@@ -5005,19 +4948,6 @@
           }
         }
       },
-      "PatchWallet": {
-        "type": "object",
-        "properties": {
-          "issues_addresses": {
-            "type": "boolean",
-            "const": true,
-            "description": "Only `true` is accepted."
-          }
-        },
-        "required": [
-          "issues_addresses"
-        ]
-      },
       "ChangePassword": {
         "type": "object",
         "properties": {
@@ -5110,21 +5040,9 @@
           }
         }
       },
-      "CreateAddress": {
-        "type": "object",
-        "properties": {
-          "account": {
-            "type": "string",
-            "description": "Account label; default account when absent."
-          }
-        }
-      },
       "CreateLink": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string"
-          },
           "account": {
             "type": "string"
           },
@@ -5285,6 +5203,161 @@
           "accept": {
             "type": "boolean",
             "default": true
+          }
+        },
+        "required": [
+          "host"
+        ]
+      },
+      "Mailbox": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string",
+            "description": "`domain` or `domain:port`; the port is left out when it is the default one."
+          },
+          "origin": {
+            "type": "string",
+            "enum": [
+              "shipped",
+              "added"
+            ],
+            "description": "`shipped`: in the list the wallet came with; `added`: added by the user."
+          },
+          "push": {
+            "type": "boolean",
+            "description": "Whether the mailbox offered push at its last greeting; left out before any answer."
+          },
+          "last_success_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When a session last attached to it; left out when none has since serve started."
+          },
+          "failures": {
+            "type": "integer",
+            "description": "Sessions lost since the last success."
+          },
+          "last_error": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "host",
+          "origin",
+          "failures"
+        ]
+      },
+      "Mailboxes": {
+        "type": "object",
+        "properties": {
+          "mailboxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Mailbox"
+            }
+          }
+        },
+        "required": [
+          "mailboxes"
+        ]
+      },
+      "ProbeStep": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "enum": [
+              "passed",
+              "failed",
+              "not_reached"
+            ]
+          },
+          "error": {
+            "type": "string",
+            "description": "Why the step failed."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "MailboxProbe": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string",
+            "description": "`domain` or `domain:port`; the port is left out when it is the default one."
+          },
+          "tls": {
+            "$ref": "#/components/schemas/ProbeStep"
+          },
+          "greeting": {
+            "$ref": "#/components/schemas/ProbeStep"
+          },
+          "push": {
+            "$ref": "#/components/schemas/ProbeStep"
+          },
+          "passed": {
+            "type": "boolean",
+            "description": "Every step passed."
+          }
+        },
+        "required": [
+          "host",
+          "tls",
+          "greeting",
+          "push",
+          "passed"
+        ],
+        "description": "`tls`: the connection, its TLS handshake and the websocket upgrade; `greeting`: the mailbox answered the greeting; `push`: it offers push, which the wallet reads by."
+      },
+      "MailboxAdded": {
+        "type": "object",
+        "properties": {
+          "added": {
+            "type": "boolean",
+            "description": "False when the mailbox was in the list already; nothing was written."
+          },
+          "probe": {
+            "$ref": "#/components/schemas/MailboxProbe"
+          },
+          "mailboxes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Mailbox"
+            },
+            "description": "The list after the change."
+          }
+        },
+        "required": [
+          "added",
+          "probe",
+          "mailboxes"
+        ]
+      },
+      "AddMailbox": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string",
+            "description": "`domain` or `domain:port`; the port is left out when it is the default one."
+          },
+          "anyway": {
+            "type": "boolean",
+            "default": false,
+            "description": "Add the mailbox when its test fails."
+          }
+        },
+        "required": [
+          "host"
+        ]
+      },
+      "ProbeMailbox": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string",
+            "description": "`domain` or `domain:port`; the port is left out when it is the default one."
           }
         },
         "required": [

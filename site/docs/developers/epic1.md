@@ -105,11 +105,14 @@ has the rules.
   for one payment, and `lepic epic1 pay` takes a repeatable `--mailbox`.
 - Restore reads every mailbox that answers and reports the rest.
 
-:::note
-The host calls behind this (`mailbox_set`, `mailbox_list`, `mailbox_add`, `mailbox_remove`,
-`mailbox_probe`) are being built, and their names may still change. Check them against the
-[FFI guide](https://github.com/BTLabsUK/lepic/blob/main/docs/ffi.md) once it lists them.
-:::
+The app holds the list itself. After a wallet opens it calls
+`mailbox_set(shipped, added, removed)`, then `mailbox_list` (origin and health), `mailbox_probe`,
+`mailbox_add(host, anyway)` and `mailbox_remove(host)`, and stores the `added` and `removed` each
+change hands back. `epic1_pay` takes an optional `mailboxes` list, `epic1_restore` returns the
+mailboxes it could not read in `not_read`, and a read link counts its ignored entries in
+`ignored_mailboxes`. The error kinds are `NoSharedMailbox` (119), `MailboxInvalid` (120),
+`MailboxNotPublic` (121), `MailboxListFull` (122) and `LastMailbox` (123). See the
+[FFI guide](https://github.com/BTLabsUK/lepic/blob/main/docs/ffi.md).
 
 ## What the host does
 
