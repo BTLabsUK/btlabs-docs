@@ -38,11 +38,10 @@ payments show once the chain confirms them.
 
 ### Two installs on one address
 
-Two installs on one recovery phrase share the one epic1 address. A mailbox has one reader at a
-time for it. The install that connected last reads; the other is replaced, and it connects again
-after 10 minutes. Mail that arrived in between is delivered again then. A payment the other
-install took shows as **Received on** the device's name when it is a linked device, or as
-**Received by another device**, with the amount only, when it is not.
+:::warning
+Two installs on one recovery phrase without a link are not supported. Link the devices instead. The
+wallet is built to fail safe in this setup: no coins are lost, but the installs do not stay in step.
+:::
 
 ## Security
 

@@ -17,8 +17,18 @@ wallet, can spend the EPIC. BT LABS cannot recover a lost phrase.
 
 ## Can I use the same wallet on my phone and my computer?
 
-Yes: restore the same recovery phrase on both. To keep them in step, use
-[Linked devices](linked-devices.md).
+Yes. Restore the wallet on the second device, then link the two devices: see
+[Linked devices](linked-devices.md). Do not run two unlinked installs on one recovery phrase; that is
+not supported.
+
+<details>
+<summary>For advanced users</summary>
+
+Linking needs the same recovery phrase on both devices, which is why the wallet is restored first.
+Without a link, the devices do not tell each other about payments. See
+[Linked devices](linked-devices.md#two-installs-on-one-address).
+
+</details>
 
 ## Does the other person need to be online when I pay?
 
