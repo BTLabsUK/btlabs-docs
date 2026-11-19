@@ -59,7 +59,7 @@ Core is the ten everyday commands. Repair commands fix a transaction, a pairing 
 after something went wrong. `lepic GROUP --help` lists a group.
 
 <CommandGroups
-  groups={[{"name": "wallet", "core": ["wallet init", "wallet info", "wallet address"], "other": ["wallet restore", "wallet import-seed", "wallet import-history", "wallet outputs", "wallet consolidate", "wallet password"], "repair": ["wallet scan"]}, {"name": "tx", "core": ["tx send", "tx list", "tx show"], "other": ["tx receive", "tx finalize", "tx cancel"], "repair": ["tx resend", "tx post", "tx recover"]}, {"name": "invoice", "core": ["invoice issue"], "other": ["invoice pay", "invoice list"], "repair": []}, {"name": "epicbox", "core": ["epicbox listen"], "other": ["epicbox drain", "epicbox status"], "repair": []}, {"name": "http", "core": [], "other": ["http listen"], "repair": []}, {"name": "tor", "core": [], "other": ["tor address", "tor listen"], "repair": []}, {"name": "node", "core": [], "other": ["node status"], "repair": []}, {"name": "contact", "core": ["contact invite"], "other": ["contact open", "contact accept", "contact enter", "contact collect", "contact sas", "contact list", "contact label", "contact allow-invoices", "contact invoice", "contact invoices", "contact pay-invoice", "contact decline", "contact send-slate", "contact seal", "contact open-sealed", "contact payload post", "contact payload list", "contact payload ack", "contact export", "contact import"], "repair": ["contact check", "contact key-check", "contact keys", "contact quarantine", "contact move", "contact move-home", "contact remove"]}, {"name": "in-person", "core": [], "other": ["in-person invoice", "in-person send", "in-person read", "in-person pay", "in-person receive", "in-person post", "in-person answers", "in-person take", "in-person finalize"], "repair": []}, {"name": "epic1", "core": [], "other": ["epic1 address", "epic1 new-address", "epic1 addresses", "epic1 link", "epic1 links", "epic1 relays", "epic1 retire", "epic1 read", "epic1 pay", "epic1 answers"], "repair": ["epic1 issue-here", "epic1 post-next", "epic1 restore"]}, {"name": "epictx", "core": [], "other": ["epictx open"], "repair": []}, {"name": "profile", "core": [], "other": ["profile show", "profile set", "profile domain show", "profile domain file", "profile domain attach"], "repair": []}, {"name": "serve", "core": ["serve"], "other": [], "repair": []}, {"name": "api", "core": [], "other": ["api client add", "api client list", "api client remove"], "repair": []}, {"name": "shell", "core": [], "other": ["shell"], "repair": []}]}
+  groups={[{"name": "wallet", "core": ["wallet init", "wallet info", "wallet address"], "other": ["wallet restore", "wallet import-seed", "wallet import-history", "wallet outputs", "wallet consolidate", "wallet password"], "repair": ["wallet scan"]}, {"name": "tx", "core": ["tx send", "tx list", "tx show"], "other": ["tx receive", "tx finalize", "tx cancel"], "repair": ["tx resend", "tx post", "tx recover"]}, {"name": "invoice", "core": ["invoice issue"], "other": ["invoice pay", "invoice list"], "repair": []}, {"name": "epicbox", "core": ["epicbox listen"], "other": ["epicbox drain", "epicbox status"], "repair": []}, {"name": "http", "core": [], "other": ["http listen"], "repair": []}, {"name": "tor", "core": [], "other": ["tor address", "tor listen"], "repair": []}, {"name": "node", "core": [], "other": ["node status"], "repair": []}, {"name": "contact", "core": ["contact invite"], "other": ["contact open", "contact accept", "contact enter", "contact collect", "contact sas", "contact list", "contact label", "contact allow-invoices", "contact invoice", "contact invoices", "contact pay-invoice", "contact decline", "contact send-slate", "contact seal", "contact open-sealed", "contact payload post", "contact payload list", "contact payload ack", "contact export", "contact import"], "repair": ["contact check", "contact key-check", "contact keys", "contact quarantine", "contact move", "contact move-home", "contact remove"]}, {"name": "in-person", "core": [], "other": ["in-person invoice", "in-person send", "in-person read", "in-person pay", "in-person receive", "in-person post", "in-person answers", "in-person take", "in-person finalize"], "repair": []}, {"name": "epic1", "core": [], "other": ["epic1 address", "epic1 link", "epic1 read", "epic1 pay", "epic1 answers"], "repair": ["epic1 post-next", "epic1 restore"]}, {"name": "mailbox", "core": [], "other": ["mailbox list", "mailbox add", "mailbox remove", "mailbox probe"], "repair": []}, {"name": "epictx", "core": [], "other": ["epictx open"], "repair": []}, {"name": "profile", "core": [], "other": ["profile show", "profile set", "profile domain show", "profile domain file", "profile domain attach"], "repair": []}, {"name": "serve", "core": ["serve"], "other": [], "repair": []}, {"name": "api", "core": [], "other": ["api client add", "api client list", "api client remove"], "repair": []}, {"name": "shell", "core": [], "other": ["shell"], "repair": []}]}
 />
 
 ## Data directory and files
@@ -338,7 +338,7 @@ Over HTTP and Tor the transaction is finalized and posted in the same command:
 
 To an epic1 address or link the send is the payment `epic1 pay` makes, with its checks and its
 report. A bare address is paid as a link without an amount. `AMOUNT` may be left out when
-the link asks an amount, and a different one is refused before anything is stored.
+the link asks an amount; another amount is paid as given.
 `--allow-plain-http`, `--tor-binary` and `--fluff` have no use there and are refused with exit
 code 2.
 
@@ -623,52 +623,37 @@ An epic1 address carries its own mailbox: a payer posts to it on any relay. A li
 with an amount and a message. [protocols/epic1.md](https://github.com/BTLabsUK/lepic/blob/main/docs/protocols/epic1.md) describes the format.
 Addresses start with `epic1`.
 
-An account has many epic1 addresses, each a number. Number 0 always exists, and `epic1
-new-address` issues the next one, for a shop, an invoice or one payment. Payments to every
-address come to the same account, a received transaction shows the number its address had, and
-two addresses of one account do not show that they belong together.
+Each account has one epic1 address. A link is that address with what it asks; the wallet stores
+nothing for it, and the same fields give the same link. A payment to a link arrives at the
+account's address like any other, with the payer's amount and message.
 
 | Command | What it does |
 |---|---|
-| `epic1 address [--index N] [--qr]` | Shows the first address, number 0, or the one at `--index`; a number never issued or paid is refused |
-| `epic1 new-address [--qr]` | Issues the account's next address |
-| `epic1 addresses [--from N] [--limit N]` | Lists the issued addresses, with `highest`, the highest number issued or paid |
-| `epic1 issue-here` | Makes a restored install the one that issues addresses |
-| `epic1 link [AMOUNT] [-m TEXT] [--http-host HOST] [--tor ONION] [--qr]` | Makes a link: the account's next address |
-| `epic1 links` | Lists the open links |
-| `epic1 relays` | Lists the relay list and whether each relay can serve epic1 |
-| `epic1 retire N` | Retires an address or link: payments to it are no longer taken |
+| `epic1 address [--qr]` | Shows the account's address |
+| `epic1 link [AMOUNT] [-m TEXT] [--http-host HOST] [--tor ONION] [--qr]` | Makes a link: the account's address with an amount and a message |
 | `epic1 read LINK` | Shows what a link asks and the `http` or `tor` host a payment would go to, if any |
 | `epic1 pay LINK [AMOUNT]` | Pays a link; `tx send [AMOUNT] --to` an epic1 address or link pays the same way |
 | `epic1 post-next SLATE_ID` | Posts the same payment to the link's next entry |
 | `epic1 answers` | Lists answers to payments taken |
-| `epic1 restore` | After a restore, reads the mailboxes of the account's addresses on each relay of the list once |
+| `epic1 restore` | After a restore, reads the slot of each account's address on each mailbox of the list once |
 
-The relay list is the wallet's own relay (`epicbox_relay`, else the first Epicbox server of the
-settings file), then the meeting relays (the first Epicbox servers, three by default). A relay
-named twice, also with and without its default port, is listed once. `epic1 relays` prints one
-line per relay, `relay2.test:443  usable: yes`. A relay is usable when it offered push sessions
-(mux/1) in its answer to a socket's greeting: `yes` when it did, `no` when it answered without
-them or never answered, and `not known` when no socket of this process greeted it yet. The
-command connects nowhere. Run on its own it reads `not known` for every relay; while `lepic serve`
-runs, the command runs in serve and shows what serve's sockets learned. With `--output json` it
-prints `{"relays": [{"relay": "relay2.test:443", "usable": true}]}`, with `usable` `null` for not
-known.
+Payments go through the [mailbox list](#mailboxes). A link names no mailbox: the payer posts to
+the address's slot on every mailbox of its own list. A `mailbox=` entry in a link is read past
+and never used; `epic1 read` counts such entries. `--http-host` and `--tor` add hosts the payment may be posted to instead, at most three. An `http` host on the
+local network is refused unless it is in the relay list.
 
-A link is the account's next address, open until `epic1 retire`. An account keeps at most 256
-open addresses past number 0, links and plain addresses together; one more is refused with exit
-code 7 until one is retired. A link names no relay: the payer posts to the address's mailbox on
-its own relays. `--http-host` and `--tor` add hosts the payment may be posted to instead, at most
-three. An `http` host on the local network is refused unless it is in the relay list.
+`contact collect` takes the payments at the slot of each account's address on every mailbox of
+the list and posts each answer to every mailbox of the list and to each mailbox it read a copy
+from. A payment read again on a second mailbox is not taken twice. The payer's `contact collect`
+takes the answer and finalizes it.
 
-`contact collect` takes the payments at the mailboxes of the open addresses on every usable
-relay and answers each on the relay it read the payment from. A payment whose amount is not the
-one the link asked is refused and creates no transaction. A payment read again on a second relay
-is not taken twice. The payer's `contact collect` takes the answer and finalizes it.
-
-`epic1 pay` pays the amount the link asks and refuses another; a link that asks none takes the
-amount after it. It takes `-a`, `-m`, `--min-confirmations`, `--change-outputs`, `--selection`
-and `--ttl-blocks` as `tx send` does. Both `epic1 pay` and `tx send --to` take a bare epic1
+`epic1 pay` pays the amount and message the link asks unless `AMOUNT` or `-m` gives others; a
+link that asks no amount needs one. `-m ""`, or a message of spaces only, pays without the
+link's message. `--mailbox HOST`, repeatable, posts the payment to those mailboxes only, such as
+the payee's, in place of the list. A payer whose list holds none of the shipped mailboxes, and
+that names no `--mailbox`, exits with code 14 (`no_shared_mailbox`) naming the shipped
+mailboxes, and stores nothing. It takes `-a`, `-m`, `--min-confirmations`,
+`--change-outputs`, `--selection` and `--ttl-blocks` as `tx send` does. Both `epic1 pay` and `tx send --to` take a bare epic1
 address as well as a link; a bare address is paid as a link without an amount, and both make the
 same payment with the same checks and report. A link without entries is posted to the address's
 mailbox on every usable relay of the relay list, and is posted when any relay takes it. A link with
@@ -684,17 +669,44 @@ waits for its answer; each has its own id. `--slate-id` works as for `tx send`:
 a repeat to the same address, from the same account and for the same amount posts nothing and
 reports the first payment with `"repeated": true`; anything else under that id exits with code 7.
 
-The wallet records the numbers it issued and the ones paid. A restored wallet's first address
-is 50 numbers past the highest it knows, and a restore tries 50 past that one, 101 past the
-highest known; a payment to an address more than 101 past it is not found.
-Another install on the same phrase may still be issuing addresses, and two installs that both
-issue give the same number to two payers. So a restored wallet refuses `epic1 new-address` (exit
-code 5) until `epic1 issue-here` runs. Until then it keeps trying 101 numbers past the highest one
-paid. A wallet made with `wallet init` issues from the start. `epic1 restore` reads the
-addresses up to 101 past the highest one paid, on the wallet's own relay and on each other relay
-of the list not known to lack mux/1. An address that held a payment is open from then on; links
-that held none stay closed. It reads by push, so each of those relays must offer mux/1; when one
-does not, or does not answer, `epic1 restore` exits with code 10.
+`epic1 restore` reads the slot of each account's address on each mailbox of the list. It reads
+by push. A mailbox that does not offer mux/1, does not answer, or could not watch every slot is
+listed with the reason, `mailbox.example:443 not read: it did not answer`, and the command still
+exits 0. When no mailbox could be read it exits with code 10. With `--output json` it prints:
+
+```json
+{"taken": 1, "not_read": [{"host": "…", "reason": "…"}]}
+```
+
+## Mailboxes
+
+Native mail goes to every mailbox of one list: the shipped mailboxes less those the user
+removed, then those the user added, at most 16. `settings.toml` keeps only the user's changes,
+under `[mailboxes]`; see [configuration](https://github.com/BTLabsUK/lepic/blob/main/docs/configuration.md). A mailbox is `host` or `host:port`;
+the port is left out when it is 443. The host takes letters, digits and dots only, as an Epicbox
+address does in the upstream wallet, so a name with a hyphen is refused.
+
+| Command | What it does |
+|---|---|
+| `mailbox list` | Lists each mailbox: `shipped` or `added`, whether it offered push, its last success, failures and last error |
+| `mailbox probe HOST` | Tests TLS, the greeting and push (mux/1); changes nothing |
+| `mailbox add HOST [--anyway]` | Tests the mailbox, then adds it |
+| `mailbox remove HOST` | Takes the mailbox off the list |
+
+`mailbox list` connects nowhere: health is what this process saw, `not tried` on its own, and
+what serve's sessions saw while `lepic serve` runs. `mailbox add` refuses a mailbox whose test
+failed with exit code 10, printing the test, unless `--anyway` is given. A host on this device,
+an IP address, a single label or a private-network name (`.lan`, `.internal`, `.home.arpa`,
+`.intranet`, `.corp`) is refused with exit code 2, `--anyway` or not. A list of 16 refuses
+another, and the last mailbox cannot be removed. A removed shipped mailbox that is added again
+comes back as shipped. Health never takes a mailbox off the list.
+
+With `local_mailbox` set (see [configuration](https://github.com/BTLabsUK/lepic/blob/main/docs/configuration.md)), the list is the loopback relay
+alone, shown as `shipped`, and `mailbox add` and `remove` are refused with exit code 2.
+
+The wallet API has the same calls: `GET /mailboxes`, `POST /mailboxes` with
+`{"host": …, "anyway": true}`, `DELETE /mailboxes/{host}` and `POST /mailboxes/probe` with
+`{"host": …}`.
 
 ## EPICTX files
 
@@ -740,7 +752,7 @@ A command that prints an address or a link to hand on can draw it as a QR code u
 | Command | The code holds |
 |---|---|
 | `wallet address` | The Epicbox address |
-| `epic1 address`, `epic1 new-address` | The epic1 address |
+| `epic1 address` | The epic1 address |
 | `epic1 link` | The `epic:` link |
 | `tor address` | The onion address |
 | `contact invite` | The invite link |
@@ -962,7 +974,7 @@ counts the wait of contacts not heard from and reports relays that do not answer
 and posts the outbox rows and replies that fell due. Mail that came while a session was down is read
 when it attaches again. These mailboxes are read by push only: `contact collect` and serve list a
 relay without mux/1 under `unreachable` and do not read it. A mailbox on another relay than the
-wallet's own or a meeting relay is read over TLS, and only on a name: one on an IP address, on this
+wallet's own or a mailbox of the list is read over TLS, and only on a name: one on an IP address, on this
 device or on port 0 is not read and counts under `not_reached`. When another instance of the same
 wallet takes a mailbox over, this one leaves it alone and counts it under `replaced` until
 `contact collect` runs or the app is opened or pulled; then it claims the mailbox again. The
@@ -1117,6 +1129,7 @@ the fields.
 | 11 | `incomplete` | Stored, but not delivered or not posted |
 | 12 | `interrupted` | Stopped before it finished |
 | 13 | `slate_too_large` | The payment needs too many inputs for the relay; nothing was stored |
+| 14 | `no_shared_mailbox` | The payer's mailbox list holds none of the shipped mailboxes; nothing was sent |
 
 Code 11 means the transaction exists: `tx resend` delivers it and `tx post` posts it.
 
