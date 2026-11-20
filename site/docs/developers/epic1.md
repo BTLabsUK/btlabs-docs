@@ -62,13 +62,15 @@ mailbox cannot join two payments by their reply slot. The
 
 1. **Read.** `lepic epic1 read` (`epic1_read`) reads the address or link and stores nothing.
 2. **Seal.** `lepic epic1 pay`, or `lepic tx send --to` with the address or link, builds the S1
-   (`epic1_pay`) with a TTL of 1440 blocks unless the send sets one, and seals it with
+   (`epic1_pay`) with a TTL of 10,080 blocks (7 days) unless the send sets one (`--ttl-blocks`), and seals it with
    `TxKey::Epic1` to the address's seal key. The envelope carries the payer's reply key and the
    key of a one-time reply slot, and names no mailbox.
 3. **Post.** The outbox posts the payment to the address's delivery slot on at most the three healthiest
-   mailboxes of the payer's list that the payee reads, one copy per mailbox; it is posted when any mailbox takes it. A mailbox's
-   health is shown and never drops it from the list. When the payer and payee share no mailbox,
-   the payment fails at once with `NoSharedMailbox`, which lists the shipped mailboxes. A link
+   mailboxes of the payer's own list, one copy per mailbox; the payer cannot know which mailboxes the payee reads. It is
+   posted when any mailbox takes it. A mailbox's health is shown and never drops it from the
+   list. When the payer's list holds none of the shipped mailboxes and the call names none, the
+   payment fails at once with `NoSharedMailbox` (exit code 14), which lists the shipped
+   mailboxes. A link
    with `http` or `tor` entries is posted to those entries instead, one at a time, and answered
    in the same request.
 4. **Collect.** The payee's collect reads its delivery slot by push, opens the envelope with the
@@ -80,8 +82,10 @@ mailbox cannot join two payments by their reply slot. The
    it and posts the transaction. For a payment that went to the mailbox, it then sends the
    payee a `posted` notice and asks the other mailboxes to drop their copies of the payment.
 7. **Refusal.** A payee with `refuse_unsolicited_payments` on sends a `declined` notice to the
-   reply slot for every payment to the address. The payer cancels the payment and frees its
-   inputs.
+   reply slot for every payment to the address. The payer's wallet erases the send: its inputs
+   are unlocked and no record is kept, as if the send never happened. There is no `cancelled`
+   payment and no cancel action; the API answers 404 `payment_declined` and sends the event
+   `payment.declined`.
 8. **Deadline.** Once the chain reaches the payment's cutoff, its TTL height or the wallet's
    own limit for the transaction if that comes first, the outbox stops posting it, and the
    next refresh expires it if it was not finalized.
@@ -124,16 +128,15 @@ starts the loop with `set_delivery` after it opens the wallet and asks for one m
 the CLI has `lepic contact collect`, and `lepic serve` runs the loop on its own
 ([CLI](https://github.com/BTLabsUK/lepic/blob/main/docs/cli.md#lepic-serve-and-the-wallet-api)).
 
-Two installs on one phrase share the address, and a slot has one reader at a time on each
-mailbox. The newest attach takes it. The replaced install attaches again after a 10-minute
-hold-off, at session start or when the host resumes. Linked devices tell each other; unlinked
-installs reconcile through the chain.
+Two installs on one recovery phrase without a link are unsupported: link the second device
+instead. Linked devices share the address and tell each other which one holds a slot, which has
+one reader at a time on each mailbox. A host must run one live instance per recovery phrase.
 
 ## Limits
 
 - An account has one epic1 address, at index 0. Numbered addresses and links made before this
-  model are not read: a payment to one is not taken, and its payer's wallet cancels it at its
-  deadline.
+  model are not read, and neither are epic1 links and payments made by 0.5.x: a payment to one is not
+  taken, and it expires at its deadline on the payer's side.
 - A payment read on a second mailbox is not taken again; its stored answer is posted again.
 - Invoices go only between paired contacts that the payer verified and allowed to send
   invoices; no invoice or pair request travels over an epic1 link.

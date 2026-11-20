@@ -19,7 +19,7 @@ There are four ways to use it:
 | Way | Use it when |
 |---|---|
 | The [`lepic` command-line wallet](lepic/cli/index.mdx) | You want to try the wallet in a terminal or drive it from scripts. |
-| `lepic serve`, with its [wallet API](lepic/api/v1/index.mdx) | A bot, shop or service needs a running wallet with a local HTTP API (`/api/v1`, webhooks). |
+| `lepic serve`, with its [wallet API](lepic/api/v1/index.mdx) | A bot, shop or service needs a running wallet with a local HTTP API (`/api/v1`, webhooks). Unix only. |
 | The Rust crates | You want the wallet inside your own Rust program (see [LEPIC from Rust](#quick-start-lepic-from-rust)). |
 | The FFI library `lepic-ffi` | You build a desktop or mobile app, through [lepic-flutter](lepic-flutter.md). BT Wallet is built on it. |
 
@@ -52,10 +52,10 @@ lepic wallet info     # balances, from the node
 | `http`, `tor` | `listen`; `tor address` |
 | `node` | `status` |
 | `contact` | `invite`, `accept`, `list`, `check`, `move`, `move-home`, `allow-invoices`, `invoice`, `collect` |
-| `epic1` | `address`, `link`, `relays`, `read`, `pay` (repeatable `--mailbox`) |
+| `epic1` | `address`, `link`, `read`, `pay` (repeatable `--mailbox`) |
 | `mailbox` | `list`, `add` (`--anyway`), `remove`, `probe` |
 | `profile` | `show`, `set`, `domain` |
-| `serve` | Holds the wallet open and answers the wallet API (`/api/v1`) on a local socket; many other `lepic` commands on that wallet go through it, the rest stop with exit code 5 |
+| `serve` | Unix only. Holds the wallet open and answers the wallet API (`/api/v1`) on a local socket; many other `lepic` commands on that wallet go through it, the rest stop with exit code 5 |
 | `shell` | Opens the interactive shell, which `lepic` with no command also opens at a terminal |
 
 `lepic tx send --to` takes any recipient, and the address decides the protocol: an Epicbox address
@@ -67,14 +67,25 @@ or a listener URL gets the classic exchange, and an epic1 address or link gets t
 sent through a relay that speaks protocol 3.1.0, and then cancels it in the wallet.
 `--local-only` skips the relay. With `--output json`, `relay` says what the relay answered:
 `cancelled`, `not_found_or_not_participant`, `no_relay_id`, `unsupported` or `failed` (with
-`relay_error`). When the other party cancels, `epicbox listen` and `epicbox drain` cancel the
-transaction here. A send the relay refuses because it was cancelled exits with code 7, and
+`relay_error`). A cancellation the relay reports from the other party changes
+nothing here: `epicbox listen` and `epicbox drain` acknowledge it and keep the transaction as it
+is. A send the relay refuses because it was cancelled exits with code 7, and
 `lepic serve` reports it as the error code `cancelled_on_relay`. A send the node already took is
 not cancelled: it exits with code 7 and a hint naming `tx recover`. `POST /payments/{id}/cancel` in
 `lepic serve` refuses a send the node already took (`use_recover`); otherwise it cancels in the
 wallet, then asks the relay once, and the relay's answer does not change the result. The protocol
 is described in
 [docs/compat/epicbox.md](https://github.com/BTLabsUK/lepic/blob/main/docs/compat/epicbox.md).
+
+The CLI runs on Linux, macOS and Windows. `lepic serve` needs Unix sockets, so it is Unix only: on
+Windows it exits with code 5, and the shell has no `serve start`.
+
+A service that takes payments through `lepic serve` credits a received payment when it is `final`
+(`final: true`, or the event `payment.confirmations_reached`), which happens after
+`final_confirmations` confirmations (default 6), a number the service sets. `confirmed` means one
+confirmation. A send the payee declines is erased by the payer's wallet: it has no record and
+nothing to cancel, and the API answers 404 `payment_declined`. The default send cutoff is 10,080
+blocks (7 days), set per wallet (`send_ttl_blocks`) or per send (`--ttl-blocks`).
 
 The interactive shell asks for the password once, keeps the wallet open and takes `lepic`
 commands without `lepic`. A status line under the input shows the wallet, balance, height,

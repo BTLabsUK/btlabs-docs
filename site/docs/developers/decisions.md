@@ -131,10 +131,11 @@ posts to the relays in its own settings. A link adds an amount, a message and up
 or `tor` entries, and names no relay. The address holds no signing key.
 
 **0065 Mail goes where the receiver reads.** *Accepted.* A wallet has one mailbox list: the shipped
-mailboxes, plus the user's additions, minus the user's removals. A native message goes to every
-mailbox of the sender's list, to the mailbox on a contact's card, and, for an answer, to every
-mailbox a copy was read on. Links and payments name no mailbox. A payer who shares none with the
-payee fails at once with `NoSharedMailbox`.
+mailboxes, plus the user's additions, minus the user's removals. A native message goes to the
+three healthiest mailboxes of the sender's list and to the mailbox on a contact's card; an answer
+goes to the mailbox its payment was read on plus the two healthiest others. Links and payments
+name no mailbox. A payer whose list holds none of the shipped mailboxes, and who names none for
+the payment, fails at once with `NoSharedMailbox`.
 
 **0066 One epic1 address per account.** *Accepted.* Each account has one address, at index 0. The
 payment link is the address; a request link adds an amount, a message or both and only fills in
