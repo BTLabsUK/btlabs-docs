@@ -1,6 +1,6 @@
 ---
 title: Architecture decisions
-description: A summary of selected LEPIC architecture decision records (ADRs 0001 to 0063), grouped by theme.
+description: A summary of selected LEPIC architecture decision records (ADRs 0001 to 0067), grouped by theme.
 ---
 
 # Architecture decisions
@@ -130,6 +130,11 @@ and a delivery key, 117 characters on mainnet, and its delivery key names its ma
 posts to the relays in its own settings. A link adds an amount, a message and up to three `http`
 or `tor` entries, and names no relay. The address holds no signing key.
 
+**0064 Mailboxes by default.** *Accepted.* Contacts, linked devices, epic1, in-person codes and
+pairing all go through mailboxes. The mailbox mode is `Online` or `Offline`; the Epicbox-off mode,
+its `--epicbox-off` flag and the API code `epicbox_off` are removed. An app's Epicbox switch governs
+only the classic Epicbox address. Node only and the kill switch still stop all mailbox traffic.
+
 **0065 Mail goes where the receiver reads.** *Accepted.* A wallet has one mailbox list: the shipped
 mailboxes, plus the user's additions, minus the user's removals. A native message goes to the
 three healthiest mailboxes of the sender's list and to the mailbox on a contact's card; an answer
@@ -141,6 +146,13 @@ the payment, fails at once with `NoSharedMailbox`.
 payment link is the address; a request link adds an amount, a message or both and only fills in
 the payer's Send screen. The payee stores nothing for a link, and any amount is taken. Numbered
 addresses and links of earlier builds are not read.
+
+**0067 One notice path.** *Accepted.* Every short sealed notice (`posted`, `cancelled`, `declined`,
+`withdrawn`, the pairing status kinds, `unpaired`) has one kind set, one parser, one send path and
+one intake, and the wire is unchanged. No notice changes a transaction's state, moves coins or
+changes a balance: `declined` only records the time and raises an event, and `posted` and
+`cancelled` are reports. Unknown kinds are ignored. A store upgraded to schema 22 is refused by
+an older build.
 
 ## Tor
 

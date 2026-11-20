@@ -62,17 +62,16 @@ mailbox cannot join two payments by their reply slot. The
 
 1. **Read.** `lepic epic1 read` (`epic1_read`) reads the address or link and stores nothing.
 2. **Seal.** `lepic epic1 pay`, or `lepic tx send --to` with the address or link, builds the S1
-   (`epic1_pay`) with a TTL of 10,080 blocks (7 days) unless the send sets one (`--ttl-blocks`), and seals it with
-   `TxKey::Epic1` to the address's seal key. The envelope carries the payer's reply key and the
-   key of a one-time reply slot, and names no mailbox.
-3. **Post.** The outbox posts the payment to the address's delivery slot on at most the three healthiest
-   mailboxes of the payer's own list, one copy per mailbox; the payer cannot know which mailboxes the payee reads. It is
-   posted when any mailbox takes it. A mailbox's health is shown and never drops it from the
-   list. When the payer's list holds none of the shipped mailboxes and the call names none, the
-   payment fails at once with `NoSharedMailbox` (exit code 14), which lists the shipped
-   mailboxes. A link
-   with `http` or `tor` entries is posted to those entries instead, one at a time, and answered
-   in the same request.
+   (`epic1_pay`) with a TTL of 10,080 blocks (7 days) unless the send sets one (`--ttl-blocks`),
+   and seals it with `TxKey::Epic1` to the address's seal key. The envelope carries the payer's
+   reply key and the key of a one-time reply slot, and names no mailbox.
+3. **Post.** The outbox posts the payment to the address's delivery slot on at most the three
+   healthiest mailboxes of the payer's own list, one copy per mailbox; the payer cannot know which
+   mailboxes the payee reads. It is posted when any mailbox takes it. A mailbox's health is shown
+   and never drops it from the list. When the payer's list holds none of the shipped mailboxes and
+   the call names none, the payment fails at once with `NoSharedMailbox` (exit code 14), which
+   lists the shipped mailboxes. A link with `http` or `tor` entries is posted to those entries
+   instead, one at a time, and answered in the same request.
 4. **Collect.** The payee's collect reads its delivery slot by push, opens the envelope with the
    account's seal key, checks it and signs the S2. Any amount is taken.
 5. **Answer.** The payee seals the S2 to the reply key and posts it to the reply slot on the
@@ -135,8 +134,8 @@ one reader at a time on each mailbox. A host must run one live instance per reco
 ## Limits
 
 - An account has one epic1 address, at index 0. Numbered addresses and links made before this
-  model are not read, and neither are epic1 links and payments made by 0.5.x: a payment to one is not
-  taken, and it expires at its deadline on the payer's side.
+  model are not read, and neither are epic1 links and payments made by 0.5.x: a payment to one is
+  not taken, and it expires at its deadline on the payer's side.
 - A payment read on a second mailbox is not taken again; its stored answer is posted again.
 - Invoices go only between paired contacts that the payer verified and allowed to send
   invoices; no invoice or pair request travels over an epic1 link.

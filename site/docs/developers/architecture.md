@@ -166,7 +166,7 @@ service path, and no server-related timeout, interval or limit.
 
 | File | Holds | Where |
 |---|---|---|
-| `settings.toml` | The user's choices: Node and Epicbox lists, on/off switches | The wallet's data folder |
+| `settings.toml` | The user's choices: Node and Epicbox lists, the `[mailboxes]` table (`added` and `removed` hosts, kept apart from the shipped list), on/off switches | The wallet's data folder |
 | `app-config.toml` | Operators, onions, service URLs, timeouts, intervals, ports, limits | Shipped read-only in `app/assets/config/` |
 | `lepic-config.toml` | The same for the `lepic` CLI | Compiled into the CLI |
 
