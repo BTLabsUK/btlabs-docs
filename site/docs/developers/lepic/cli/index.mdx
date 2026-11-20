@@ -1302,10 +1302,9 @@ before the next try. The serve API's problem document carries the same member, a
 {"error":{"kind":"transport","exit_code":10,"message":"the payment was not delivered","causes":["relay refused the post with InvalidRequest: Rate limit exceeded; retry in 12 s"],"retry_after_secs":12}}
 ```
 
-When the error comes from a mailbox that refused a post, or from an epic1 link of a 0.5.x
-wallet that names one, the error object also carries `mailbox`, the mailbox as `host[:port]`.
-Only a refused post carries it; other mailbox failures do not name one. The serve API's problem
-document carries the same member.
+When a mailbox refused a post, or when the epic1 link or address of a 0.5.x wallet names a
+mailbox, the error object also carries `mailbox`, the mailbox as `host[:port]`. Other mailbox
+failures do not name one. The serve API's problem document carries the same member.
 
 A command line that does not parse is a `usage` error too: with `--output json` it prints the
 same object (exit code 2, the parser's message as `message`) and nothing on stderr. A command
