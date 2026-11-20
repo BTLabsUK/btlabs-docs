@@ -11,13 +11,13 @@ description: "Every endpoint of the `lepic serve` wallet API: paths, roles, para
 LEPIC is alpha and not ready for production use. Commands, the API and data formats can change between versions without a migration path.
 :::
 
-The reference of the `lepic serve` wallet API, version 1.0.0 of its contract: 58 operations under `/api/v1`. How to connect, the roles and the conventions are in the [guide](index.mdx). A running serve returns the same document at `GET /api/v1/openapi.json`; a copy is at [lepic-openapi.json](pathname:///lepic-openapi.json).
+The reference of the `lepic serve` wallet API, version 2.0.0 of its contract: 59 operations under `/api/v1`. How to connect, the roles and the conventions are in the [guide](index.mdx). A running serve returns the same document at `GET /api/v1/openapi.json`; a copy is at [lepic-openapi.json](pathname:///lepic-openapi.json).
 
 Every path below is relative to `/api/v1`. `Role` is the least role of an owner TLS client that may call the operation; the Unix socket always has `full`.
 
 ## Operations
 
-- **Service**: [`GET /status`](#get-status), [`GET /openapi.json`](#get-openapi-json)
+- **Service**: [`GET /status`](#get-status), [`GET /openapi.json`](#get-openapi-json), [`GET /metrics`](#get-metrics)
 - **Wallet**: [`GET /wallet`](#get-wallet), [`PUT /wallet/password`](#put-wallet-password), [`POST /wallet/scan`](#post-wallet-scan), [`POST /sync`](#post-sync), [`POST /sync/boost`](#post-sync-boost), [`DELETE /sync/boost/{id}`](#delete-sync-boost-id), [`GET /accounts`](#get-accounts), [`POST /accounts`](#post-accounts)
 - **Payments**: [`GET /payments`](#get-payments), [`POST /payments`](#post-payments), [`POST /payments/estimate`](#post-payments-estimate), [`GET /payments/{id}`](#get-payments-id), [`PATCH /payments/{id}`](#patch-payments-id), [`POST /payments/{id}/approve`](#post-payments-id-approve), [`POST /payments/{id}/decline`](#post-payments-id-decline), [`POST /payments/{id}/deliver`](#post-payments-id-deliver), [`POST /payments/{id}/post`](#post-payments-id-post), [`POST /payments/{id}/cancel`](#post-payments-id-cancel), [`POST /payments/{id}/recover`](#post-payments-id-recover), [`GET /payments/{id}/handoff`](#get-payments-id-handoff)
 - **Inspect and open**: [`POST /inspect`](#post-inspect), [`POST /open`](#post-open)
@@ -58,6 +58,22 @@ Role: `read`.
 |---|---|
 | 200 | OK: `object` |
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+
+### `GET /metrics` {#get-metrics}
+
+Counts, heights and mailbox health in the Prometheus text format, when serve runs with `--metrics`.
+
+Role: `read`.
+
+Prometheus text exposition format 0.0.4, `Content-Type: text/plain; version=0.0.4; charset=utf-8`. Amounts are in the wallet's base unit (1e-8 EPIC). Counters count since serve started and are not stored. Read from the store and from what serve already noted: no node or mailbox is asked. Answers 404 `not_found` when serve runs without `--metrics`.
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| 200 | OK: `string` |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
 
 ## Wallet
 
@@ -261,8 +277,10 @@ Starts a send (`kind: send`, default) or an invoice (`kind: invoice`). Returns 2
 | 201 | Created: [`Payment`](#schema-payment) |
 | 400 | Bad input |
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
 | 409 | Conflict with the object's state or an idempotency key |
 | 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
+| 500 | The server is set up wrongly, e.g. the named tor binary is missing |
 | 502 | The node or a mailbox failed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
 | 504 | The node or a mailbox timed out |
@@ -1288,6 +1306,7 @@ Errors are RFC 9457 problem documents (`application/problem+json`), the [`Proble
 | `NotFound` | Not found (404). |
 | `Conflict` | Conflict with the object's state or an idempotency key (409). |
 | `Unprocessable` | Valid but impossible, e.g. insufficient funds or invoice changed (422). |
+| `ServerError` | The server is set up wrongly, e.g. the named tor binary is missing (500). |
 | `BadGateway` | The node or a mailbox failed (502). |
 | `Unavailable` | Not ready: scan running or serve stopping (503). May set Retry-After. |
 | `GatewayTimeout` | The node or a mailbox timed out (504). |

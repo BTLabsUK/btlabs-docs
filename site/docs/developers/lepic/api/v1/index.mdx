@@ -16,8 +16,8 @@ LEPIC is alpha and not ready for production use. Commands, the API and data form
 :::
 
 `lepic serve` holds one wallet open and answers an HTTP API under `/api/v1` on a Unix socket, and
-on an owner TLS listener when that is on. This guide covers lepic 0.6.0. The contract is
-[openapi.json](/developers/lepic/api/v1/explorer/), API version 1.0.0; `GET /api/v1/openapi.json` returns the same
+on an owner TLS listener when that is on. This guide covers lepic 0.6.0. `lepic serve` runs on Unix only; on Windows the rest of the CLI runs but the API does not. The contract is
+[openapi.json](/developers/lepic/api/v1/explorer/), document version 2.0.0 (the path stays `/api/v1`); `GET /api/v1/openapi.json` returns the same
 document from a running serve. The
 [explorer](/developers/lepic/api/v1/explorer/) has every endpoint with its
 fields and answers. [Recipes](../../recipes.mdx) has tasks with the CLI and the API side by side.
@@ -25,7 +25,7 @@ fields and answers. [Recipes](../../recipes.mdx) has tasks with the CLI and the 
 ## First request
 
 <FirstRequest
-  steps={[{"lead": null, "text": [{"t": "text", "v": "Start serve on a socket in the current directory; it reads the wallet password as "}, {"t": "code", "v": "lepic"}, {"t": "text", "v": " does."}], "cmd": "lepic serve --socket ./w.sock &"}, {"lead": null, "text": [{"t": "text", "v": "Ask serve for its status."}], "cmd": "curl --unix-socket ./w.sock http://lepic/api/v1/status", "answer": "{\n  \"version\": \"0.6.0\",\n  \"uptime_s\": 5,\n  \"listeners\": {\n    \"epicbox\": {\n      \"state\": \"connected\",\n      \"relays\": [\n        {\n          \"host\": \"relay.example:443\",\n          \"group\": \"wallet\",\n          \"state\": \"attached\",\n          \"push\": true,\n          \"connected_since\": \"2026-11-11T02:55:09.512041201Z\"\n        }\n      ]\n    }\n  },\n  \"node\": {\n    \"tip_height\": 3412790,\n    \"tip_changed_at\": \"2026-11-11T02:54:31.226402118Z\"\n  },\n  \"refresh\": {\n    \"failures\": 0,\n    \"last_success_at\": \"2026-11-11T02:55:09.797663717Z\"\n  },\n  \"collect\": {\n    \"failures\": 0,\n    \"last_success_at\": \"2026-11-11T02:55:09.816610725Z\"\n  },\n  \"requests\": {\n    \"served\": 0,\n    \"in_flight\": 1,\n    \"refused\": 0\n  }\n}"}, {"lead": null, "text": [{"t": "text", "v": "Read the accounts and their balances."}], "cmd": "curl --unix-socket ./w.sock http://lepic/api/v1/accounts", "answer": "{\n  \"items\": [\n    {\n      \"label\": \"default\",\n      \"index\": 0,\n      \"balance\": {\n        \"spendable\": \"0.00000000\",\n        \"confirming\": \"0.00000000\",\n        \"pending\": \"0.00000000\",\n        \"maturing\": \"0.00000000\",\n        \"locked\": \"0.00000000\",\n        \"total\": \"0.00000000\"\n      }\n    }\n  ]\n}"}]}
+  steps={[{"lead": null, "text": [{"t": "text", "v": "Start serve on a socket in the current directory; it reads the wallet password as "}, {"t": "code", "v": "lepic"}, {"t": "text", "v": " does."}], "cmd": "lepic serve --socket ./w.sock &"}, {"lead": null, "text": [{"t": "text", "v": "Ask serve for its status."}], "cmd": "curl --unix-socket ./w.sock http://lepic/api/v1/status", "answer": "{\n  \"version\": \"0.6.0\",\n  \"uptime_s\": 5,\n  \"listeners\": {\n    \"epicbox\": {\n      \"state\": \"connected\",\n      \"relays\": [\n        {\n          \"host\": \"relay.example:443\",\n          \"group\": \"wallet\",\n          \"state\": \"attached\",\n          \"push\": true,\n          \"connected_since\": \"2026-11-11T02:55:09.512041201Z\"\n        }\n      ]\n    }\n  },\n  \"node\": {\n    \"tip_height\": 3412790,\n    \"tip_changed_at\": \"2026-11-11T02:54:31.226402118Z\"\n  },\n  \"payments\": {\n    \"open\": {\n      \"needs_approval\": 0,\n      \"awaiting_answer\": 0,\n      \"finalized\": 0,\n      \"posted\": 0\n    }\n  },\n  \"refresh\": {\n    \"failures\": 0,\n    \"last_success_at\": \"2026-11-11T02:55:09.797663717Z\"\n  },\n  \"collect\": {\n    \"failures\": 0,\n    \"last_success_at\": \"2026-11-11T02:55:09.816610725Z\"\n  },\n  \"requests\": {\n    \"served\": 0,\n    \"in_flight\": 1,\n    \"refused\": 0\n  }\n}"}, {"lead": null, "text": [{"t": "text", "v": "Read the accounts and their balances."}], "cmd": "curl --unix-socket ./w.sock http://lepic/api/v1/accounts", "answer": "{\n  \"items\": [\n    {\n      \"label\": \"default\",\n      \"index\": 0,\n      \"balance\": {\n        \"spendable\": \"0.00000000\",\n        \"confirming\": \"0.00000000\",\n        \"pending\": \"0.00000000\",\n        \"maturing\": \"0.00000000\",\n        \"locked\": \"0.00000000\",\n        \"total\": \"0.00000000\"\n      }\n    }\n  ]\n}"}]}
 />
 
 ## Payment lifecycle
@@ -34,10 +34,10 @@ A payment is one object, whatever its kind: a send, an invoice you issue or pay,
 scan found. Its `state` moves like this:
 
 <PaymentLifecycle
-  states={[{"name": "needs_approval", "meaning": [{"t": "text", "v": "An invoice someone handed you, held until you approve or decline it. Nothing is spent. Past its expiry height it drops out of the list."}], "actions": [{"name": "approve", "method": "post", "path": "/payments/{id}/approve", "href": "/developers/lepic/api/v1/explorer/#approvePayment", "note": []}, {"name": "decline", "method": "post", "path": "/payments/{id}/decline", "href": "/developers/lepic/api/v1/explorer/#declinePayment", "note": []}], "none": null}, {"name": "awaiting_answer", "meaning": [{"t": "text", "v": "The slate went out and the other side has not answered. A send you made, an invoice you issued, a payment you received or an invoice you approved."}], "actions": [{"name": "deliver", "method": "post", "path": "/payments/{id}/deliver", "href": "/developers/lepic/api/v1/explorer/#deliverPayment", "note": [{"t": "text", "v": "before its cutoff height for an outgoing payment not yet delivered or an epic1 payment whose post is "}, {"t": "code", "v": "uncertain"}, {"t": "text", "v": " or "}, {"t": "code", "v": "failed"}]}, {"name": "cancel", "method": "post", "path": "/payments/{id}/cancel", "href": "/developers/lepic/api/v1/explorer/#cancelPayment", "note": []}], "none": null}, {"name": "finalized", "meaning": [{"t": "text", "v": "The answer arrived and the transaction is built. Serve posts it to the node by itself."}], "actions": [{"name": "post", "method": "post", "path": "/payments/{id}/post", "href": "/developers/lepic/api/v1/explorer/#postPayment", "note": [{"t": "text", "v": "until its expiry height"}]}, {"name": "cancel", "method": "post", "path": "/payments/{id}/cancel", "href": "/developers/lepic/api/v1/explorer/#cancelPayment", "note": []}, {"name": "recover", "method": "post", "path": "/payments/{id}/recover", "href": "/developers/lepic/api/v1/explorer/#recoverPayment", "note": [{"t": "text", "v": "for a send"}]}], "none": null}, {"name": "posted", "meaning": [{"t": "text", "v": "The node took the transaction."}], "actions": [{"name": "post", "method": "post", "path": "/payments/{id}/post", "href": "/developers/lepic/api/v1/explorer/#postPayment", "note": [{"t": "text", "v": "until its expiry height"}]}, {"name": "recover", "method": "post", "path": "/payments/{id}/recover", "href": "/developers/lepic/api/v1/explorer/#recoverPayment", "note": [{"t": "text", "v": "for a send"}]}], "none": null}, {"name": "confirmed", "meaning": [{"t": "text", "v": "The transaction is on the chain."}], "actions": [], "none": "none"}, {"name": "cancelled", "meaning": [{"t": "text", "v": "Ended without a transaction. "}, {"t": "code", "v": "state_reason"}, {"t": "text", "v": " is "}, {"t": "code", "v": "by_us"}, {"t": "text", "v": ", "}, {"t": "code", "v": "by_them"}, {"t": "text", "v": ", or "}, {"t": "code", "v": "recovered"}, {"t": "text", "v": " once a recovery is done."}], "actions": [{"name": "recover", "method": "post", "path": "/payments/{id}/recover", "href": "/developers/lepic/api/v1/explorer/#recoverPayment", "note": [{"t": "text", "v": "for a send whose inputs are still held for it"}]}], "none": null}, {"name": "declined", "meaning": [{"t": "text", "v": "One side refused the invoice. "}, {"t": "code", "v": "state_reason"}, {"t": "text", "v": " says which. A send this wallet made that its receiver declines is erased instead: no payment is left, "}, {"t": "code", "v": "GET /payments/{id}"}, {"t": "text", "v": " answers 404 "}, {"t": "code", "v": "payment_declined"}, {"t": "text", "v": ", and "}, {"t": "code", "v": "payment.declined"}, {"t": "text", "v": " is raised."}], "actions": [], "none": "none"}, {"name": "expired", "meaning": [{"t": "text", "v": "Ended at its expiry height. "}, {"t": "code", "v": "state_reason"}, {"t": "text", "v": " is "}, {"t": "code", "v": "expired_no_answer"}, {"t": "text", "v": " when the answer to a payment or invoice you started never came, "}, {"t": "code", "v": "expired_not_mined"}, {"t": "text", "v": " when it was answered but not mined, and "}, {"t": "code", "v": "expired_rejected_by_node"}, {"t": "text", "v": " for a send whose every push the node's pool refused."}], "actions": [{"name": "recover", "method": "post", "path": "/payments/{id}/recover", "href": "/developers/lepic/api/v1/explorer/#recoverPayment", "note": [{"t": "text", "v": "for a send whose inputs are still held for it"}]}], "none": null}]}
+  states={[{"name": "needs_approval", "meaning": [{"t": "text", "v": "An invoice someone handed you, held until you approve or decline it. Nothing is spent. Past its expiry height it drops out of the list."}], "actions": [{"name": "approve", "method": "post", "path": "/payments/{id}/approve", "href": "/developers/lepic/api/v1/explorer/#approvePayment", "note": []}, {"name": "decline", "method": "post", "path": "/payments/{id}/decline", "href": "/developers/lepic/api/v1/explorer/#declinePayment", "note": []}], "none": null}, {"name": "awaiting_answer", "meaning": [{"t": "text", "v": "The slate went out and the other side has not answered. A send you made, an invoice you issued, a payment you received or an invoice you approved."}], "actions": [{"name": "deliver", "method": "post", "path": "/payments/{id}/deliver", "href": "/developers/lepic/api/v1/explorer/#deliverPayment", "note": [{"t": "text", "v": "before its cutoff height for an outgoing payment not yet delivered or an epic1 payment whose post is "}, {"t": "code", "v": "uncertain"}, {"t": "text", "v": " or "}, {"t": "code", "v": "failed"}]}, {"name": "cancel", "method": "post", "path": "/payments/{id}/cancel", "href": "/developers/lepic/api/v1/explorer/#cancelPayment", "note": []}], "none": null}, {"name": "finalized", "meaning": [{"t": "text", "v": "The answer arrived and the transaction is built. Serve posts it to the node by itself."}], "actions": [{"name": "post", "method": "post", "path": "/payments/{id}/post", "href": "/developers/lepic/api/v1/explorer/#postPayment", "note": [{"t": "text", "v": "until its expiry height"}]}, {"name": "cancel", "method": "post", "path": "/payments/{id}/cancel", "href": "/developers/lepic/api/v1/explorer/#cancelPayment", "note": []}, {"name": "recover", "method": "post", "path": "/payments/{id}/recover", "href": "/developers/lepic/api/v1/explorer/#recoverPayment", "note": [{"t": "text", "v": "for a send"}]}], "none": null}, {"name": "posted", "meaning": [{"t": "text", "v": "The node took the transaction."}], "actions": [{"name": "post", "method": "post", "path": "/payments/{id}/post", "href": "/developers/lepic/api/v1/explorer/#postPayment", "note": [{"t": "text", "v": "until its expiry height"}]}, {"name": "recover", "method": "post", "path": "/payments/{id}/recover", "href": "/developers/lepic/api/v1/explorer/#recoverPayment", "note": [{"t": "text", "v": "for a send"}]}], "none": null}, {"name": "confirmed", "meaning": [{"t": "text", "v": "The transaction is on the chain. Within 1,440 blocks of its confirmation, a reorg that takes it off the chain reopens it: serve moves it back to "}, {"t": "code", "v": "posted"}, {"t": "text", "v": " ("}, {"t": "code", "v": "received"}, {"t": "text", "v": " for a payment you received, "}, {"t": "code", "v": "sent"}, {"t": "text", "v": " for a send not yet posted) and raises "}, {"t": "code", "v": "payment.state_changed"}, {"t": "text", "v": "."}], "actions": [], "none": "none"}, {"name": "cancelled", "meaning": [{"t": "text", "v": "Ended without a transaction. "}, {"t": "code", "v": "state_reason"}, {"t": "text", "v": " is "}, {"t": "code", "v": "by_us"}, {"t": "text", "v": ", "}, {"t": "code", "v": "by_them"}, {"t": "text", "v": ", or "}, {"t": "code", "v": "recovered"}, {"t": "text", "v": " once a recovery is done."}], "actions": [{"name": "recover", "method": "post", "path": "/payments/{id}/recover", "href": "/developers/lepic/api/v1/explorer/#recoverPayment", "note": [{"t": "text", "v": "for a send whose inputs are still held for it"}]}], "none": null}, {"name": "declined", "meaning": [{"t": "text", "v": "One side refused the invoice. "}, {"t": "code", "v": "state_reason"}, {"t": "text", "v": " says which. A send this wallet made that its receiver declines is erased instead: no payment is left, "}, {"t": "code", "v": "GET /payments/{id}"}, {"t": "text", "v": " answers 404 "}, {"t": "code", "v": "payment_declined"}, {"t": "text", "v": ", and "}, {"t": "code", "v": "payment.declined"}, {"t": "text", "v": " is raised."}], "actions": [], "none": "none"}, {"name": "expired", "meaning": [{"t": "text", "v": "Ended at its expiry height. "}, {"t": "code", "v": "state_reason"}, {"t": "text", "v": " is "}, {"t": "code", "v": "expired_no_answer"}, {"t": "text", "v": " when the answer to a payment or invoice you started never came, "}, {"t": "code", "v": "expired_not_mined"}, {"t": "text", "v": " when it was answered but not mined, and "}, {"t": "code", "v": "expired_rejected_by_node"}, {"t": "text", "v": " for a send whose every push the node's pool refused."}], "actions": [{"name": "recover", "method": "post", "path": "/payments/{id}/recover", "href": "/developers/lepic/api/v1/explorer/#recoverPayment", "note": [{"t": "text", "v": "for a send whose inputs are still held for it"}]}], "none": null}]}
   start={["needs_approval", "awaiting_answer"]}
   end={["needs_approval", "confirmed", "cancelled", "declined", "expired"]}
-  moves={[{"from": "needs_approval", "to": "awaiting_answer", "label": "approve"}, {"from": "needs_approval", "to": "declined", "label": "decline"}, {"from": "awaiting_answer", "to": "finalized", "label": "answer arrives"}, {"from": "awaiting_answer", "to": "confirmed", "label": "other side posts, mined"}, {"from": "awaiting_answer", "to": "cancelled", "label": "cancel"}, {"from": "awaiting_answer", "to": "declined", "label": "other side declines an invoice"}, {"from": "awaiting_answer", "to": "expired", "label": "expiry height passes"}, {"from": "finalized", "to": "posted", "label": "post"}, {"from": "finalized", "to": "confirmed", "label": "mined"}, {"from": "finalized", "to": "cancelled", "label": "cancel"}, {"from": "finalized", "to": "cancelled", "label": "recovered"}, {"from": "finalized", "to": "expired", "label": "issued invoice or refused send, expiry height passes"}, {"from": "posted", "to": "confirmed", "label": "mined"}, {"from": "posted", "to": "cancelled", "label": "recovered"}, {"from": "posted", "to": "expired", "label": "issued invoice, expiry height passes"}, {"from": "cancelled", "to": "confirmed", "label": "mined after all"}, {"from": "expired", "to": "confirmed", "label": "mined after all"}]}
+  moves={[{"from": "needs_approval", "to": "awaiting_answer", "label": "approve"}, {"from": "needs_approval", "to": "declined", "label": "decline"}, {"from": "awaiting_answer", "to": "finalized", "label": "answer arrives"}, {"from": "awaiting_answer", "to": "confirmed", "label": "other side posts, mined"}, {"from": "awaiting_answer", "to": "cancelled", "label": "cancel"}, {"from": "awaiting_answer", "to": "declined", "label": "other side declines an invoice"}, {"from": "awaiting_answer", "to": "expired", "label": "expiry height passes"}, {"from": "finalized", "to": "posted", "label": "post"}, {"from": "finalized", "to": "confirmed", "label": "mined"}, {"from": "finalized", "to": "cancelled", "label": "cancel"}, {"from": "finalized", "to": "cancelled", "label": "recovered"}, {"from": "finalized", "to": "expired", "label": "issued invoice or refused send, expiry height passes"}, {"from": "posted", "to": "confirmed", "label": "mined"}, {"from": "posted", "to": "cancelled", "label": "recovered"}, {"from": "posted", "to": "expired", "label": "issued invoice, expiry height passes"}, {"from": "cancelled", "to": "confirmed", "label": "mined after all"}, {"from": "expired", "to": "confirmed", "label": "mined after all"}, {"from": "confirmed", "to": "posted", "label": "a reorg took it off the chain"}]}
 />
 
 While serve is online, its refresh pushes a `finalized` payment to the node again until it is
@@ -63,13 +63,13 @@ A service that credits a customer back when a send ends can go by this table, fo
 | `state` | `state_reason` | Can it still be mined | Credit back |
 |---|---|---|---|
 | `expired` | `expired_no_answer` | No: the answer never arrived, and only your wallet can finalize the send | Yes |
-| `expired` | `expired_rejected_by_node` | Only by a node other than yours; it then becomes `confirmed` | Yes |
+| `expired` | `expired_rejected_by_node` | Only by a node other than yours; it then becomes `confirmed` | Recover first, then credit: only once the `recover` action has ended it as `cancelled` with `recovered` (row below) |
 | `expired` | `expired_not_mined` | Yes: the send was answered, and another node may still mine it | No |
 | `cancelled` | `by_us`, while it was `awaiting_answer` | No | Yes |
 | `cancelled` | `recovered` | No: the recovery spent its inputs | Yes |
 | any other ended state | any | Yes | No |
 
-A payment that becomes `confirmed` later counts as paid, even after `expired_rejected_by_node`.
+A payment that becomes `confirmed` later counts as paid, even after `expired_rejected_by_node`. Never credit back on `expired_rejected_by_node` alone.
 An `expired` payment has no `state_reason` only when the wallet holds neither its slate nor its
 kernel, such as an entry imported from another wallet's history.
 
@@ -215,7 +215,7 @@ Every path is under `/api/v1`. Each operation's lowest role is its `x-role` in
 shows it per call.
 
 <EndpointGroups
-  groups={[{"name": "Service", "covers": [{"t": "text", "v": "Uptime, listeners, the node's tip, last refresh and collect, see "}, {"t": "link", "v": [{"t": "text", "v": "Health"}], "href": "#health"}, {"t": "text", "v": "; this API as OpenAPI 3.1"}], "calls": [{"method": "get", "path": "/status", "href": "/developers/lepic/api/v1/explorer/#getStatus"}, {"method": "get", "path": "/openapi.json", "href": "/developers/lepic/api/v1/explorer/#getOpenApi"}], "href": "/developers/lepic/api/v1/explorer/#tag-service"}, {"name": "Payments", "covers": [{"t": "text", "v": "List, send, invoice, fee estimate, local notes"}], "calls": [{"method": "get", "path": "/payments", "href": "/developers/lepic/api/v1/explorer/#listPayments"}, {"method": "post", "path": "/payments", "href": "/developers/lepic/api/v1/explorer/#createPayment"}, {"method": "post", "path": "/payments/estimate", "href": "/developers/lepic/api/v1/explorer/#estimatePayment"}, {"method": "get", "path": "/payments/{id}", "href": "/developers/lepic/api/v1/explorer/#getPayment"}, {"method": "patch", "path": "/payments/{id}", "href": "/developers/lepic/api/v1/explorer/#updatePayment"}], "href": "/developers/lepic/api/v1/explorer/#tag-payments"}, {"name": "Payment actions", "covers": [{"t": "text", "v": "The calls "}, {"t": "code", "v": "actions"}, {"t": "text", "v": " lists, see "}, {"t": "link", "v": [{"t": "text", "v": "Payment lifecycle"}], "href": "#payment-lifecycle"}], "calls": [{"method": "post", "path": "/payments/{id}/approve", "href": "/developers/lepic/api/v1/explorer/#approvePayment"}, {"method": "post", "path": "/payments/{id}/decline", "href": "/developers/lepic/api/v1/explorer/#declinePayment"}, {"method": "post", "path": "/payments/{id}/deliver", "href": "/developers/lepic/api/v1/explorer/#deliverPayment"}, {"method": "post", "path": "/payments/{id}/post", "href": "/developers/lepic/api/v1/explorer/#postPayment"}, {"method": "post", "path": "/payments/{id}/cancel", "href": "/developers/lepic/api/v1/explorer/#cancelPayment"}, {"method": "post", "path": "/payments/{id}/recover", "href": "/developers/lepic/api/v1/explorer/#recoverPayment"}], "href": "/developers/lepic/api/v1/explorer/#tag-payments"}, {"name": "Hand over", "covers": [{"t": "text", "v": "Text, files and QR frames given by hand: what to give, what you got, act on it"}], "calls": [{"method": "get", "path": "/payments/{id}/handoff", "href": "/developers/lepic/api/v1/explorer/#getPaymentHandoff"}, {"method": "post", "path": "/inspect", "href": "/developers/lepic/api/v1/explorer/#inspect"}, {"method": "post", "path": "/open", "href": "/developers/lepic/api/v1/explorer/#open"}], "href": "/developers/lepic/api/v1/explorer/#tag-payments"}, {"name": "Addresses and links", "covers": [{"t": "text", "v": "Addresses to give out, request links"}], "calls": [{"method": "get", "path": "/addresses", "href": "/developers/lepic/api/v1/explorer/#listAddresses"}, {"method": "post", "path": "/links", "href": "/developers/lepic/api/v1/explorer/#createLink"}], "href": "/developers/lepic/api/v1/explorer/#tag-addresses-and-links"}, {"name": "Contacts", "covers": [{"t": "text", "v": "Pairing, the four-word check, key changes, relay moves, bytes for the host app, backup"}], "calls": [{"method": "get", "path": "/contacts", "href": "/developers/lepic/api/v1/explorer/#listContacts"}, {"method": "post", "path": "/contacts", "href": "/developers/lepic/api/v1/explorer/#createContact"}, {"method": "get", "path": "/contacts/{id}", "href": "/developers/lepic/api/v1/explorer/#getContact"}, {"method": "patch", "path": "/contacts/{id}", "href": "/developers/lepic/api/v1/explorer/#updateContact"}, {"method": "delete", "path": "/contacts/{id}", "href": "/developers/lepic/api/v1/explorer/#deleteContact"}, {"method": "post", "path": "/contacts/{id}/verify", "href": "/developers/lepic/api/v1/explorer/#verifyContact"}, {"method": "post", "path": "/contacts/{id}/check", "href": "/developers/lepic/api/v1/explorer/#checkContact"}, {"method": "post", "path": "/contacts/{id}/keys", "href": "/developers/lepic/api/v1/explorer/#resolveContactKeys"}, {"method": "post", "path": "/contacts/{id}/move", "href": "/developers/lepic/api/v1/explorer/#moveContact"}, {"method": "post", "path": "/contacts/{id}/payloads", "href": "/developers/lepic/api/v1/explorer/#sendPayload"}, {"method": "post", "path": "/contacts/export", "href": "/developers/lepic/api/v1/explorer/#exportContacts"}, {"method": "post", "path": "/contacts/import", "href": "/developers/lepic/api/v1/explorer/#importContacts"}], "href": "/developers/lepic/api/v1/explorer/#tag-contacts"}, {"name": "Contact inbox", "covers": [{"t": "text", "v": "Payloads received, messages that did not open"}], "calls": [{"method": "get", "path": "/payloads", "href": "/developers/lepic/api/v1/explorer/#listPayloads"}, {"method": "delete", "path": "/payloads/{id}", "href": "/developers/lepic/api/v1/explorer/#deletePayload"}, {"method": "get", "path": "/quarantine", "href": "/developers/lepic/api/v1/explorer/#listQuarantine"}, {"method": "post", "path": "/quarantine/{id}/retry", "href": "/developers/lepic/api/v1/explorer/#retryQuarantined"}, {"method": "delete", "path": "/quarantine/{id}", "href": "/developers/lepic/api/v1/explorer/#deleteQuarantined"}], "href": "/developers/lepic/api/v1/explorer/#tag-payloads"}, {"name": "Wallet", "covers": [{"t": "text", "v": "Height, scan, password, accounts and balances, coins, consolidation"}], "calls": [{"method": "get", "path": "/wallet", "href": "/developers/lepic/api/v1/explorer/#getWallet"}, {"method": "put", "path": "/wallet/password", "href": "/developers/lepic/api/v1/explorer/#changeWalletPassword"}, {"method": "post", "path": "/wallet/scan", "href": "/developers/lepic/api/v1/explorer/#scanWallet"}, {"method": "get", "path": "/accounts", "href": "/developers/lepic/api/v1/explorer/#listAccounts"}, {"method": "post", "path": "/accounts", "href": "/developers/lepic/api/v1/explorer/#createAccount"}, {"method": "get", "path": "/outputs", "href": "/developers/lepic/api/v1/explorer/#listOutputs"}, {"method": "post", "path": "/outputs/consolidate", "href": "/developers/lepic/api/v1/explorer/#consolidateOutputs"}], "href": "/developers/lepic/api/v1/explorer/#tag-wallet"}, {"name": "Sync", "covers": [{"t": "text", "v": "Refresh from the node and collect from the mailboxes now, or more often for a while"}], "calls": [{"method": "post", "path": "/sync", "href": "/developers/lepic/api/v1/explorer/#syncNow"}, {"method": "post", "path": "/sync/boost", "href": "/developers/lepic/api/v1/explorer/#boostSync"}, {"method": "delete", "path": "/sync/boost/{id}", "href": "/developers/lepic/api/v1/explorer/#endBoost"}], "href": "/developers/lepic/api/v1/explorer/#tag-wallet"}, {"name": "Network and profile", "covers": [{"t": "text", "v": "Home mailbox, node, what contacts are told"}], "calls": [{"method": "get", "path": "/relay", "href": "/developers/lepic/api/v1/explorer/#getRelay"}, {"method": "post", "path": "/relay/move", "href": "/developers/lepic/api/v1/explorer/#moveRelay"}, {"method": "get", "path": "/node", "href": "/developers/lepic/api/v1/explorer/#getNode"}, {"method": "get", "path": "/profile", "href": "/developers/lepic/api/v1/explorer/#getProfile"}, {"method": "patch", "path": "/profile", "href": "/developers/lepic/api/v1/explorer/#updateProfile"}, {"method": "get", "path": "/profile/domain-file", "href": "/developers/lepic/api/v1/explorer/#getProfileDomainFile"}], "href": "/developers/lepic/api/v1/explorer/#tag-network"}, {"name": "Events", "covers": [{"t": "text", "v": "The event log as pages, a live stream or webhooks"}], "calls": [{"method": "get", "path": "/events", "href": "/developers/lepic/api/v1/explorer/#listEvents"}, {"method": "get", "path": "/webhook", "href": "/developers/lepic/api/v1/explorer/#getWebhook"}, {"method": "post", "path": "/webhook/resume", "href": "/developers/lepic/api/v1/explorer/#resumeWebhook"}], "href": "/developers/lepic/api/v1/explorer/#tag-events"}]}
+  groups={[{"name": "Service", "covers": [{"t": "text", "v": "Uptime, listeners, the node's tip, last refresh and collect, see "}, {"t": "link", "v": [{"t": "text", "v": "Health"}], "href": "#health"}, {"t": "text", "v": "; the same kind of facts as Prometheus text, see "}, {"t": "link", "v": [{"t": "text", "v": "Metrics"}], "href": "#metrics"}, {"t": "text", "v": "; this API as OpenAPI 3.1"}], "calls": [{"method": "get", "path": "/status", "href": "/developers/lepic/api/v1/explorer/#getStatus"}, {"method": "get", "path": "/metrics", "href": "/developers/lepic/api/v1/explorer/#getMetrics"}, {"method": "get", "path": "/openapi.json", "href": "/developers/lepic/api/v1/explorer/#getOpenApi"}], "href": "/developers/lepic/api/v1/explorer/#tag-service"}, {"name": "Payments", "covers": [{"t": "text", "v": "List, send, invoice, fee estimate, local notes"}], "calls": [{"method": "get", "path": "/payments", "href": "/developers/lepic/api/v1/explorer/#listPayments"}, {"method": "post", "path": "/payments", "href": "/developers/lepic/api/v1/explorer/#createPayment"}, {"method": "post", "path": "/payments/estimate", "href": "/developers/lepic/api/v1/explorer/#estimatePayment"}, {"method": "get", "path": "/payments/{id}", "href": "/developers/lepic/api/v1/explorer/#getPayment"}, {"method": "patch", "path": "/payments/{id}", "href": "/developers/lepic/api/v1/explorer/#updatePayment"}], "href": "/developers/lepic/api/v1/explorer/#tag-payments"}, {"name": "Payment actions", "covers": [{"t": "text", "v": "The calls "}, {"t": "code", "v": "actions"}, {"t": "text", "v": " lists, see "}, {"t": "link", "v": [{"t": "text", "v": "Payment lifecycle"}], "href": "#payment-lifecycle"}], "calls": [{"method": "post", "path": "/payments/{id}/approve", "href": "/developers/lepic/api/v1/explorer/#approvePayment"}, {"method": "post", "path": "/payments/{id}/decline", "href": "/developers/lepic/api/v1/explorer/#declinePayment"}, {"method": "post", "path": "/payments/{id}/deliver", "href": "/developers/lepic/api/v1/explorer/#deliverPayment"}, {"method": "post", "path": "/payments/{id}/post", "href": "/developers/lepic/api/v1/explorer/#postPayment"}, {"method": "post", "path": "/payments/{id}/cancel", "href": "/developers/lepic/api/v1/explorer/#cancelPayment"}, {"method": "post", "path": "/payments/{id}/recover", "href": "/developers/lepic/api/v1/explorer/#recoverPayment"}], "href": "/developers/lepic/api/v1/explorer/#tag-payments"}, {"name": "Hand over", "covers": [{"t": "text", "v": "Text, files and QR frames given by hand: what to give, what you got, act on it"}], "calls": [{"method": "get", "path": "/payments/{id}/handoff", "href": "/developers/lepic/api/v1/explorer/#getPaymentHandoff"}, {"method": "post", "path": "/inspect", "href": "/developers/lepic/api/v1/explorer/#inspect"}, {"method": "post", "path": "/open", "href": "/developers/lepic/api/v1/explorer/#open"}], "href": "/developers/lepic/api/v1/explorer/#tag-payments"}, {"name": "Addresses and links", "covers": [{"t": "text", "v": "Addresses to give out, request links"}], "calls": [{"method": "get", "path": "/addresses", "href": "/developers/lepic/api/v1/explorer/#listAddresses"}, {"method": "post", "path": "/links", "href": "/developers/lepic/api/v1/explorer/#createLink"}], "href": "/developers/lepic/api/v1/explorer/#tag-addresses-and-links"}, {"name": "Contacts", "covers": [{"t": "text", "v": "Pairing, the four-word check, key changes, relay moves, bytes for the host app, backup"}], "calls": [{"method": "get", "path": "/contacts", "href": "/developers/lepic/api/v1/explorer/#listContacts"}, {"method": "post", "path": "/contacts", "href": "/developers/lepic/api/v1/explorer/#createContact"}, {"method": "get", "path": "/contacts/{id}", "href": "/developers/lepic/api/v1/explorer/#getContact"}, {"method": "patch", "path": "/contacts/{id}", "href": "/developers/lepic/api/v1/explorer/#updateContact"}, {"method": "delete", "path": "/contacts/{id}", "href": "/developers/lepic/api/v1/explorer/#deleteContact"}, {"method": "post", "path": "/contacts/{id}/verify", "href": "/developers/lepic/api/v1/explorer/#verifyContact"}, {"method": "post", "path": "/contacts/{id}/check", "href": "/developers/lepic/api/v1/explorer/#checkContact"}, {"method": "post", "path": "/contacts/{id}/keys", "href": "/developers/lepic/api/v1/explorer/#resolveContactKeys"}, {"method": "post", "path": "/contacts/{id}/move", "href": "/developers/lepic/api/v1/explorer/#moveContact"}, {"method": "post", "path": "/contacts/{id}/payloads", "href": "/developers/lepic/api/v1/explorer/#sendPayload"}, {"method": "post", "path": "/contacts/export", "href": "/developers/lepic/api/v1/explorer/#exportContacts"}, {"method": "post", "path": "/contacts/import", "href": "/developers/lepic/api/v1/explorer/#importContacts"}], "href": "/developers/lepic/api/v1/explorer/#tag-contacts"}, {"name": "Contact inbox", "covers": [{"t": "text", "v": "Payloads received, messages that did not open"}], "calls": [{"method": "get", "path": "/payloads", "href": "/developers/lepic/api/v1/explorer/#listPayloads"}, {"method": "delete", "path": "/payloads/{id}", "href": "/developers/lepic/api/v1/explorer/#deletePayload"}, {"method": "get", "path": "/quarantine", "href": "/developers/lepic/api/v1/explorer/#listQuarantine"}, {"method": "post", "path": "/quarantine/{id}/retry", "href": "/developers/lepic/api/v1/explorer/#retryQuarantined"}, {"method": "delete", "path": "/quarantine/{id}", "href": "/developers/lepic/api/v1/explorer/#deleteQuarantined"}], "href": "/developers/lepic/api/v1/explorer/#tag-payloads"}, {"name": "Wallet", "covers": [{"t": "text", "v": "Height, scan, password, accounts and balances, coins, consolidation"}], "calls": [{"method": "get", "path": "/wallet", "href": "/developers/lepic/api/v1/explorer/#getWallet"}, {"method": "put", "path": "/wallet/password", "href": "/developers/lepic/api/v1/explorer/#changeWalletPassword"}, {"method": "post", "path": "/wallet/scan", "href": "/developers/lepic/api/v1/explorer/#scanWallet"}, {"method": "get", "path": "/accounts", "href": "/developers/lepic/api/v1/explorer/#listAccounts"}, {"method": "post", "path": "/accounts", "href": "/developers/lepic/api/v1/explorer/#createAccount"}, {"method": "get", "path": "/outputs", "href": "/developers/lepic/api/v1/explorer/#listOutputs"}, {"method": "post", "path": "/outputs/consolidate", "href": "/developers/lepic/api/v1/explorer/#consolidateOutputs"}], "href": "/developers/lepic/api/v1/explorer/#tag-wallet"}, {"name": "Sync", "covers": [{"t": "text", "v": "Refresh from the node and collect from the mailboxes now, or more often for a while"}], "calls": [{"method": "post", "path": "/sync", "href": "/developers/lepic/api/v1/explorer/#syncNow"}, {"method": "post", "path": "/sync/boost", "href": "/developers/lepic/api/v1/explorer/#boostSync"}, {"method": "delete", "path": "/sync/boost/{id}", "href": "/developers/lepic/api/v1/explorer/#endBoost"}], "href": "/developers/lepic/api/v1/explorer/#tag-wallet"}, {"name": "Mailboxes", "covers": [{"t": "text", "v": "The wallet's mailbox list"}], "calls": [{"method": "get", "path": "/mailboxes", "href": "/developers/lepic/api/v1/explorer/#listMailboxes"}, {"method": "post", "path": "/mailboxes", "href": "/developers/lepic/api/v1/explorer/#addMailbox"}, {"method": "post", "path": "/mailboxes/probe", "href": "/developers/lepic/api/v1/explorer/#probeMailbox"}, {"method": "delete", "path": "/mailboxes/{host}", "href": "/developers/lepic/api/v1/explorer/#removeMailbox"}], "href": "/developers/lepic/api/v1/explorer/#tag-network"}, {"name": "Network and profile", "covers": [{"t": "text", "v": "Home mailbox, node, what contacts are told"}], "calls": [{"method": "get", "path": "/relay", "href": "/developers/lepic/api/v1/explorer/#getRelay"}, {"method": "post", "path": "/relay/move", "href": "/developers/lepic/api/v1/explorer/#moveRelay"}, {"method": "get", "path": "/node", "href": "/developers/lepic/api/v1/explorer/#getNode"}, {"method": "get", "path": "/profile", "href": "/developers/lepic/api/v1/explorer/#getProfile"}, {"method": "patch", "path": "/profile", "href": "/developers/lepic/api/v1/explorer/#updateProfile"}, {"method": "get", "path": "/profile/domain-file", "href": "/developers/lepic/api/v1/explorer/#getProfileDomainFile"}], "href": "/developers/lepic/api/v1/explorer/#tag-network"}, {"name": "Events", "covers": [{"t": "text", "v": "The event log as pages, a live stream or webhooks"}], "calls": [{"method": "get", "path": "/events", "href": "/developers/lepic/api/v1/explorer/#listEvents"}, {"method": "get", "path": "/webhook", "href": "/developers/lepic/api/v1/explorer/#getWebhook"}, {"method": "post", "path": "/webhook/resume", "href": "/developers/lepic/api/v1/explorer/#resumeWebhook"}], "href": "/developers/lepic/api/v1/explorer/#tag-events"}]}
 />
 
 ## Health
@@ -244,6 +244,18 @@ whose note is missing.
 
 The `node` fields and the times of a mailbox are held by the running serve: they are absent until
 serve sees them, and again after serve restarts.
+
+## Metrics
+
+`GET /metrics` answers the Prometheus text format (`text/plain; version=0.0.4; charset=utf-8`),
+role `read`. It is off unless serve runs with `--metrics`; without it the path answers 404
+`not_found`. Like `GET /status` it reads serve's memory and the store, asks the node and the
+mailboxes nothing, and may be called as often as a scraper likes. It builds the view of each
+payment that is not over, so that `lepic_payments_stuck` and `lepic_outbox_queue_depth` read the
+same `delivery` as `GET /payments`. Names start with `lepic_`,
+amounts are in the wallet's base unit (1e-8 EPIC) and counters end in `_total`. They start at 0
+when serve starts. The families, their labels and a sample are in the
+[CLI guide](../../cli/index.mdx#metrics); how to scrape a Unix socket is there too.
 
 ## Connecting
 
@@ -294,7 +306,7 @@ The file format and the other commands are in the [CLI guide](../../cli/index.md
 | Topic | Rule |
 |---|---|
 | Names | Fields are snake_case. Enum values are lower snake_case. A client accepts enum values it does not know. |
-| Ids | A payment's `id` is a UUID, its slate id. Other ids are opaque strings. |
+| Ids | A payment's `id` is a UUID, its slate id. A send `id` chosen by the caller must be a random version-4 UUID; another UUID version is refused with 400 `invalid_request`. Other ids are opaque strings. |
 | Amounts | Decimal strings in EPIC with up to 8 decimals: `"1.5"`, `"0.00000001"`. Never a number. |
 | Times | RFC 3339 in UTC: `2026-11-11T01:51:28.040280091Z`. The fraction has up to 9 digits. |
 | Optional fields | Left out when empty. Never `null`. |
@@ -307,7 +319,7 @@ bound to the list's other query parameters, so they stay the same across pages.
 ### Repeating a create
 
 A create (payment, contact) may carry an `id` the caller chooses; for a payment it
-is a UUID. Serve records a digest of the body before it creates anything, so a repeat of the call
+is a UUID (for a send, a version-4 UUID). Serve records a digest of the body before it creates anything, so a repeat of the call
 does not create a second object.
 
 | You send | Serve answers |
@@ -322,12 +334,17 @@ does not create a second object.
   answers 200 with the payment and its `handoff`.
 - Serve waits for running payment creates to end before it stops. A create the stop cuts short
   answers 503 `interrupted`, its record is kept, and a repeat makes the payment.
-- Payments with an `id` count against `api.max_connections` while they are made, so serve makes
+- Payments with an `id` count against the built-in connection limit of the API (not a setting) while they are made, so serve makes
   at most that many at once. Over it a new create answers 503 `busy` and counts in
   `requests.refused` of `GET /status`. A repeat of a payment that exists is answered at any
   count.
-- A create refused with a 4xx, or a 502 from the node, made nothing and keeps no record: the same
-  `id` with a corrected body is a new create.
+- A create with an `id` that is refused with a 4xx, or answers a 502 from the node, made nothing and
+  keeps no record: the same `id` with a corrected body is a new create.
+- A create without an `id` (socket only) can answer 502 `not_delivered` or 422 after the payment was
+  stored, and the answer names no payment. Its coins stay locked until the send ends. Send an `id` on every payment
+  that moves coins: only a repeat with the same `id` is safe.
+- A 201 does not mean the payment is open. Read its `state`: a create whose slate file could not be
+  written answers 201 with the payment already `cancelled`, and it keeps the `id`.
 - After a 500 or 503 the object may exist: repeat the same body to find out. This holds after
   serve stopped while answering, too.
 - Over TLS a payment must carry an `id`, so a client that loses the answer can ask again.
@@ -356,15 +373,16 @@ A payment carries these. The [Payment lifecycle](#payment-lifecycle) covers `sta
 |---|---|
 | `kind` | `send`, `invoice`, `coinbase`, `unknown` (found by a scan). Only `send` and `invoice` can be created. |
 | `direction` | `in`, `out`, `self` (between your own accounts, or splitting your own coins). |
-| `state_reason` | Why a payment reached an end state: `by_us`, `by_them`, `recovered`, `superseded` and others. |
-| `via` | How the slate travels: `epicbox`, `http`, `tor`, `contact`, `link`, `in_person`, `file`, `peer`, `chain`. |
-| `delivery.state` | Serve sets `by_hand` (handed over as text or a file), `queued` (an epic1 post waits for its turn), `uncertain` (it went out and is not known to have arrived), `failed` (an epic1 post failed on its last route) and `sent`. A send the receiver refused reads `sent`. |
+| `confirmations`, `final` | Present once the payment is on the chain. `confirmations` counts blocks on top of it; `final` turns true when they reach the `final_confirmations` setting (6 unless set, 1 to 1440). `confirmed` means one confirmation. Credit a received payment when `final` is true, or on the `payment.confirmations_reached` event. A reorg can still reopen a `confirmed` payment for 1,440 blocks, so watch for `payment.state_changed` away from `confirmed` until then. |
+| `state_reason` | Why a payment reached an end state: `by_us`, `by_them`, `recovered` and others. |
+| `via` | How the slate travels: `epicbox`, `http`, `tor`, `contact`, `link`, `in_person`, `file`, `peer`, `chain`. A payment made through an epic1 address or link shows `link`, and `counterparty.address` holds the address. Older payments show it too. |
+| `delivery.state` | Serve sets `by_hand` (handed over as text or a file), `queued` (an epic1 post waits for its turn), `uncertain` (it went out and is not known to have arrived), `failed` (an epic1 post failed on its last route) and `sent`. A send the receiver refused reads `sent`. A send cancelled before any route took its slate reads `uncertain` with `undelivered: true`, and keeps `delivery.error`. |
 | `handoff` | On a create or an open: the text, file name and QR frames to give the other person by hand. |
 | `expires_at_height` | The height after which an invoice expires. |
 | `recovery` | On a send: its latest recovery, see [Recover a send](#recover-a-send). |
 
 `GET /payments` lists payments newest first and filters by `state`, `kind`, `direction`, `via`,
-`account`, `contact_id`, `delivery` and `updated_after`.
+`account`, `contact_id`, `delivery` and `updated_after`. `updated_after` compares the time of the last change of the payment's entry; a change of `delivery`, `metadata` or `post` does not move it.
 
 ### Create a payment
 
@@ -375,7 +393,7 @@ main fields:
 |---|---|
 | `id` | Caller-chosen UUID. See [Repeating a create](#repeating-a-create). |
 | `to` | Where it goes, below. |
-| `via` | Forces a route when `to` is not enough, for example `file`. |
+| `via` | Names the route to check against `to`, or `file` when there is no `to`. A `via` that differs from the route of `to` answers 400 `via_mismatch`. It never changes the route. |
 | `amount` | Decimal string. May be left out when `to` is an `epic:` link that names one. |
 | `account` | Account label. The default account when left out. |
 | `message` | Signed into the slate, up to 256 bytes. The other party sees it as `their_message`. |
@@ -397,14 +415,14 @@ stored.
 |---|---|
 | `KEY@HOST` | Epicbox address |
 | `http://` or `https://` URL | HTTP listener of another wallet |
-| `.onion` address | Tor |
+| `.onion` address | Tor, started from the settings' tor binary: 400 when the settings name none or only a running tor's SOCKS address, 500 `config` when the named binary is missing |
 | `epic:` link | Classic (`epic:ADDRESS?amount=&message=`), paid to its address at its amount, or epic1, paid as `lepic epic1 pay` pays it, at the `amount` and `message` given or the link's |
 | `contact:CONTACT_ID` | A paired contact |
 | `account:LABEL` | One of your own accounts: serve answers 400 `invalid_field` |
 
 Without `to`, `via` must be `file`, or `deliver` must be `false`: the payment is made for someone
 you hand it to.
-`via` set to `in_person`, `link`, `peer` or `chain` answers 400 `invalid_field`.
+`via` set to `in_person`, `peer` or `chain` answers 400 `invalid_field`; `link` is accepted for an epic1 `to`.
 
 An invoice goes to `contact:CONTACT_ID`, or is handed back with `via: file` or `deliver: false`.
 An invoice to an Epicbox, http(s) or onion address, or to a classic `epic:` link, answers 400
@@ -416,6 +434,9 @@ curl --unix-socket ./w.sock -H 'content-type: application/json' \
   -d '{"id":"5b0e2f6a-3c1d-4e8f-9a7b-2d4c6e8f0a1b","amount":"1","to":"KEY@epicbox.example"}' \
   http://lepic/api/v1/payments
 ```
+
+A repeat of a send its receiver declined answers 404 `payment_declined` with `declined_at`, and
+stores nothing.
 
 The answer is 201 with the payment in `awaiting_answer`. When the other wallet answers, serve
 finishes and posts it by itself.
@@ -436,7 +457,8 @@ other side.
 `qr_frames`. It receives a payment, finishes yours, holds an invoice for approval or advances a
 pairing, and says which in `outcome`. It never spends. `POST /inspect` takes the same and only
 says what it is. `expect` on either lists the kinds to accept; anything else answers 422
-`unexpected_input`.
+`unexpected_input`. `POST /inspect` and `POST /payments/estimate` refuse a damaged epic1 address as
+a payment to it is refused.
 
 An invoice handed to you is held in `needs_approval`. Check `amount` and the issuer, then pay it
 with the amount typed again:
@@ -483,7 +505,7 @@ outputs, for the usual fee. It answers 201 with the payment it made, `direction:
 | Field | Meaning |
 |---|---|
 | `max_inputs` | The most outputs to spend, the smallest first; default 500 |
-| `inputs` | Commitments of the outputs to spend instead; not with `max_inputs`. One that cannot be spent fails the call with 422, `param` `/inputs/N`, and nothing is stored |
+| `inputs` | Commitments of the outputs to spend instead; not with `max_inputs`. One that cannot be spent fails the call with 400 `invalid_field`, `param` `/inputs/N`, and nothing is stored |
 | `outputs` | Outputs to make, of nearly equal value; 1 to 10, default 1 |
 | `dry_run` | `true` answers 200 with an estimate and stores and locks nothing |
 | `account`, `min_confirmations` | As for a send |
@@ -532,7 +554,7 @@ curl --unix-socket ./w.sock -H 'content-type: application/json' \
 
 The window is at most 600 seconds and the interval at least 5. A `relays` boost runs the
 30-second run more often. `DELETE /sync/boost/{id}` ends a boost early. Serve boosts `relays` by
-itself after `POST /payments`, `POST /contacts` and `POST /links`.
+itself after `POST /payments` and `POST /contacts`.
 
 ## Events
 
@@ -541,7 +563,7 @@ Serve keeps an event log. Each event has a rising integer `id`, a `type`, a `cre
 
 | Group | Types |
 |---|---|
-| Payments | `payment.created`, `payment.state_changed`, `payment.updated`, `payment.confirmations_reached`, `payment.recovery_changed`, `payment.post_failed`, `payment.delivery_changed` |
+| Payments | `payment.created`, `payment.state_changed`, `payment.updated`, `payment.confirmations_reached`, `payment.recovery_changed`, `payment.post_failed`, `payment.delivery_changed`, `payment.declined` |
 | Contacts | `contact.created`, `contact.state_changed`, `contact.updated`, `contact.removed`, `payload.received`, `quarantine.added` |
 | Wallet | `account.balance_changed`, `wallet.progress`, `relay.updated`, `slate.unmatched` |
 | Log | `events.skipped` |
@@ -549,7 +571,7 @@ Serve keeps an event log. Each event has a rising integer `id`, a `type`, a `cre
 The set is open: skip a type you do not know.
 
 `GET /events` returns a page, oldest first. `after` is the last id you have; `types` takes a comma
-list and allows `payment.*`.
+list and allows `payment.*`. A `types` filter always includes `events.skipped`.
 
 ```bash
 curl --unix-socket ./w.sock 'http://lepic/api/v1/events?after=0&limit=50'
@@ -573,7 +595,7 @@ event: payment.state_changed
 data: {"id":43,"type":"payment.state_changed",...}
 ```
 
-Events are kept for 30 days by default. A client that falls behind, or asks from an id that is
+Events are kept for 30 days. A client that falls behind, or asks from an id that is
 pruned, gets an `events.skipped` event with the count and a `reason` of `lagged` or `pruned`. Read
 the objects again with a `GET`, then carry on from the new id.
 
@@ -588,7 +610,7 @@ in `config.toml`, or by their `LEPIC_*` variables (see
 |---|---|
 | `webhook_url` | The endpoint. `https://` only |
 | `webhook_secret_file` | A file only its owner can read, one `whsec_` secret per line |
-| `webhook_types` | The event types to send, as `GET /events` takes them. All when unset |
+| `webhook_types` | The event types to send, as `GET /events` takes them. All when unset. `events.skipped` is always sent as well, so a filter holds at most 31 patterns unless it names it |
 | `webhook_allow_private` | `true` allows `http://` and a loopback, private or link-local address |
 
 Serve does not start when a key is wrong. A new `webhook_url` starts at the newest event.
@@ -658,7 +680,7 @@ The codes most clients meet:
 | `transport_failed` | 502 | The mailbox or the other wallet could not be reached. |
 | `busy` | 503 | Serve makes as many payments as it takes connections; `Retry-After` says when to ask again. |
 
-The description of `code` in [openapi.json](/developers/lepic/api/v1/explorer/) lists every code with its status.
+The description of `code` in [openapi.json](/developers/lepic/api/v1/explorer/) lists the common codes with their status; a code it does not list takes the status of its category.
 
 ## The public listener
 
@@ -667,3 +689,15 @@ wallets and `/api/v1/inbox` for LEPIC wallets, the second only with `epic1_web_l
 Anything else, including the rest of `/api/v1`, answers 404 there. `lepic tor listen` answers
 the same two paths at the wallet's onion address, the second only with `epic1_onion_listener`
 on. The wallet API is on the socket and the owner TLS listener only.
+
+## Upgrade from 0.5.0
+
+1. Stop `lepic serve`.
+2. Copy the data directory. The upgrade is one way, and a 0.5.0 build refuses the upgraded wallet.
+3. Start 0.6.0. The first command that opens the wallet moves the store to schema 22.
+4. Check `GET /status` for the new `version`, and `GET /mailboxes` for the mailbox list.
+
+epic1 addresses, links and payments made by 0.5.x are not readable by 0.6.0. Make new ones with
+`GET /addresses` or `POST /links`, and give your payers those. A copy of the data directory older
+than the wallet's last use needs `POST /wallet/scan` after it is restored; see
+[Backup](../../cli/index.mdx#backup).
