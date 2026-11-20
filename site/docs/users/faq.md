@@ -40,8 +40,8 @@ Before the other wallet has answered, yes, for certain. After it is posted to th
 
 Yes. Epicbox, Link · HTTP, Link · Tor and transaction files work with the standard Epic Cash
 wallet and others. A recovery phrase from another Epic Cash wallet restores here. Pairing, invoices,
-QR Payment and Linked devices need BT Wallet on both sides. An [epic1 link](epic1.md) needs a
-wallet with epic1 to pay it.
+QR Payment and Linked devices need BT Wallet on both sides. An [epic1 address or link](epic1.md)
+needs a wallet with epic1 to pay it.
 
 ## Do I need to run a node?
 

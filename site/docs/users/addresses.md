@@ -8,7 +8,7 @@ description: What an Epicbox, epic1, HTTP or Tor address looks like, and how to 
 | Kind | Looks like | Goes by |
 | --- | --- | --- |
 | Epicbox | about 52 characters starting with `es`, `@`, the server: `es…@epicbox.epiccash.com` | Epicbox |
-| epic1 link | `epic:epic1…?epicbox=…` | epic1 |
+| epic1 | 117 characters starting with `epic1`, or a link `epic:epic1…` | epic1 |
 | HTTP | a web address of the other wallet, such as `http://host:3415` | Link · HTTP |
 | Tor | 56 characters ending in `.onion` | Link · Tor |
 
@@ -16,9 +16,9 @@ Send picks the method from the address pasted into the To field.
 
 - An **Epicbox address** is the wallet's public key, then `@` and the name of its Epicbox server.
   The recipient can be offline.
-- An **epic1 link** is an epic1 address with the Epicbox server that carries the payment. The
-  recipient can be offline. An epic1 address without the rest of the link cannot be paid. See
-  [epic1 addresses and links](epic1.md).
+- An **epic1 address** names no server. The payment waits in the address's own mailbox on the
+  Epicbox servers both wallets use, so the recipient can be offline. An **epic1 link** is the
+  address with an amount or a message. See [epic1 addresses and links](epic1.md).
 - An **HTTP** or **Tor** address is the recipient's own wallet, which must be open when you send.
 - Some wallets show a Tor address without `.onion`; both are the same address.
 - A **Paired address** is made when you [pair](pairing.md#after-pairing) with a contact. It is not

@@ -1,6 +1,6 @@
 ---
 title: Architecture decisions
-description: A summary of LEPIC's architecture decision records (ADRs 0001 to 0049), grouped by theme.
+description: A summary of selected LEPIC architecture decision records (ADRs 0001 to 0067), grouped by theme.
 ---
 
 # Architecture decisions
@@ -35,9 +35,9 @@ for interop and `upstream.toml` superseded by 0038.* The
 reference code, golden vectors and interop images are pinned to the latest release of `epic-wallet`
 and the Epic node; [ADR 0020](https://github.com/BTLabsUK/lepic/blob/main/docs/adr/0020-reference-epic-wallet-4-1.md) names the tags and commits.
 
-**0038 The reference node moves for interop and `upstream.toml`.** *Accepted.* The interop images
-and `upstream.toml` follow a later Epic node release. The conformance workspace and golden vectors
-stay on the node that `epic-wallet` links.
+**0038 The reference node moves for interop and `upstream.toml`.** *Accepted; conformance line
+superseded by 0059.* The interop images and `upstream.toml` follow a later Epic node release. The
+conformance workspace and golden vectors stay on the node that `epic-wallet` links.
 
 **0010 Latest stable crates and toolchain, banned list, update bots.** *Accepted.* Latest stable
 Rust and crates, set once in the workspace; `cargo deny` checks advisories, licences, sources and
@@ -66,8 +66,9 @@ minimum confirmations move to the hosts.
 is not a funds key is a keyed BLAKE2b-256 hash of the seed under a label of its own, with one
 function and one label constant in the crate that owns it.
 
-**0034 Trust, versioning and probing between Epic wallets.** *Proposed.* What the software behind
-a key has shown and what the user has with a contact are kept as two separate axes.
+**0034 Trust, versioning and probing between Epic wallets.** *Proposed; marker, its feature word and
+the learning loop superseded by 0062.* What the software behind a key has shown and what the user
+has with a contact are kept as two separate axes.
 
 ## Slates and formats
 
@@ -102,20 +103,56 @@ these codes takes. A reader of payment files refuses an in-person code and keeps
 `listen` holds a connection; `drain` connects, processes what waits and disconnects, for a
 suspended phone. A message is acknowledged only after its effect is stored.
 
-**0016 LEPIC notices over Epicbox, sent only to proven peers.** *Accepted.* Short notices
-(`declined`, `withdrawn`, `posted`, `cancelled`) tell each side of a payment what the other did. They go only
-to peers that proved they run LEPIC.
+**0016 LEPIC notices over Epicbox, sent only to proven peers.** *Accepted; payments-address notices
+and the marker superseded by 0062.* Short notices (`declined`, `withdrawn`, `posted`, `cancelled`)
+tell each side of a payment what the other did. They go only to peers that proved they run LEPIC.
 
 **0017 The wallet foreign API over HTTP in its own crate.** *Accepted.* `lepic-foreign` sends and
 listens over the HTTP foreign API, compatible with `epic-wallet`. The listener serves
 `check_version` and `receive_tx`, and binds to loopback unless the user chooses otherwise.
 
-**0046 A wallet for a mining node.** *Accepted.* The wallet can build a coinbase on a node's
-request. A restore from the phrase finds the output.
+**0046 A wallet for a mining node.** *Accepted; who is served and how many candidates are kept
+superseded by 0048.* The wallet can build a coinbase on a node's request. A restore from the phrase
+finds the output.
 
 **0048 Block rewards are for this computer unless the host opens them.** *Accepted.* `build_coinbase`
 is off by default. Turned on, it answers loopback callers unless the host opens it to others. Tor's
 listeners never serve it.
+
+**0062 The address decides the protocol, and native mail arrives by push.** *Accepted; `epicbox`
+link entries, link bounds and two tests superseded by 0063.* An Epicbox, HTTP, Tor or file address
+gets plain V2 or V3 slates with nothing added. An epic1 address, link or contact gets sealed
+`lepic.v1` slates. Native mailboxes are read over one mux/1 push session per relay, and one outbox
+posts every native message.
+
+**0063 The epic1 address carries its own mailbox.** *Accepted.* An epic1 address holds a seal key
+and a delivery key, 117 characters on mainnet, and its delivery key names its mailbox. The payer
+posts to the relays in its own settings. A link adds an amount, a message and up to three `http`
+or `tor` entries, and names no relay. The address holds no signing key.
+
+**0064 Mailboxes by default.** *Accepted.* Contacts, linked devices, epic1, in-person codes and
+pairing all go through mailboxes. The mailbox mode is `Online` or `Offline`; the Epicbox-off mode,
+its `--epicbox-off` flag and the API code `epicbox_off` are removed. An app's Epicbox switch governs
+only the classic Epicbox address. Node only and the kill switch still stop all mailbox traffic.
+
+**0065 Mail goes where the receiver reads.** *Accepted.* A wallet has one mailbox list: the shipped
+mailboxes, plus the user's additions, minus the user's removals. A native message goes to the
+three healthiest mailboxes of the sender's list and to the mailbox on a contact's card; an answer
+goes to the mailbox its payment was read on plus the two healthiest others. Links and payments
+name no mailbox. A payer whose list holds none of the shipped mailboxes, and who names none for
+the payment, fails at once with `NoSharedMailbox`.
+
+**0066 One epic1 address per account.** *Accepted.* Each account has one address, at index 0. The
+payment link is the address; a request link adds an amount, a message or both and only fills in
+the payer's Send screen. The payee stores nothing for a link, and any amount is taken. Numbered
+addresses and links of earlier builds are not read.
+
+**0067 One notice path.** *Accepted.* Every short sealed notice (`posted`, `cancelled`, `declined`,
+`withdrawn`, the pairing status kinds, `unpaired`) has one kind set, one parser, one send path and
+one intake, and the wire is unchanged. No notice changes a transaction's state, moves coins or
+changes a balance: `declined` only records the time and raises an event, and `posted` and
+`cancelled` are reports. Unknown kinds are ignored. A store upgraded to schema 22 is refused by
+an older build.
 
 ## Tor
 
@@ -189,10 +226,11 @@ generated Rust and Dart halves together.
 
 ## Contacts
 
-**0024 Contact pairing, sealed slates, and invoice trust on paired contacts.** *Proposed.* Wallets
-pair once and then exchange slates in an HPKE envelope signed with Ed25519, through per-contact
-mailboxes. Allowing invoices is a per-contact switch for verified contacts. The format is
-specified in RFC 0002.
+**0024 Contact pairing, sealed slates, and invoice trust on paired contacts.** *Proposed; pair
+request by address, marker reply key and one-off drains superseded by 0062.* Wallets pair once and
+then exchange slates in an HPKE envelope signed with Ed25519, through per-contact mailboxes.
+Allowing invoices is a per-contact switch for verified contacts. The format is specified in
+RFC 0002.
 
 **0029 Contacts are a crate on top of the engine.** *Accepted.* Contact code moves into
 `lepic-wallet-contacts`, which drives the engine from outside, so the money core can be reviewed
@@ -207,18 +245,19 @@ asks a paired contact for its current card; answers are paced by host parameters
 **0041 The owner's profile in the feature word.** *Accepted.* Bits 16 to 31 of the feature word
 are the owner's profile. It goes to paired contacts only and grants nothing.
 
-**0042 Draining the old home after moving one's own.** *Accepted.* After a move, the old mailboxes
-can be read for a set number of days, at most a year.
+**0042 Draining the old home after moving one's own.** *Accepted; how a previous home is read
+superseded in part by 0062.* After a move, the old mailboxes can be read for a set number of days,
+at most a year.
 
 **0043 Domain proof for paired contacts.** *Accepted.* A contact can prove a domain with a file
 that domain serves. See [Security model](security-model.md#contacts-invoices-and-linked-devices).
 
-**0045 Refusing slates nobody asked for.** *Proposed.* Two policy switches, off by default, refuse
-unsolicited payments and invoices.
+**0045 Refusing slates nobody asked for.** *Proposed; "declined" on a payments address superseded by
+0062.* Two policy switches, off by default, refuse unsolicited payments and invoices.
 
-**0047 The mailbox is the default between paired contacts.** *Accepted.* The host picks the route
-of a send. BT Wallet sends through the pairing when it can carry payments, and keeps the payments
-address as the fallback.
+**0047 The mailbox is the default between paired contacts.** *Accepted; plain fallback superseded by
+0062.* The host picks the route of a send. BT Wallet sends through the pairing when it can carry
+payments, and keeps the payments address as the fallback.
 
 **0049 Keeping messages that cannot be taken yet.** *Accepted.* A notice that arrives before its
 slate waits for it. A message from a contact that would otherwise be dropped can be kept in a

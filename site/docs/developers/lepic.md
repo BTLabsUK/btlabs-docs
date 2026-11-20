@@ -19,7 +19,7 @@ There are four ways to use it:
 | Way | Use it when |
 |---|---|
 | The [`lepic` command-line wallet](lepic/cli/index.mdx) | You want to try the wallet in a terminal or drive it from scripts. |
-| `lepic serve`, with its [wallet API](lepic/api/v1/index.mdx) | A bot, shop or service needs a running wallet with a local HTTP API (`/api/v1`, webhooks). |
+| `lepic serve`, with its [wallet API](lepic/api/v1/index.mdx) | A bot, shop or service needs a running wallet with a local HTTP API (`/api/v1`, webhooks). Unix only. |
 | The Rust crates | You want the wallet inside your own Rust program (see [LEPIC from Rust](#quick-start-lepic-from-rust)). |
 | The FFI library `lepic-ffi` | You build a desktop or mobile app, through [lepic-flutter](lepic-flutter.md). BT Wallet is built on it. |
 
@@ -34,8 +34,8 @@ Version documented here: 0.6.0. Licence: Apache-2.0. Rust edition 2024, toolchai
 
 `lepic` is a light Epic Cash wallet for the terminal. It keeps keys and history on the machine,
 asks an Epic node for chain data, and exchanges transactions with other wallets, `epic-wallet`
-included, through slate files, an Epicbox relay, or directly over HTTP or Tor. It does not mine or
-store the chain.
+included, through slate files, an Epicbox relay, or HTTP or Tor. With epic1 addresses and paired
+contacts it exchanges sealed slates through mailboxes. It does not mine or store the chain.
 
 ```bash
 cargo xtask install   # build and install to ~/.local/bin/lepic
@@ -46,25 +46,61 @@ lepic wallet info     # balances, from the node
 | Command group | Examples |
 |---|---|
 | `wallet` | `init`, `restore` (with `--from-height`), `import-seed`, `import-history`, `info`, `address`, `scan` |
-| `tx` | `send`, `receive`, `finalize`, `post`, `list`, `show`, `cancel`, `resend`, `release` |
-| `invoice` | `issue`, `pay`, `list`, `decline` |
-| `epicbox` | `listen`, `drain`, `status`, `peer` |
+| `tx` | `send`, `receive`, `finalize`, `post`, `list`, `show`, `cancel`, `resend`, `recover` |
+| `invoice` | `issue`, `pay`, `list` |
+| `epicbox` | `listen`, `drain`, `status` |
 | `http`, `tor` | `listen`; `tor address` |
 | `node` | `status` |
 | `contact` | `invite`, `accept`, `list`, `check`, `move`, `move-home`, `allow-invoices`, `invoice`, `collect` |
+| `epic1` | `address`, `link`, `read`, `pay` (repeatable `--mailbox`) |
+| `mailbox` | `list`, `add` (`--anyway`), `remove`, `probe` |
 | `profile` | `show`, `set`, `domain` |
-| `serve` | Holds the wallet open and answers the wallet API (`/api/v1`) on a local socket; many other `lepic` commands on that wallet go through it, the rest stop with exit code 5 |
+| `serve` | Unix only. Holds the wallet open and answers the wallet API (`/api/v1`) on a local socket; many other `lepic` commands on that wallet go through it, the rest stop with exit code 5 |
 | `shell` | Opens the interactive shell, which `lepic` with no command also opens at a terminal |
 
+`lepic tx send --to` takes any recipient, and the address decides the protocol: an Epicbox address
+or a listener URL gets the classic exchange, and an epic1 address or link gets the payment
+`lepic epic1 pay` makes. The two are compared in [Legacy transactions](legacy-transactions.md) and
+[epic1](epic1.md).
+
 `lepic tx cancel TX_ID` asks the Epicbox relay to cancel the transaction first, when it was
-posted through a relay that speaks protocol 3.1.0, and then always cancels it in the wallet.
+sent through a relay that speaks protocol 3.1.0, and then cancels it in the wallet.
 `--local-only` skips the relay. With `--output json`, `relay` says what the relay answered:
 `cancelled`, `not_found_or_not_participant`, `no_relay_id`, `unsupported` or `failed` (with
-`relay_error`). When the other party cancels, `epicbox listen` and `epicbox drain` cancel the
-transaction here. A send the relay refuses because it was cancelled exits with code 7, and
-`lepic serve` reports it as the error code `cancelled_on_relay`. `POST /payments/{id}/cancel` in
-`lepic serve` cancels in the wallet only. The protocol is described in
+`relay_error`). A cancellation the relay reports from the other party changes
+nothing here: `epicbox listen` and `epicbox drain` acknowledge it and keep the transaction as it
+is. A send the relay refuses because it was cancelled exits with code 7, and
+`lepic serve` reports it as the error code `cancelled_on_relay`. A send the node already took is
+not cancelled: it exits with code 7 and a hint naming `tx recover`. `POST /payments/{id}/cancel` in
+`lepic serve` refuses a send the node already took (`use_recover`); otherwise it cancels in the
+wallet, then asks the relay once, and the relay's answer does not change the result. The protocol
+is described in
 [docs/compat/epicbox.md](https://github.com/BTLabsUK/lepic/blob/main/docs/compat/epicbox.md).
+
+The CLI runs on Linux, macOS and Windows. `lepic serve` needs Unix sockets, so it is Unix only: on
+Windows it exits with code 5, and the shell has no `serve start`.
+
+A service that takes payments through `lepic serve` credits a received payment when it is `final`
+(`final: true`, or the event `payment.confirmations_reached`), which happens after
+`final_confirmations` confirmations (default 6), a number the service sets. `confirmed` means one
+confirmation. A confirmed transaction that a reorganisation removes within 1,440 blocks of its
+confirmation goes back to `posted`, `received` or `sent` and raises `payment.state_changed`; a
+`payment.confirmations_reached` already sent is not taken back. A send the payee declines is erased
+by the payer's wallet: it has no record and nothing to cancel. The API answers 404
+`payment_declined` with `declined_at`, also for a repeat `POST /payments` of that send; the CLI
+exits with code 6 and the JSON error has `code` `payment_declined`. A send cancelled before any
+route took its slate reads `delivery.state` `uncertain` with `undelivered: true` and keeps its
+`delivery.error`. The default send cutoff is 10,080 blocks (7 days), set per wallet
+(`send_ttl_blocks`) or per send (`--ttl-blocks`).
+
+`lepic serve` sends to an onion address with the tor binary named in the settings. It answers 400
+when the settings name none or only a running tor's SOCKS address, and 500 `config` when the
+binary is missing. A payment made through an epic1 address or link shows `via: link`, with the
+address as the counterparty `address`. A webhook or `GET /events` read with a `types` filter also
+gets `events.skipped`, so such a filter holds at most 31 patterns unless it names `events.skipped`
+or `events.*`. `epicbox listen` and `tor listen` refuse with the connection mode `offline` (exit
+code 3). A slate whose id names a payment the wallet made is refused as a receive. The API
+contract is version 2.0.0.
 
 The interactive shell asks for the password once, keeps the wallet open and takes `lepic`
 commands without `lepic`. A status line under the input shows the wallet, balance, height,
@@ -112,7 +148,7 @@ The same guides as plain Markdown are in the repository:
 | `lepic-transport` | Transport traits, registry, format policy, the file transport | disk |
 | `lepic-epicbox` | Epicbox addresses, message crypto, relay client, `mux/1` push sessions | network |
 | `lepic-epic1` | The epic1 address and payment link (RFC 0003) | none |
-| `lepic-peer` | The native direct endpoint between LEPIC wallets | network |
+| `lepic-peer` | The epic1 inbox endpoint `/api/v1/inbox` and its client | network |
 | `lepic-legacy-rpc` | The `epic-wallet` foreign API over HTTP: client and listener | network |
 | `lepic-tor` | Tor: onion v3 addresses and the wallet's onion key, a tor child process per wallet, SOCKS5 | network, process |
 | `lepic-wallet` | The engine: accounts, selection, send, receive, finalize, cancel, scan, refresh, events | through ports |
@@ -167,11 +203,11 @@ lepic-legacy-slate -> lepic-slate, lepic-crypto, lepic-primitives
 lepic-transport   -> lepic-legacy-slate, lepic-slate, lepic-primitives, lepic-crypto
 lepic-epicbox     -> lepic-transport, lepic-slate, lepic-crypto, lepic-primitives
 lepic-epic1       -> lepic-contact, lepic-epicbox, lepic-crypto, lepic-primitives
-lepic-peer        -> lepic-primitives
-lepic-legacy-rpc  -> lepic-peer, lepic-transport, lepic-slate
+lepic-peer        -> (external only)
+lepic-legacy-rpc  -> lepic-transport, lepic-slate
 lepic-tor         -> lepic-legacy-rpc
 lepic-wallet      -> lepic-contact, lepic-store, lepic-node, lepic-transport, lepic-legacy-slate, lepic-slate, lepic-keychain, lepic-crypto, lepic-primitives
-lepic-methods     -> lepic-wallet, lepic-transport, lepic-epicbox, lepic-legacy-rpc, lepic-peer, lepic-legacy-slate, lepic-tor, lepic-node, lepic-slate, lepic-keychain, lepic-crypto, lepic-primitives
+lepic-methods     -> lepic-wallet, lepic-transport, lepic-epicbox, lepic-legacy-rpc, lepic-legacy-slate, lepic-tor, lepic-node, lepic-slate, lepic-keychain, lepic-crypto, lepic-primitives
 lepic-wallet-contacts -> all crates above
 lepic-telemetry   -> (external only)
 lepic-cli         -> lepic-wallet, lepic-wallet-contacts, lepic-methods, lepic-telemetry, lepic-epicbox, lepic-transport, lepic-node, lepic-store, lepic-keychain, lepic-primitives
