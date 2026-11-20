@@ -22,11 +22,11 @@ the API names a payment by its slate id (`SLATE_ID`).
 
 <nav className="ldBlock" aria-label="Recipe groups">
 <ul className="ldChips">
-<li><Link className="ldChip" to="#set-up">Set up<span className="ldChip-count">3</span><span className="ldSr"> recipes</span></Link></li>
+<li><Link className="ldChip" to="#set-up">Set up<span className="ldChip-count">4</span><span className="ldSr"> recipes</span></Link></li>
 <li><Link className="ldChip" to="#get-paid">Get paid<span className="ldChip-count">3</span><span className="ldSr"> recipes</span></Link></li>
 <li><Link className="ldChip" to="#pay">Pay<span className="ldChip-count">4</span><span className="ldSr"> recipes</span></Link></li>
 <li><Link className="ldChip" to="#invoices">Invoices<span className="ldChip-count">6</span><span className="ldSr"> recipes</span></Link></li>
-<li><Link className="ldChip" to="#contacts">Contacts<span className="ldChip-count">4</span><span className="ldSr"> recipes</span></Link></li>
+<li><Link className="ldChip" to="#contacts">Contacts<span className="ldChip-count">3</span><span className="ldSr"> recipes</span></Link></li>
 <li><Link className="ldChip" to="#in-person-and-links">In person and links<span className="ldChip-count">5</span><span className="ldSr"> recipes</span></Link></li>
 <li><Link className="ldChip" to="#run-as-a-service">Run as a service<span className="ldChip-count">4</span><span className="ldSr"> recipes</span></Link></li>
 <li><Link className="ldChip" to="#fix-and-restore">Fix and restore<span className="ldChip-count">5</span><span className="ldSr"> recipes</span></Link></li>
@@ -62,7 +62,7 @@ lepic wallet address --qr
 <TabItem value="curl" label="curl">
 
 ```bash
-# Every address to give out: epicbox, epic1, onion, http
+# The Epicbox address and one epic1 address per account
 curl --unix-socket ./w.sock http://lepic/api/v1/addresses
 ```
 
@@ -89,6 +89,23 @@ curl --unix-socket ./w.sock http://lepic/api/v1/accounts
 
 </TabItem>
 </Tabs>
+
+### Back up the wallet
+
+```bash
+# Copies the vault and the database to the new folder DIR, also while serve runs
+lepic wallet backup ./wallet-backup
+```
+
+The API has no call for it: the command runs in its own process. The copy stays encrypted under the wallet password. Keep the recovery phrase too: it is the only
+way back if the data directory is lost. Run one live instance per recovery phrase; two installs
+on one phrase without a link are unsupported.
+
+A backup is a snapshot. Restore it only when the original is gone for good, run
+`lepic wallet scan` before sending or receiving, and check payments that were open at the backup
+and created after it against your own records before you retry any: [Backup](/developers/lepic/cli/#wallet). Copy
+the data directory before the first start of a new `lepic` release: the upgrade keeps no copy and
+the old release refuses the upgraded wallet.
 
 ## Get paid
 
@@ -157,6 +174,14 @@ curl --unix-socket ./w.sock \
 
 </TabItem>
 </Tabs>
+
+`state=confirmed` means the chain holds the payment with at least one
+confirmation. Do not credit a customer on that. Each payment carries
+`confirmations`, and `final` turns true once they reach the
+`final_confirmations` setting (6 unless set, 1 to 1440). The wallet raises
+the `payment.confirmations_reached` event at that point. Credit on `final`
+or on that event. A reorg can still take a `confirmed` payment off the chain for the next 1,440
+blocks: serve then moves it back and raises `payment.state_changed`, so keep watching for that.
 
 ## Pay
 
@@ -309,7 +334,7 @@ A different amount is refused and the invoice stays held.
 <TabItem value="cli" label="CLI">
 
 ```bash
-lepic invoice decline SLATE_ID
+lepic contact decline SLATE_ID
 ```
 
 </TabItem>
@@ -328,7 +353,7 @@ curl --unix-socket ./w.sock -X POST http://lepic/api/v1/payments/SLATE_ID/declin
 <TabItem value="cli" label="CLI">
 
 ```bash
-lepic contact invoice CONTACT_ID AMOUNT --purpose 'March rent'
+lepic contact invoice CONTACT_ID AMOUNT --reference 'March rent'
 ```
 
 </TabItem>
@@ -451,28 +476,6 @@ lepic contact sas CONTACT_ID match
 # verify_words on the contact are the four words
 curl --unix-socket ./w.sock -H 'content-type: application/json' \
   -d '{"result":"match"}' http://lepic/api/v1/contacts/CONTACT_ID/verify
-```
-
-</TabItem>
-</Tabs>
-
-### Answer a pair request
-
-<Tabs groupId="lepic-side" queryString>
-<TabItem value="cli" label="CLI">
-
-```bash
-lepic contact requests
-lepic contact request-accept REQUEST_ID
-```
-
-</TabItem>
-<TabItem value="curl" label="curl">
-
-```bash
-curl --unix-socket ./w.sock http://lepic/api/v1/pair-requests
-curl --unix-socket ./w.sock -H 'content-type: application/json' \
-  -d '{"label":"Alex"}' http://lepic/api/v1/pair-requests/REQUEST_ID/accept
 ```
 
 </TabItem>
