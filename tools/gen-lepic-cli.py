@@ -45,8 +45,7 @@ COMPONENTS = '@site/src/components/lepic'
 
 EVERYDAY = ['wallet init', 'wallet info', 'wallet address', 'epicbox listen', 'tx send', 'tx list',
             'tx show', 'invoice issue', 'contact invite', 'serve']
-STAGES = ['Every day', 'Pair by hand', 'Files and app data', 'Backup',
-          'Repair']
+PAIRING_STEPS = 'The pairing steps'
 
 
 def die(msg):
@@ -438,7 +437,13 @@ def build_guide(lepic, leaves_from_table=None):
     b, contacts, a = M.split_section(TOOL, body, '## Contacts and pairing')
     sb, section, sa = M.split_section(TOOL, contacts, '### The pairing steps')
     contacts = '\n'.join([sb, pairing(section), sa])
-    for stage in STAGES:
+    # every other ### part of the section that holds a `| Command | What it does |` table is a stage
+    stages = [h for h in re.findall(r'^### (.+?)\s*$', contacts, re.M) if h != PAIRING_STEPS]
+    stages = [h for h in stages if re.search(
+        r'^\| Command \| What it does \|', M.split_section(TOOL, contacts, f'### {h}')[1], re.M)]
+    if not stages:
+        die('docs/cli.md, Contacts and pairing: no part with a Command table')
+    for stage in stages:
         sb, section, sa = M.split_section(TOOL, contacts, f'### {stage}')
         where = f'docs/cli.md, {stage}'
         tb, items, ta = command_rows(section, where, leafset)
