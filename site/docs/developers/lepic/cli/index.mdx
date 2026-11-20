@@ -1273,7 +1273,9 @@ key in `api-clients`, one line per client: `NAME FINGERPRINT ROLE`, where `#` st
 
 The TLS listener has its own `max_connections`, so TLS clients cannot take the socket's
 connections. A TLS connection takes one once its handshake ends; up to `max_connections`
-handshakes run at a time besides, and more are refused. A handshake that fails, or does not end
+handshakes run at a time besides. A connection over either cap, on the socket too, is answered
+503 `busy` with `Retry-After`, up to `max_connections` more; past those it is closed unanswered.
+A handshake that fails, or does not end
 within 5 seconds or the header time when that is shorter, counts as refused.
 
 ## Output formats

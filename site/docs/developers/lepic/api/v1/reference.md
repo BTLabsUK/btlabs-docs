@@ -300,6 +300,7 @@ Role: `read`.
 | 200 | OK: [`Estimate`](#schema-estimate) |
 | 400 | Bad input |
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
 | 422 | Valid but impossible, e.g. insufficient funds or invoice changed |
 | 503 | Not ready: scan running or serve stopping (503). May set Retry-After |
 
@@ -557,6 +558,8 @@ Act on it: receive, finish, park an invoice, or advance a pairing. Never spends.
 Role: at least `receive`.
 
 **Role depends on the request:** Receiving a payment, parking an invoice or finishing an invoice this wallet issued needs `receive`; finishing your own send or advancing a pairing needs `full`.
+
+A pairing invite, reply or confirm is not opened: it answers 409 `nothing_to_open`; answer an invite with `POST /contacts` (method `accept`), so `pairing_advanced` is not produced yet.
 
 Outcomes: `received` (a payment was handed to you; `handoff` is the answer to give back), `finished` (the answer to your payment arrived and it was posted), `answer_added`, `invoice_parked` (an invoice is held in `needs_approval`), `pairing_advanced`, and `already_done` (opened before; the answer stored the first time is handed back). An item given as `qr_frames` is answered with `qr_frames`, on a repeat too.
 
@@ -1333,7 +1336,7 @@ Errors are RFC 9457 problem documents (`application/problem+json`), the [`Proble
 | `state_reason` | `string` |  | Why it reached an end state: by_us, by_them, superseded, ... `expired_no_answer`: an `expired` payment or invoice this wallet started whose answer never came; it can never be mined. `expired_not_mined`: an `expired` payment that was answered but not mined by its expiry height; it may still be mined. `expired_rejected_by_node`: an `expired` send whose every push the node's pool refused until its expiry height; its inputs are spendable again. `recovered`: a `cancelled` send whose inputs a recovery spent back to this wallet; it can never be mined. An `expired` payment with no stored slate and no known kernel has no reason. A payment the chain mines later becomes `confirmed` with no reason. |
 | `account` | `string` | yes | Label; for self, the account it left. |
 | `to_account` | `string` |  | self only. |
-| `amount` | [`Decimal`](#schema-decimal) | yes | What the payee gets. |
+| `amount` | [`Decimal`](#schema-decimal) | yes | What the payee gets. For `direction: self` (a consolidation or a recovery) it is the total of the outputs the payment makes: what it spent, less the fee. |
 | `fee` | [`Decimal`](#schema-decimal) |  | EPIC amount as a decimal string |
 | `balance_change` | [`Decimal`](#schema-decimal) | yes | Signed change to this wallet's balance, fee included. |
 | `via` | one of `epicbox`, `http`, `tor`, `contact`, `link`, `in_person`, `file`, `peer`, `chain` | yes |  |
@@ -1543,7 +1546,7 @@ Exactly one of `text`, `file_base64`, `qr_frames`.
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `type` | one of `epicbox_address`, `http_address`, `onion_address`, `epic1_address`, `link`, `in_person_send`, `in_person_invoice`, `in_person_answer`, `slate_send`, `slate_invoice`, `slate_answer`, `epictx`, `sealed`, `pairing_invite`, `pairing_reply`, `pairing_confirm`, `unknown` | yes |  |
+| `type` | one of `epicbox_address`, `http_address`, `onion_address`, `epic1_address`, `link`, `slate_send`, `slate_invoice`, `slate_answer`, `sealed`, `pairing_invite`, `pairing_reply`, `pairing_confirm`, `unknown` | yes |  |
 | `network_ok` | `boolean` | yes |  |
 | `summary` | `object` |  |  |
 | `summary.amount` | [`Decimal`](#schema-decimal) |  | EPIC amount as a decimal string |
@@ -1566,7 +1569,7 @@ InspectRequest plus `expect`, `message`, `deliver`.
 | `text` | `string` |  | Pasted text. |
 | `file_base64` | `string` (byte) |  | File contents. |
 | `qr_frames` | array of `string` |  |  |
-| `expect` | array of one of `epicbox_address`, `http_address`, `onion_address`, `epic1_address`, `link`, `in_person_send`, `in_person_invoice`, `in_person_answer`, `slate_send`, `slate_invoice`, `slate_answer`, `epictx`, `sealed`, `pairing_invite`, `pairing_reply`, `pairing_confirm`, `unknown` |  | Optional guard. Anything whose inspection `type` is not listed is refused with 422 `unexpected_input` and nothing changes. |
+| `expect` | array of one of `epicbox_address`, `http_address`, `onion_address`, `epic1_address`, `link`, `slate_send`, `slate_invoice`, `slate_answer`, `sealed`, `pairing_invite`, `pairing_reply`, `pairing_confirm`, `unknown` |  | Optional guard. Anything whose inspection `type` is not listed is refused with 422 `unexpected_input` and nothing changes. |
 | `message` | `string` |  |  |
 | `deliver` | `boolean` |  |  |
 
@@ -1587,7 +1590,7 @@ InspectRequest plus `expect`, `message`, `deliver`.
 | `title` | `string` | yes |  |
 | `status` | `integer` | yes |  |
 | `detail` | `string` |  |  |
-| `code` | `string` | yes | Stable, fine-grained error name, e.g. `insufficient_funds`. Clients must accept codes they do not know and fall back on `category`. Any call: `no_route` 404, `method_not_allowed` 405 (with `Allow`), `body_too_slow` 408, `body_too_large` 413, `role_required` 403, `socket_only` 403, `client_not_listed` 403, `serve_version_differs` and `serve_settings_differ` 409, `invalid_request`, `invalid_body`, `invalid_field`, `invalid_cursor`, `cursor_filters_changed` 400, `not_found` 404, `payment_declined` 404 (with `declined_at`), `internal` 500, `interrupted` and `cancelled` 503. Payment creates: `busy` 503. Creates: `idempotency_mismatch`, `in_progress`, `account_exists` 409. Payments: `action_not_available`, `format_not_available`, `no_handoff`, `nothing_to_open`, `too_many_held`, `no_more_routes` 409; `unexpected_input`, `insufficient_funds` 422; `invoice_already_paid`, `invoice_locked_above_tip`, `inputs_spent_elsewhere`, `inputs_spent_by_own_transaction`, `peer_inputs_spent`, `on_chain`, `in_pool`, `recovery_open`, `not_recoverable`, `use_recover`, `changed_during_cancel` 409; `plain_http_not_allowed`, `http_url_invalid`, `onion_address_invalid`, `slate_too_large`, `invoice_to_address`, `via_mismatch` 400; `change_too_small`, `too_heavy`, `nothing_to_consolidate`, `invalid_slate`, `payment_expired`, `invoice_changed`, `amount_mismatch`, `not_posted`, `not_delivered` by category. Wallet and node: `wrong_password` 403, `wallet_not_found` 404, `wallet_already_exists`, `wallet_busy`, `receipts_full` (a payment nobody asked for refused because the open-receipt cap is full), `locked`, `foreign_wallet`, `offline`, `tor_expected`, `damaged_database_kept`, `wallet_too_new`, `wrong_key` 409, `restore_scan_required` 503, `scan_running` 409 or 503, `node_unreachable` 502 (504 on a timeout), `tor_not_running` 503, `onion_unreachable` 502, `transport_failed` 502, `damaged_database` 500. Contacts: `contact_not_found`, `pairing_not_found` 404; `invite_expired`, `already_paired`, `pairing_in_progress`, `pairing_crossed`, `pairing_ended`, `pairing_waiting`, `contact_not_verified`, `key_check_refused`, `relay_changed`, `keys_not_changed`, `domain_fixed`, `contact_cap_reached`, `contacts_offline` 409; `wrong_pairing_class` 400; `other_address`, `address_proof_missing`, `no_free_slot` 422. A code not listed here has its category's status: `usage` 400, `wrong_password` 403, `not_found` 404, `wallet_state` and `conflict` 409, `rejected` and `funds` 422, `node` and `transport` 502, `interrupted` 503, `internal` and `config` 500. 409 `in_progress`, 502, 503 and 504 carry `Retry-After` when waiting is worth it. |
+| `code` | `string` | yes | Stable, fine-grained error name, e.g. `insufficient_funds`. Clients must accept codes they do not know and fall back on `category`. Any call: `no_route` 404, `method_not_allowed` 405 (with `Allow`), `body_too_slow` 408, `body_too_large` 413, `role_required` 403, `socket_only` 403, `client_not_listed` 403, `serve_version_differs` and `serve_settings_differ` 409, `invalid_request`, `invalid_body`, `invalid_field`, `invalid_cursor`, `cursor_filters_changed` 400, `not_found` 404, `payment_declined` 404 (with `declined_at`), `internal` 500, `interrupted` and `cancelled` 503. `busy` 503 when the listener holds as many connections as it takes, and on payment creates when as many creates run. Creates: `idempotency_mismatch`, `in_progress`, `account_exists` 409. Payments: `action_not_available`, `format_not_available`, `no_handoff`, `nothing_to_open`, `too_many_held`, `no_more_routes` 409; `unexpected_input`, `insufficient_funds` 422; `invoice_already_paid`, `invoice_locked_above_tip`, `inputs_spent_elsewhere`, `inputs_spent_by_own_transaction`, `peer_inputs_spent`, `on_chain`, `in_pool`, `recovery_open`, `not_recoverable`, `use_recover`, `changed_during_cancel` 409; `plain_http_not_allowed`, `http_url_invalid`, `onion_address_invalid`, `slate_too_large`, `invoice_to_address`, `via_mismatch` 400; `change_too_small`, `too_heavy`, `nothing_to_consolidate`, `invalid_slate`, `payment_expired`, `invoice_changed`, `amount_mismatch`, `not_posted`, `not_delivered` by category. Wallet and node: `wrong_password` 403, `wallet_not_found` 404, `wallet_already_exists`, `wallet_busy`, `receipts_full` (a payment nobody asked for refused because the open-receipt cap is full), `locked`, `foreign_wallet`, `offline`, `tor_expected`, `damaged_database_kept`, `wallet_too_new`, `wrong_key` 409, `restore_scan_required` 503, `scan_running` 409 or 503, `node_unreachable` 502 (504 on a timeout), `tor_not_running` 503, `onion_unreachable` 502, `transport_failed` 502, `damaged_database` 500. Contacts: `contact_not_found`, `pairing_not_found` 404; `invite_expired`, `already_paired`, `pairing_in_progress`, `pairing_crossed`, `pairing_ended`, `pairing_waiting`, `contact_not_verified`, `key_check_refused`, `relay_changed`, `keys_not_changed`, `domain_fixed`, `contact_cap_reached`, `contacts_offline` 409; `wrong_pairing_class` 400; `other_address`, `address_proof_missing`, `no_free_slot` 422. A code not listed here has its category's status: `usage` 400, `wrong_password` 403, `not_found` 404, `wallet_state` and `conflict` 409, `rejected` and `funds` 422, `node` and `transport` 502, `interrupted` 503, `internal` and `config` 500. 409 `in_progress`, 502, 503 and 504 carry `Retry-After` when waiting is worth it. |
 | `category` | one of `usage`, `config`, `wrong_password`, `wallet_state`, `not_found`, `rejected`, `funds`, `node`, `transport`, `internal`, `interrupted`, `conflict` | yes |  |
 | `param` | `string` |  | JSON pointer to the bad field, when one field is to blame. `payment_id` and `contact_id` name the object an error is about; `errors` lists several faults. |
 | `payment_id` | `string` (uuid) |  |  |
@@ -1811,7 +1814,7 @@ Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unl
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `data_base64` | `string` (byte, length 0..21848) | yes | Up to 16 KiB of bytes, base64-encoded. |
+| `data_base64` | `string` (byte, length 0..87380) | yes | Up to 65,535 bytes (the most one message carries), base64-encoded. More answers 400 `invalid_field` at `/data_base64`. |
 
 ### ContactsBackup {#schema-contactsbackup}
 
@@ -1932,15 +1935,15 @@ Type: `string` (pattern ^-?[0-9]+(\.[0-9]{1,8})?$, example "1.5")
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `state` | one of `queued`, `sent`, `uncertain`, `held`, `failed`, `refused`, `by_hand` | yes | Serve sets five of these: `by_hand` for a payment handed over as a file or text, `queued` while an epic1 post waits for its turn, `uncertain` when the slate went out and is not known to have arrived, `failed` when an epic1 post failed on its last route, and `sent` otherwise. A send the receiver refused reads `sent`. |
+| `state` | one of `queued`, `sent`, `uncertain`, `held`, `failed`, `refused`, `by_hand` | yes | Serve sets five of these: `by_hand` for a payment handed over as a file or text, `queued` while an epic1 post waits for its turn, `uncertain` when the slate went out and is not known to have arrived, or when a send over stock Epicbox has had no answer for a day, `failed` when an epic1 post failed on its last route, and `sent` otherwise. A send the receiver refused reads `sent`. |
 | `to` | `string` |  | Address, URL, onion, contact id, or the mailbox used. |
 | `relays_left` | `integer` |  |  |
-| `attempts` | `integer` | yes |  |
+| `attempts` | `integer` | yes | Posts of the slate so far, over every route: the first and each later one, whether a mailbox refused it or not. A repost by serve or by `POST /payments/{id}/deliver` counts as one more. |
 | `updated_at` | `string` (date-time) | yes |  |
 | `error` | `string` |  |  |
 | `undelivered` | `boolean` | yes | No route took the slate yet: no mailbox or endpoint holds it. The outbox keeps posting it until the payment's cutoff. `false` for a payment handed over by hand. |
-| `stuck` | `boolean` | yes | Undelivered for longer than the outbox allows before it marks a payment. A mark only: the outbox keeps trying, and `POST /payments/{id}/cancel` ends the payment. |
-| `stuck_at` | `string` (date-time) |  | When the payment is, or will be, marked stuck. |
+| `stuck` | `boolean` | yes | Undelivered for longer than the outbox allows before it marks a payment, or, for a send over stock Epicbox, unanswered for a day: its receiver may be offline or at its open receipt cap, which that route cannot report, and `error` says so. A mark only: the outbox keeps trying, an answer that comes later still completes the payment, and `POST /payments/{id}/cancel` ends the payment. |
+| `stuck_at` | `string` (date-time) |  | When the payment is, or will be, marked stuck; for a send over stock Epicbox, when it was marked. |
 | `next_attempt_at` | `string` (date-time) |  | When the outbox posts the slate next. |
 
 ### PaymentRecovery {#schema-paymentrecovery}
@@ -2018,13 +2021,13 @@ The pushes of the payment's transaction to the node, by this wallet or a refresh
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `id` | `integer` | yes | Sequence number, rising, never reused. |
-| `type` | `string` | yes | `resource.what_happened`. An open set: new types may be added, and clients must skip types they do not know. Known types: payment.created, payment.state_changed, payment.updated, payment.confirmations_reached, payment.recovery_changed, payment.post_failed, payment.delivery_changed, payment.declined, contact.created, contact.state_changed, contact.updated, contact.removed, payload.received, quarantine.added, account.balance_changed, wallet.progress, relay.updated, slate.unmatched, events.skipped. |
+| `type` | `string` | yes | `resource.what_happened`. An open set: new types may be added, and clients must skip types they do not know. Known types: payment.created, payment.state_changed, payment.updated, payment.confirmations_reached, payment.recovery_changed, payment.post_failed, payment.delivery_changed, payment.declined, contact.created, contact.state_changed, contact.updated, contact.removed, payload.received, quarantine.added, account.balance_changed, wallet.progress, relay.updated, slate.unmatched, slate.refused, events.skipped. |
 | `created_at` | `string` (date-time) | yes |  |
 | `data` | `object` | yes |  |
 | `data.object` | [`Payment`](#schema-payment) or [`Contact`](#schema-contact) or [`Payload`](#schema-payload) or [`Quarantined`](#schema-quarantined) or [`Account`](#schema-account) or [`Relay`](#schema-relay) or [`Wallet`](#schema-wallet) |  | Snapshot after the change. |
 | `data.from_state` | `string` |  |  |
 | `data.to_state` | `string` |  |  |
-| `data.reason` | `string` |  | Why: for `*.state_changed` the end-state reason; for `slate.unmatched` `unknown_slate`; for `events.skipped` `lagged` or `pruned`; for `relay.updated` `home_unreachable` or the transport's reason. |
+| `data.reason` | `string` |  | Why: for `*.state_changed` the end-state reason; for `slate.unmatched` `unknown_slate`; for `slate.refused` `receipts_full` (a payment refused at an open receipt cap: not signed, not stored, nothing cancelled); for `events.skipped` `lagged` or `pruned`; for `relay.updated` `home_unreachable` or the transport's reason. |
 | `data.error` | `string` |  | `payment.post_failed`: the node's text for the failed push, as `post.last_error` shows it, or the wallet's reason when the node gave none. |
 | `data.state` | one of `queued`, `sent`, `uncertain`, `failed` |  | `payment.delivery_changed`: the outcome of that post. The carried payment shows its delivery as it stood then; `GET /payments/{id}` reads the current one. |
 | `data.route` | `string` |  | `payment.delivery_changed`: the route the payment was posted on, such as an Epicbox address `key@host`. |
@@ -2032,9 +2035,10 @@ The pushes of the payment's transaction to the node, by this wallet or a refresh
 | `data.payment_id` | `string` |  | `payment.state_changed` for a payment the wallet no longer holds, such as a parked invoice that expired; `payment.declined`. |
 | `data.declined_at` | `string` (date-time) |  | `payment.declined`: when the receiver declined the send. |
 | `data.contact_id` | `string` |  | `quarantine.added`, `payload.received`, and `contact.state_changed` for a contact the wallet no longer holds. |
-| `data.slate_id` | `string` (uuid) |  | `slate.unmatched`. |
-| `data.stage` | `string` |  | `slate.unmatched`: the slate's stage, such as `S2` or `I2`. |
-| `data.sender` | `string` |  | `slate.unmatched`: where it came from, as the mailbox reported it. |
+| `data.slate_id` | `string` (uuid) |  | `slate.unmatched`, `slate.refused`. |
+| `data.stage` | `string` |  | `slate.unmatched`: the slate's stage, such as `S2` or `I2`. `slate.refused`: `S1`. |
+| `data.sender` | `string` |  | `slate.unmatched`: where it came from, as the mailbox reported it. `slate.refused`: the sender key the per-sender cap counts, when the route gave one. |
+| `data.cap` | one of `per_sender`, `total` |  | `slate.refused`: the cap that was full, `max_open_receipts_per_sender` or `max_open_receipts`. |
 | `data.host` | `string` |  | `relay.updated` with reason `home_unreachable`: the mailbox. |
 | `data.height` | `integer` |  | `wallet.progress`: the height scanned to. |
 | `data.target_height` | `integer` |  | `wallet.progress`: the height the scan runs to. |

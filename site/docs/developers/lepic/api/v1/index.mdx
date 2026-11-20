@@ -565,7 +565,7 @@ Serve keeps an event log. Each event has a rising integer `id`, a `type`, a `cre
 |---|---|
 | Payments | `payment.created`, `payment.state_changed`, `payment.updated`, `payment.confirmations_reached`, `payment.recovery_changed`, `payment.post_failed`, `payment.delivery_changed`, `payment.declined` |
 | Contacts | `contact.created`, `contact.state_changed`, `contact.updated`, `contact.removed`, `payload.received`, `quarantine.added` |
-| Wallet | `account.balance_changed`, `wallet.progress`, `relay.updated`, `slate.unmatched` |
+| Wallet | `account.balance_changed`, `wallet.progress`, `relay.updated`, `slate.unmatched`, `slate.refused` |
 | Log | `events.skipped` |
 
 The set is open: skip a type you do not know.
