@@ -83,8 +83,9 @@ mailbox cannot join two payments by their reply slot. The
 7. **Refusal.** A payee with `refuse_unsolicited_payments` on sends a `declined` notice to the
    reply slot for every payment to the address. The payer's wallet erases the send: its inputs
    are unlocked and no record is kept, as if the send never happened. There is no `cancelled`
-   payment and no cancel action; the API answers 404 `payment_declined` and sends the event
-   `payment.declined`.
+   payment and no cancel action; the API answers 404 `payment_declined` with `declined_at` (also
+   for a repeat `POST /payments`) and sends the event `payment.declined`. The CLI exits with
+   code 6 and the JSON error has `code` `payment_declined`.
 8. **Deadline.** Once the chain reaches the payment's cutoff, its TTL height or the wallet's
    own limit for the transaction if that comes first, the outbox stops posting it, and the
    next refresh expires it if it was not finalized.
@@ -136,6 +137,9 @@ one reader at a time on each mailbox. A host must run one live instance per reco
 - An account has one epic1 address, at index 0. Numbered addresses and links made before this
   model are not read, and neither are epic1 links and payments made by 0.5.x: a payment to one is
   not taken, and it expires at its deadline on the payer's side.
+- `lepic serve` shows a payment made through an epic1 address or link as `via: link`, with the
+  address as the counterparty `address`. `POST /inspect` and `POST /payments/estimate` refuse a
+  damaged address.
 - A payment read on a second mailbox is not taken again; its stored answer is posted again.
 - Invoices go only between paired contacts that the payer verified and allowed to send
   invoices; no invoice or pair request travels over an epic1 link.

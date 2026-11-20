@@ -110,7 +110,8 @@ Everything from the network, a file, a peer, a node or the host app is untrusted
 - **Acknowledge after store.** A message is acknowledged to the relay only after its effect is
   stored, or after it was rejected for good. A crash between receive and store loses nothing: the
   relay delivers it again.
-- Inbound processing is idempotent: a redelivered or repeated slate is not a second payment.
+- Inbound processing is idempotent: a redelivered or repeated slate is not a second payment. A slate whose id names a payment this wallet made, a send or an
+  invoice it paid, is refused as a receive, so a payee cannot fake an incoming payment under it.
 - Native messages go only to epic1 addresses and paired contacts, sealed to their keys. An
   Epicbox, HTTP, Tor or file address gets the plain slates `epic-wallet` reads, with nothing added.
 

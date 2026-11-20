@@ -83,9 +83,24 @@ Windows it exits with code 5, and the shell has no `serve start`.
 A service that takes payments through `lepic serve` credits a received payment when it is `final`
 (`final: true`, or the event `payment.confirmations_reached`), which happens after
 `final_confirmations` confirmations (default 6), a number the service sets. `confirmed` means one
-confirmation. A send the payee declines is erased by the payer's wallet: it has no record and
-nothing to cancel, and the API answers 404 `payment_declined`. The default send cutoff is 10,080
-blocks (7 days), set per wallet (`send_ttl_blocks`) or per send (`--ttl-blocks`).
+confirmation. A confirmed transaction that a reorganisation removes within 1,440 blocks of its
+confirmation goes back to `posted`, `received` or `sent` and raises `payment.state_changed`; a
+`payment.confirmations_reached` already sent is not taken back. A send the payee declines is erased
+by the payer's wallet: it has no record and nothing to cancel. The API answers 404
+`payment_declined` with `declined_at`, also for a repeat `POST /payments` of that send; the CLI
+exits with code 6 and the JSON error has `code` `payment_declined`. A send cancelled before any
+route took its slate reads `delivery.state` `uncertain` with `undelivered: true` and keeps its
+`delivery.error`. The default send cutoff is 10,080 blocks (7 days), set per wallet
+(`send_ttl_blocks`) or per send (`--ttl-blocks`).
+
+`lepic serve` sends to an onion address with the tor binary named in the settings. It answers 400
+when the settings name none or only a running tor's SOCKS address, and 500 `config` when the
+binary is missing. A payment made through an epic1 address or link shows `via: link`, with the
+address as the counterparty `address`. A webhook or `GET /events` read with a `types` filter also
+gets `events.skipped`, so such a filter holds at most 31 patterns unless it names `events.skipped`
+or `events.*`. `epicbox listen` and `tor listen` refuse with the connection mode `offline` (exit
+code 3). A slate whose id names a payment the wallet made is refused as a receive. The API
+contract is version 2.0.0.
 
 The interactive shell asks for the password once, keeps the wallet open and takes `lepic`
 commands without `lepic`. A status line under the input shows the wallet, balance, height,
