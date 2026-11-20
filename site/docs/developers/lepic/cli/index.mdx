@@ -332,7 +332,9 @@ already received, so the answer never shows that two addresses belong to one wal
 slate under the same slate id is refused, and so is the same slate once its transaction was
 cancelled or expired. So is a slate whose id names a payment this wallet made, a send or an invoice
 it paid: a payee cannot fake an incoming payment under that id. The one exception is the send's own
-slate, as when the wallet pays its own address. These refusals exit 7 (`rejected`).
+slate while the send is open and went to an address, as when the wallet pays its own address; the
+file of a send made with `--to-file` is refused in the wallet that made it. These refusals exit 7
+(`rejected`).
 
 </details>
 
@@ -1300,6 +1302,11 @@ before the next try. The serve API's problem document carries the same member, a
 {"error":{"kind":"transport","exit_code":10,"message":"the payment was not delivered","causes":["relay refused the post with InvalidRequest: Rate limit exceeded; retry in 12 s"],"retry_after_secs":12}}
 ```
 
+When the error comes from a mailbox that refused a post, or from an epic1 link of a 0.5.x
+wallet that names one, the error object also carries `mailbox`, the mailbox as `host[:port]`.
+Only a refused post carries it; other mailbox failures do not name one. The serve API's problem
+document carries the same member.
+
 A command line that does not parse is a `usage` error too: with `--output json` it prints the
 same object (exit code 2, the parser's message as `message`) and nothing on stderr. A command
 group without a subcommand, such as `lepic tx`, names the group and lists its subcommands; in
@@ -1347,6 +1354,12 @@ the fields.
 | 13 | `slate_too_large` | The payment needs too many inputs for the mailbox; nothing was stored |
 | 14 | `no_shared_mailbox` | The payer's mailbox list holds none of the shipped mailboxes; nothing was sent |
 | 15 | `not_delivered` | A payment to a paired contact is stored, but no mailbox took it yet |
+| 16 | `earlier_address` | The epic1 address or link was made by a 0.5.x wallet; nothing was sent |
+
+Code 16 means the address or link is in the format of 0.5.x, which has no version byte and is not
+readable by 0.6.0. Nothing was sent. The message points to the mailbox the link names, or, for a
+bare address, to the wallet's Epicbox address (the one with an @) or to an epic1 address from an
+updated wallet. The serve API answers it as 400 `earlier_epic1_address`.
 
 Code 11 means the transaction exists: `tx resend` delivers it and `tx post` posts it.
 
