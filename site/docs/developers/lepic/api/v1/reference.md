@@ -513,7 +513,7 @@ The text, file or QR frames to give the other person by hand.
 
 Role: `read`.
 
-`format` picks the form, `contact_id` names the contact for `format=sealed`, and `qr=true` adds `qr_frames`. A sealed answer has no QR frames: `qr=true` on it answers 409 `format_not_available`.
+Returns the handoff the create or the open returned. A plain slate of a payment handed over by hand is rebuilt from the stored slate when serve no longer keeps the text, byte for byte the same, while the payment waits for the other side. `format` picks the form, `contact_id` names the contact for `format=sealed`, and `qr=true` adds `qr_frames`. A sealed answer has no QR frames: `qr=true` on it answers 409 `format_not_available`.
 
 | Parameter | In | Type | Description |
 |---|---|---|---|
@@ -540,7 +540,7 @@ Say what a text, file or scanned code is and what it asks, without changing anyt
 
 Role: `read`.
 
-A sealed file answers `type: sealed` with the amount, the `contact_id` when the contact signed it, the message and the next step. Nothing is stored.
+A pairing link (`epiccash://pair/1/...`) is a `pairing_invite`: `summary.from` is the name the inviter claims, `summary.relays` its home mailbox, and `next` is `accept_invite` (answer it with `POST /contacts`, method `accept`), or `none` for an invite this wallet made or one past its expiry. `pair-reply` and `pair-confirm` links are `pairing_reply` and `pairing_confirm`, named only, with `next` `none`: the API takes neither. A pairing link that does not decode on this wallet's network is `unknown`. A sealed file answers `type: sealed` with the amount, the `contact_id` when the contact signed it, the message and the next step. Nothing is stored.
 
 **Request body** (required, `application/json`): [`InspectRequest`](#schema-inspectrequest)
 
@@ -2085,4 +2085,4 @@ An in-person request serve issued, as the shop sees it. Its state changes come a
 | `domain` | `string` |  | The domain the code is signed for. |
 | `finalize` | one of `first`, `manual` | yes |  |
 | `answers_refused` | `integer` | yes | Answers that came and were refused. They do not change `state`. This counts unauthenticated input: anyone who holds the code can send answers and raise it, so a shop must not act on it alone. |
-| `last_refusal` | `string` |  | Why the last one was refused: `already_finalized`, `expired`, `inputs_spent` or `bad_answer`; clients must accept reasons they do not know. Like `answers_refused`, anyone who holds the code can set it: a shop must not act on it alone. |
+| `last_refusal` | `string` |  | Why the last one was refused: `already_finalized`, `expired`, `inputs_spent`, `bad_answer` or `cancelled`; clients must accept reasons they do not know. Like `answers_refused`, anyone who holds the code can set it: a shop must not act on it alone. |

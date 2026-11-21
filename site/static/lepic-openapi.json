@@ -1064,7 +1064,7 @@
         "operationId": "getPaymentHandoff",
         "x-role": "read",
         "summary": "The text, file or QR frames to give the other person by hand.",
-        "description": "Returns the handoff the create or the open returned. A plain slate of a payment handed over by hand is rebuilt from the stored slate when serve no longer keeps the text, byte for byte the same, while the payment waits for the other side.",
+        "description": "Returns the handoff the create or the open returned. A plain slate of a payment handed over by hand is rebuilt from the stored slate when serve no longer keeps the text, byte for byte the same, while the payment waits for the other side. `format` picks the form, `contact_id` names the contact for `format=sealed`, and `qr=true` adds `qr_frames`. A sealed answer has no QR frames: `qr=true` on it answers 409 `format_not_available`.",
         "tags": [
           "Payments"
         ],
@@ -1121,8 +1121,7 @@
           "409": {
             "$ref": "#/components/responses/Conflict"
           }
-        },
-        "description": "`format` picks the form, `contact_id` names the contact for `format=sealed`, and `qr=true` adds `qr_frames`. A sealed answer has no QR frames: `qr=true` on it answers 409 `format_not_available`."
+        }
       }
     },
     "/inspect": {
@@ -1130,7 +1129,7 @@
         "operationId": "inspect",
         "x-role": "read",
         "summary": "Say what a text, file or scanned code is and what it asks, without changing anything.",
-        "description": "A pairing link (`epiccash://pair/1/...`) is a `pairing_invite`: `summary.from` is the name the inviter claims, `summary.relays` its home mailbox, and `next` is `accept_invite` (answer it with `POST /contacts`, method `accept`), or `none` for an invite this wallet made or one past its expiry. `pair-reply` and `pair-confirm` links are `pairing_reply` and `pairing_confirm`, named only, with `next` `none`: the API takes neither. A pairing link that does not decode on this wallet's network is `unknown`.",
+        "description": "A pairing link (`epiccash://pair/1/...`) is a `pairing_invite`: `summary.from` is the name the inviter claims, `summary.relays` its home mailbox, and `next` is `accept_invite` (answer it with `POST /contacts`, method `accept`), or `none` for an invite this wallet made or one past its expiry. `pair-reply` and `pair-confirm` links are `pairing_reply` and `pairing_confirm`, named only, with `next` `none`: the API takes neither. A pairing link that does not decode on this wallet's network is `unknown`. A sealed file answers `type: sealed` with the amount, the `contact_id` when the contact signed it, the message and the next step. Nothing is stored.",
         "tags": [
           "Inspect and open"
         ],
@@ -1170,8 +1169,7 @@
           "504": {
             "$ref": "#/components/responses/GatewayTimeout"
           }
-        },
-        "description": "A sealed file answers `type: sealed` with the amount, the `contact_id` when the contact signed it, the message and the next step. Nothing is stored."
+        }
       }
     },
     "/open": {
@@ -5689,7 +5687,7 @@
           },
           "last_refusal": {
             "type": "string",
-            "description": "Why the last one was refused: `already_finalized`, `expired`, `inputs_spent` or `bad_answer`; clients must accept reasons they do not know. Like `answers_refused`, anyone who holds the code can set it: a shop must not act on it alone."
+            "description": "Why the last one was refused: `already_finalized`, `expired`, `inputs_spent`, `bad_answer` or `cancelled`; clients must accept reasons they do not know. Like `answers_refused`, anyone who holds the code can set it: a shop must not act on it alone."
           }
         },
         "required": [
