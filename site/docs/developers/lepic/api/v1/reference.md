@@ -267,6 +267,8 @@ Starts a send (`kind: send`, default) or an invoice (`kind: invoice`). Returns 2
 
 `to` forms: `key@host` (Epicbox address), `http://` or `https://` URL, `.onion` address, `epic:` link, a bare epic1 address (as `GET /addresses` returns it, paid as its epic1 link), `contact:ID`, `account:LABEL`. An `epic:` link carries its amount and message: a classic one (`epic:ADDRESS?amount=&message=`) is paid to its address, and an epic1 link as `lepic epic1 pay` pays it; for both, the body's `amount` and `message` win when given and the link's are used otherwise. An invoice goes to `contact:ID` or is handed back (`via: file` or `deliver: false`); to an address or a classic `epic:` link it is 400 `invoice_to_address` and nothing is stored, to an epic1 link 400 `invalid_field`.
 
+**In-person requests.** `kind: invoice` with `via: in_person` and no `to` issues a code to show the payer: the `handoff` has `format: in_person_code`, the code as hex in `text`, its animated QR in `qr_frames` and the same request as an invoice link in `link`. The code is signed for the `domain` setting when one is set, and answers come to the account's shared mailbox slot and, with `direct`, to serve's public addresses. A repeat with the same `id` returns the same code. The TTL counts from the chain tip, so a node that does not answer is 503 `node_unreachable` and nothing is issued. The payment's `request` shows where the request stands; `POST /payments/{id}/cancel` on an open one makes it `refused`.
+
 **Request body** (required, `application/json`): [`CreatePayment`](#schema-createpayment)
 
 **Responses**
@@ -427,6 +429,8 @@ Post a finished payment to the node again.
 Role: at least `receive`.
 
 **Role depends on the request:** Posting an invoice this wallet issued needs `receive`; posting a send needs `full`.
+
+Posts a finished payment to the node again. On an open in-person request with `finalize: manual` it finalizes the answer `answer` names and posts it; the request becomes `paid`.
 
 | Parameter | In | Type | Description |
 |---|---|---|---|
@@ -1321,9 +1325,10 @@ Errors are RFC 9457 problem documents (`application/problem+json`), the [`Proble
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `format` | one of `slate`, `epictx`, `sealed`, `plain`, `in_person_code` | yes |  |
-| `text` | `string` | yes | Paste, show as QR, or save as a file. |
+| `text` | `string` | yes | Paste, show as QR, or save as a file. For `in_person_code`, the code as hex; its `qr_frames` carry the code's bytes. |
 | `file_name` | `string` (example "1a2b3c4d.tx") |  |  |
 | `qr_frames` | array of `string` |  |  |
+| `link` | `string` |  | `in_person_code` only: the same request as an invoice link. |
 
 ### Payment {#schema-payment}
 
@@ -1351,12 +1356,13 @@ Errors are RFC 9457 problem documents (`application/problem+json`), the [`Proble
 | `message` | `string` |  | Ours. |
 | `their_message` | `string` |  |  |
 | `delivery` | [`Delivery`](#schema-delivery) |  |  |
-| `answers` | array of `object` |  |  |
+| `answers` | array of `object` |  | The answers an in-person code got, each with its check code for the payer to compare; `same_code_as` names an earlier answer with the same check code. |
 | `answers[].id` | `string` | yes |  |
 | `answers[].check_code` | `string` | yes |  |
 | `answers[].received_at` | `string` (date-time) | yes |  |
 | `answers[].same_code_as` | `string` |  |  |
-| `check_code` | `string` |  | Payer side of an in-person code, once delivered. |
+| `check_code` | `string` |  | Payer side of an in-person code, once delivered. For an in-person request, the check code of the answer that was finalized. |
+| `request` | [`PaymentRequest`](#schema-paymentrequest) |  | An in-person request serve issued, as the shop sees it. Its state changes come as `payment.state_changed`, with `data.object.request.state`; a refused answer comes as `payment.updated` with `changed` naming `request`. Confirmations come as `payment.confirmations_reached`. |
 | `their_notices` | `object` |  | What the other side reported. |
 | `their_notices.posted_at` | `string` (date-time) |  |  |
 | `their_notices.cancelled_at` | `string` (date-time) |  |  |
@@ -1590,7 +1596,7 @@ InspectRequest plus `expect`, `message`, `deliver`.
 | `title` | `string` | yes |  |
 | `status` | `integer` | yes |  |
 | `detail` | `string` |  |  |
-| `code` | `string` | yes | Stable, fine-grained error name, e.g. `insufficient_funds`. Clients must accept codes they do not know and fall back on `category`. Any call: `no_route` 404, `method_not_allowed` 405 (with `Allow`), `body_too_slow` 408, `body_too_large` 413, `unsupported_media_type` 415, `role_required` 403, `socket_only` 403, `client_not_listed` 403, `serve_version_differs` and `serve_settings_differ` 409, `invalid_request`, `invalid_body`, `invalid_field`, `invalid_cursor`, `cursor_filters_changed` 400, `not_found` 404, `payment_declined` 404 (with `declined_at`), `internal` 500, `interrupted` and `cancelled` 503. `busy` 503 when the listener holds as many connections as it takes, and on payment creates when as many creates run. Creates: `idempotency_mismatch`, `in_progress`, `account_exists` 409. Payments: `action_not_available`, `format_not_available`, `no_handoff`, `nothing_to_open`, `too_many_held`, `no_more_routes` 409; `unexpected_input`, `insufficient_funds` 422; `invoice_already_paid`, `invoice_locked_above_tip`, `inputs_spent_elsewhere`, `inputs_spent_by_own_transaction`, `peer_inputs_spent`, `on_chain`, `in_pool`, `recovery_open`, `not_recoverable`, `use_recover`, `changed_during_cancel` 409; `plain_http_not_allowed`, `http_url_invalid`, `onion_address_invalid`, `slate_too_large`, `invoice_to_address`, `via_mismatch` 400; `change_too_small`, `too_heavy`, `nothing_to_consolidate`, `invalid_slate`, `payment_expired`, `invoice_changed`, `amount_mismatch`, `not_posted`, `not_delivered` by category. Wallet and node: `wrong_password` 403, `wallet_not_found` 404, `wallet_already_exists`, `wallet_busy`, `receipts_full` (a payment nobody asked for refused because the open-receipt cap is full), `locked`, `foreign_wallet`, `offline`, `tor_expected`, `damaged_database_kept`, `wallet_too_new`, `wrong_key` 409, `restore_scan_required` 503, `scan_running` 409 or 503, `node_unreachable` 502 (504 on a timeout), `tor_not_running` 503, `onion_unreachable` 502, `transport_failed` 502, `damaged_database` 500. Contacts: `contact_not_found`, `pairing_not_found` 404; `invite_expired`, `already_paired`, `pairing_in_progress`, `pairing_crossed`, `pairing_ended`, `pairing_waiting`, `contact_not_verified`, `key_check_refused`, `relay_changed`, `keys_not_changed`, `domain_fixed`, `contact_cap_reached`, `contacts_offline` 409; `wrong_pairing_class`, `earlier_epic1_address` 400; `other_address`, `address_proof_missing`, `no_free_slot` 422. A code not listed here has its category's status: `usage` 400, `wrong_password` 403, `not_found` 404, `wallet_state` and `conflict` 409, `rejected` and `funds` 422, `node` and `transport` 502, `interrupted` 503, `internal` and `config` 500. 409 `in_progress`, 502, 503 and 504 carry `Retry-After` when waiting is worth it. |
+| `code` | `string` | yes | Stable, fine-grained error name, e.g. `insufficient_funds`. Clients must accept codes they do not know and fall back on `category`. Any call: `no_route` 404, `method_not_allowed` 405 (with `Allow`), `body_too_slow` 408, `body_too_large` 413, `unsupported_media_type` 415, `role_required` 403, `socket_only` 403, `client_not_listed` 403, `serve_version_differs` and `serve_settings_differ` 409, `invalid_request`, `invalid_body`, `invalid_field`, `invalid_cursor`, `cursor_filters_changed` 400, `not_found` 404, `payment_declined` 404 (with `declined_at`), `internal` 500, `interrupted` and `cancelled` 503. `busy` 503 when the listener holds as many connections as it takes, and on payment creates when as many creates run. Creates: `idempotency_mismatch`, `in_progress`, `account_exists` 409. Payments: `action_not_available`, `format_not_available`, `no_handoff`, `nothing_to_open`, `too_many_held`, `no_more_routes`, `ambiguous_answer` 409; `unexpected_input`, `insufficient_funds` 422; `invoice_already_paid`, `invoice_locked_above_tip`, `inputs_spent_elsewhere`, `inputs_spent_by_own_transaction`, `peer_inputs_spent`, `on_chain`, `in_pool`, `recovery_open`, `not_recoverable`, `use_recover`, `changed_during_cancel` 409; `plain_http_not_allowed`, `http_url_invalid`, `onion_address_invalid`, `slate_too_large`, `invoice_to_address`, `via_mismatch` 400; `change_too_small`, `too_heavy`, `nothing_to_consolidate`, `invalid_slate`, `payment_expired`, `invoice_changed`, `amount_mismatch`, `not_posted`, `not_delivered` by category. Wallet and node: `wrong_password` 403, `wallet_not_found` 404, `wallet_already_exists`, `wallet_busy`, `receipts_full` (a payment nobody asked for refused because the open-receipt cap is full), `locked`, `foreign_wallet`, `offline`, `tor_expected`, `damaged_database_kept`, `wallet_too_new`, `wrong_key` 409, `restore_scan_required` 503, `scan_running` 409 or 503, `node_unreachable` 502 (504 on a timeout; 503 on an in-person request create), `tor_not_running` 503, `onion_unreachable` 502, `transport_failed` 502, `damaged_database` 500. Contacts: `contact_not_found`, `pairing_not_found` 404; `invite_expired`, `already_paired`, `pairing_in_progress`, `pairing_crossed`, `pairing_ended`, `pairing_waiting`, `contact_not_verified`, `key_check_refused`, `relay_changed`, `keys_not_changed`, `domain_fixed`, `contact_cap_reached`, `contacts_offline` 409; `wrong_pairing_class`, `earlier_epic1_address` 400; `other_address`, `address_proof_missing`, `no_free_slot` 422. A code not listed here has its category's status: `usage` 400, `wrong_password` 403, `not_found` 404, `wallet_state` and `conflict` 409, `rejected` and `funds` 422, `node` and `transport` 502, `interrupted` 503, `internal` and `config` 500. 409 `in_progress`, 502, 503 and 504 carry `Retry-After` when waiting is worth it. |
 | `category` | one of `usage`, `config`, `wrong_password`, `wallet_state`, `not_found`, `rejected`, `funds`, `node`, `transport`, `internal`, `interrupted`, `conflict` | yes |  |
 | `param` | `string` |  | JSON pointer to the bad field, when one field is to blame. `payment_id` and `contact_id` name the object an error is about; `errors` lists several faults. |
 | `payment_id` | `string` (uuid) |  |  |
@@ -1671,7 +1677,7 @@ Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unl
 | `id` | `string` (uuid) |  | Optional caller-chosen id. A send uses it as its slate id, and so does an invoice given a version-4 UUID; an invoice given another UUID takes a slate id of the wallet's own and keeps this one as an alias that `GET /payments/{id}` also answers. Read `id` from the answer. Idempotency key: a repeat with the same id and body returns the stored payment with 200; a different body is 409 `idempotency_mismatch`. Required over owner TLS. |
 | `kind` | one of `send`, `invoice` |  |  |
 | `to` | `string` |  | Destination. Forms: `key@host` (Epicbox address); `http://` or `https://` URL; `.onion` address; `epic:` link (classic or epic1); bare epic1 address; `contact:ID`; `account:LABEL` (own account), which serve refuses with 400 `invalid_field` at `/to`. Without `to`, `via` must be `file`, or `deliver` must be `false`. |
-| `via` | one of `epicbox`, `http`, `tor`, `contact`, `link`, `in_person`, `file`, `peer`, `chain` |  | Route. Same values as Payment.via; `file` produces a handoff. When given for a delivered payment it must name the route `to` takes (`epicbox`, `http` or `tor` for an address, `link` for an epic1 link or address, `contact` for a contact): another route answers 400 `via_mismatch` at `/via`. `contact` with a bare contact id routes to that contact. A value outside the list answers 400 `invalid_field` at `/via`, and so do `in_person`, `peer` and `chain`, which serve does not support. |
+| `via` | one of `epicbox`, `http`, `tor`, `contact`, `link`, `in_person`, `file`, `peer`, `chain` |  | Route. Same values as Payment.via; `file` produces a handoff. When given for a delivered payment it must name the route `to` takes (`epicbox`, `http` or `tor` for an address, `link` for an epic1 link or address, `contact` for a contact): another route answers 400 `via_mismatch` at `/via`. `contact` with a bare contact id routes to that contact. A value outside the list answers 400 `invalid_field` at `/via`, and so do `peer` and `chain`, which serve does not support. `in_person` with `kind: invoice` issues an in-person request (see `finalize`); an `in_person` send answers 400 `invalid_field` at `/via`, and `to` with it at `/to`. |
 | `account` | `string` |  | Account label; default account when absent. |
 | `amount` | [`Decimal`](#schema-decimal) or one of `max` |  | Amount, or the string `max` (estimate only). May be left out when `to` is an `epic:` link that names one. When both name one, the amount given is paid, for a classic link and an epic1 link alike. |
 | `message` | `string` |  | Signed into the slate. At most 256 bytes, with no control, line-break or invisible formatting character; a longer or marked text is 400 `invalid_field` at `/message`, not cut. Shows as `message` on this payment and as `their_message` on the other party's, an invoice to a contact included. For an epic1 link, left out means the link's message, and an empty string or only spaces means no message. |
@@ -1679,11 +1685,13 @@ Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unl
 | `min_confirmations` | `integer` |  |  |
 | `selection` | one of `all`, `smallest` |  |  |
 | `change_outputs` | `integer` |  | Number of change outputs; `account:default` with 3 splits coins. |
-| `ttl_blocks` | `integer` |  | Blocks after which the other party must refuse the slate. For a send, a V2 slate (Epicbox, HTTP) has no TTL field: the wallet keeps the height and expires the send at refresh if it is still unanswered. A send that names none waits the service's `send_ttl_blocks`, 10080 blocks (7 days) unless set, kept by the wallet and not in the slate; an epic1 payment carries it in the slate. For an invoice, the I1 carries it, the payment shows it as `expires_at_height`, and a refresh past it expires the invoice. |
+| `ttl_blocks` | `integer` |  | Blocks after which the other party must refuse the slate. For a send, a V2 slate (Epicbox, HTTP) has no TTL field: the wallet keeps the height and expires the send at refresh if it is still unanswered. A send that names none waits the service's `send_ttl_blocks`, 10080 blocks (7 days) unless set, kept by the wallet and not in the slate; an epic1 payment carries it in the slate. For an invoice, the I1 carries it, the payment shows it as `expires_at_height`, and a refresh past it expires the invoice. An in-person request waits 30 blocks unless given; 10 or fewer answer 400 `invalid_field` at `/ttl_blocks`. |
 | `fluff` | `boolean` |  |  |
 | `purpose` | one of `payment`, `deposit`, `withdrawal`, `refund`, `request` |  |  |
 | `allow_plain_http` | `boolean` |  |  |
 | `deliver` | `boolean` (default true) |  | false: create the payment and return the handoff only. |
+| `finalize` | one of `first`, `manual` |  | In-person request only (`kind: invoice`, `via: in_person`); with another route 400 `invalid_field` at `/finalize`. `first`: serve finalizes and posts the first answer that comes, once, also across a restart. `manual`: answers wait in `answers` and `POST /payments/{id}/post` finalizes the one it names. |
+| `direct` | `boolean` |  | In-person request only; with another route 400 `invalid_field` at `/direct`. Whether the code names serve's public addresses (`--public-url`), so a payer can answer straight to serve as well as through the mailbox. Default: true when serve has public addresses. `true` without any answers 400 `invalid_field` at `/direct`. |
 | `metadata` | map of `string` (length 0..500) |  | Local notes, never sent. The bounds are input validation, not policy. |
 
 ### Estimate {#schema-estimate}
@@ -1757,6 +1765,7 @@ Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unl
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `fluff` | `boolean` |  |  |
+| `answer` | `string` |  | For an open in-person request with `finalize: manual`: the answer to finalize, by its `id` or `check_code`. May be left out when there is one answer. With several and none named, or one that matches none, 400 `invalid_field` at `/answer`; a check code two answers share is 409 `ambiguous_answer`. On a request with `finalize: first` the post is 409 `action_not_available`. On a `paid` request the answer the wallet finalized is answered 200 as it is, and any other is 409 `invoice_already_paid` and changes nothing. On any other payment 400 `invalid_field` at `/answer`. |
 
 ### DeliverPayment {#schema-deliverpayment}
 
@@ -2063,3 +2072,17 @@ The pushes of the payment's transaction to the node, by this wallet or a refresh
 |---|---|---|---|
 | `result` | one of `passed`, `failed`, `not_reached` | yes |  |
 | `error` | `string` |  | Why the step failed. |
+
+### PaymentRequest {#schema-paymentrequest}
+
+An in-person request serve issued, as the shop sees it. Its state changes come as `payment.state_changed`, with `data.object.request.state`; a refused answer comes as `payment.updated` with `changed` naming `request`. Confirmations come as `payment.confirmations_reached`.
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `state` | one of `open`, `paid`, `expired`, `refused` | yes | `open` until an answer is finalized (`paid`), the TTL passes (`expired`) or the shop cancels it (`refused`). `paid` means the wallet finalized the answer: the post to the node follows, and may still be retried or fail. A shop hands over the goods only after the payment's confirmations (`payment.confirmations_reached`). `expired` comes as one `payment.state_changed` once serve sees the tip pass the TTL, while the payment itself may still wait for the wallet to end it. |
+| `reference` | `string` |  | The check code of the answer the wallet finalized. It is set only once the request is `paid`. |
+| `link` | `string` |  | The request as an invoice link. |
+| `domain` | `string` |  | The domain the code is signed for. |
+| `finalize` | one of `first`, `manual` | yes |  |
+| `answers_refused` | `integer` | yes | Answers that came and were refused. They do not change `state`. This counts unauthenticated input: anyone who holds the code can send answers and raise it, so a shop must not act on it alone. |
+| `last_refusal` | `string` |  | Why the last one was refused: `already_finalized`, `expired`, `inputs_spent` or `bad_answer`; clients must accept reasons they do not know. Like `answers_refused`, anyone who holds the code can set it: a shop must not act on it alone. |
