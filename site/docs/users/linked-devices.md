@@ -31,17 +31,23 @@ does not create it on the other device.
 3. Both show the same four pictures while they link. There is nothing to tap: the app checks them.
 
 One other device can be linked: remove it to link a different one. **Pause sync** stops the notices;
-while paused, they wait on the servers for up to 7 days. Node only and Kill switch pause it too.
+while paused, they wait on the mailboxes for up to 7 days. Node only and Kill switch pause it too.
 
-Both devices answer payments to the address, and the sender takes the first answer. The payment shows
-once, as received on the device the sender used. A third app on the same recovery phrase is not
-supported: it hears nothing of the link, and its payments show once the chain confirms them.
+A third app on the same recovery phrase is not supported: it hears nothing of the link, and its
+payments show once the chain confirms them.
+
+### Two installs on one address
+
+:::warning
+Two installs on one recovery phrase without a link are not supported. Link the devices instead. The
+wallet is built to fail safe in this setup: no coins are lost, but the installs do not stay in step.
+:::
 
 ## Security
 
 - **Own keys for each link.** They are made when the devices link and cannot be worked out from the
   recovery phrase alone.
-- **Encrypted end to end.** Only the linked devices can read a notice. The servers carry it and
+- **Encrypted end to end.** Only the linked devices can read a notice. The mailboxes carry it and
   cannot read it.
 - **Removing a device ends the link on both.** Either device can do it. Neither gets more notices,
   and the device that did not remove it shows who did.
@@ -52,8 +58,7 @@ supported: it hears nothing of the link, and its payments show once the chain co
 - **Only while the app is open.** Nothing syncs in the background. The app catches up when it
   starts, resumes, unlocks or refreshes.
 - **The chain decides.** A notice is a heads-up; a payment counts once the chain shows it.
-- **A server down delays notices.** Notices go through the first one or two servers of the Epicbox
-  list, shown under the device.
+- **A mailbox down delays notices.** Notices go through the mailboxes in the list.
 
 ## A lost device
 

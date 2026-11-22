@@ -7,18 +7,19 @@ description: What an Epicbox, epic1, HTTP or Tor address looks like, and how to 
 
 | Kind | Looks like | Goes by |
 | --- | --- | --- |
-| Epicbox | about 52 characters starting with `es`, `@`, the server: `es…@epicbox.epiccash.com` | Epicbox |
+| Legacy Epicbox | about 52 characters starting with `es`, `@`, the server: `es…@epicbox.epiccash.com` | Epicbox |
 | epic1 | 117 characters starting with `epic1`, or a link `epic:epic1…` | epic1 |
 | HTTP | a web address of the other wallet, such as `http://host:3415` | Link · HTTP |
 | Tor | 56 characters ending in `.onion` | Link · Tor |
 
 Send picks the method from the address pasted into the To field.
 
-- An **Epicbox address** is the wallet's public key, then `@` and the name of its Epicbox server.
-  The recipient can be offline.
-- An **epic1 address** names no server. The payment waits in the address's own mailbox on the
-  Epicbox servers both wallets use, so the recipient can be offline. An **epic1 link** is the
-  address with an amount or a message. See [epic1 addresses and links](epic1.md).
+- A **Legacy Epicbox address** is the wallet's public key, then `@` and the name of its Epicbox
+  server. The recipient can be offline. Stock Epic Cash wallets use this address.
+- An **epic1 address** names no mailbox. Each account has one. The payment waits at the address's
+  own place on the mailboxes both wallets list, so the recipient can be offline. A **payment
+  link** is the address as a link, and a **request link** adds an amount or a message. See
+  [epic1 addresses and links](epic1.md).
 - An **HTTP** or **Tor** address is the recipient's own wallet, which must be open when you send.
 - Some wallets show a Tor address without `.onion`; both are the same address.
 - A **Paired address** is made when you [pair](pairing.md#after-pairing) with a contact. It is not
@@ -34,8 +35,9 @@ app highlights them on Receive.
 Epic Cash has no addresses on the blockchain. The Epicbox address only tells Epicbox where to
 deliver messages, and is never written on the blockchain. It is safe to share.
 
-Choosing another Epicbox server changes the part after `@`, so give the new address to the people
-who pay you. See [Epicbox](epicbox.md).
+Choosing another Epicbox server changes the part after `@` of the Legacy Epicbox address, so give
+the new address to the people who pay you. The epic1 address does not change when the mailbox list
+changes. See [Epicbox](epicbox.md).
 
 ## In the builds without Tor
 

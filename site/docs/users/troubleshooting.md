@@ -27,7 +27,11 @@ Their wallet has not answered yet. Ask them to open it. If they never will,
 
 - Check that the node is synced and Epicbox is connected: the status icons on the phone's Wallet
   tab, or Receive on the desktop.
-- After a change of Epicbox server, the sender needs the new address.
+- For an epic1 address, open **Settings › Network & privacy › Mailboxes**. If every mailbox shows
+  **Not answering**, payments wait until one answers. Payer and payee also need one mailbox in
+  common ([epic1](epic1.md#the-mailboxes)).
+- After a change of Epicbox server, the sender of a Legacy Epicbox address needs the new address.
+  The epic1 address does not change.
 - The sender's wallet also has to finish the transaction; then it waits for its confirmations.
 
 ## Tor says "Not connected"

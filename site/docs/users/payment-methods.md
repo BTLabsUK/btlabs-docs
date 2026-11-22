@@ -12,15 +12,15 @@ hand (**Direct**).
 | Method | Both online at once? | Server in between | Apps |
 | --- | --- | --- | --- |
 | **Epicbox** | no | an Epicbox server | both |
-| **epic1** | no | an Epicbox server | both |
+| **epic1** | no | a mailbox | both |
 | **Link · HTTP** | yes | none | both |
 | **Link · Tor** | yes | none (Tor) | desktop, Android |
 | **Direct · File Transfer** | no | none | both |
 | **Direct · QR Payment** | side by side | none | phone |
 
 Each method has a switch under **Settings › Transactions** on the desktop and **Settings › Payments**
-on the phone. **Epicbox** and **epic1** are on by default. A method that is off does not appear on
-Send and Receive. **Default method** picks the method Send opens with; you can still change it for
+on the phone. The Epicbox switch is named **Legacy Epicbox address**; it and **epic1** are on by
+default. A method that is off does not appear on Send and Receive. **Default method** picks the method Send opens with; you can still change it for
 one payment. On a phone, **Link · HTTP** has no switch: it only sends, to any http(s) address you
 paste. Direct · File Transfer on the phone needs its switch in [Advanced](advanced.md).
 
@@ -35,8 +35,8 @@ cannot spend anything. See [Epicbox](epicbox.md).
 
 ## epic1
 
-Payment to an epic1 address or link. The payment waits in the address's own mailbox on the Epicbox
-servers both wallets use, so nobody has to be online at the same time. The paying wallet needs epic1.
+Payment to an epic1 address or link. The payment waits in the address's own place on the mailboxes
+both wallets list, so nobody has to be online at the same time. The paying wallet needs epic1.
 
 The switch is called **epic1**. It also covers in-person codes and epic1 files. See
 [epic1 addresses and links](epic1.md).

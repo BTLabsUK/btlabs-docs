@@ -19,6 +19,12 @@ description: Restore from the recovery phrase, bring back wallet data, and impor
 A restore can start the scan from a later block or date, which is faster when you know the wallet
 is newer than that.
 
+## Your epic1 address after a restore
+
+The same phrase gives the same epic1 address, so links and codes you shared before keep working.
+With epic1 on, the wallet reads the mailboxes in its list once for payments waiting for the
+address, and for messages from contacts. There is no gap to fill and nothing to set.
+
 ## What a restore cannot bring back
 
 What was never on the blockchain: who paid what, notes and labels, contacts, invoices, pairings,
@@ -47,6 +53,14 @@ keep them. You import at your own risk.
 
 ## The same wallet on two devices
 
-Restoring the same phrase on a second device works; both see the same balance. Payments made on one
-show on the other as **Sent from another device** once confirmed. To keep them in step, see
-[Linked devices](linked-devices.md).
+After restoring on a second device, link the two devices: see [Linked devices](linked-devices.md).
+Two unlinked installs on one recovery phrase are not supported.
+
+<details>
+<summary>For advanced users</summary>
+
+Both installs see the same balance and share the one epic1 address, and only one of them reads a
+mailbox at a time. Without a link, payments made on one show on the other only after the chain
+confirms them. See [Linked devices](linked-devices.md#two-installs-on-one-address).
+
+</details>
