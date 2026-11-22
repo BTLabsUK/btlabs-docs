@@ -97,8 +97,9 @@ the desktop or **Settings › This wallet › Invoices** on the phone.
 - Turning the switch off is immediate: new invoices from that contact are dropped and open ones are
   declined.
 
-To ask for a payment: **Invoices › Issue** on the desktop, **Request a payment** on the phone.  nobody pays expires
-after 24 hours. The time is **Time to pay** under **Settings › Invoices**, at most 48 hours.
+To ask for a payment: **Invoices › Issue** on the desktop, **Request a payment** on the phone. An invoice nobody pays expires
+after 24 hours. The time is **Time to pay** under **Settings › Invoices** on the desktop, at most 48
+hours.
 Asking a contact that is not verified sends nothing and offers **Verify** to check the words.
 
 An exchange that pairs with you deposits and withdraws this way. Deposit: the exchange asks, you

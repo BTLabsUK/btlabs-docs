@@ -10,7 +10,6 @@ The terms as the app writes them, in alphabetical order.
 - **Address**: Where a payment goes. An Epicbox address (`es…@server`), an epic1 address (`epic1…`) or link, an HTTP address, or a Tor address (`….onion`). Never written on the blockchain. See [Addresses](addresses.md).
 - **Advanced**: The Settings page with the parts most people never need, all off to begin with. See [Advanced settings](advanced.md).
 - **Allow invoices**: The switch that lets a Verified contact ask you to pay. Off to begin with. See [Invoices](pairing.md#invoices).
-- **Awaiting finalization**: A transaction still waiting for the other wallet.
 - **Change**: The part of a spent output that comes back to your wallet as a new output.
 - **Confirmation**: One block on top of the block holding a transaction. Final after 6 by default.
 - **Confirming**: In a block, but with fewer confirmations than the setting. Not spendable yet.
@@ -44,7 +43,7 @@ The terms as the app writes them, in alphabetical order.
 - **Payment link, request link**: The epic1 address as a link. A request link adds an amount or a message that fill in the payer's Send screen. See [epic1 addresses and links](epic1.md#links).
 - **Recheck balance**: Reads the whole blockchain again for this wallet's outputs.
 - **Recovery phrase**: The 24 words that are the backup and the key to the money. See [Recovery phrase](recovery-phrase.md).
-- **Restored, Found by scan**: Payments the wallet found on the blockchain after a restore or a recheck.
+- **Restored, Found by recheck, Found on the chain**: Payments the wallet found on the blockchain after a restore or a recheck.
 - **Sealed**: A payment, transaction file or invoice only the paired contact's wallet can read.
 - **Sent from another device, Received by another device**: A payment made by another wallet with the same recovery phrase.
 - **Slate**: The message two wallets pass back and forth to build a transaction.
@@ -52,3 +51,4 @@ The terms as the app writes them, in alphabetical order.
 - **Split, Split change**: Making several outputs of nearly equal value, on its own or inside a send.
 - **Tor**: A network that hides the wallet's IP address. See [Tor](tor.md).
 - **Waiting for recipient**: A send the other wallet has not answered yet.
+- **Waiting for the response**: Change from a send still waiting for the other wallet.

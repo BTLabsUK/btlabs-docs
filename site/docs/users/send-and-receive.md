@@ -39,7 +39,8 @@ After the set number of confirmations (6 by default) it can be spent.
 2. Enter the amount. The **Network fee** and the balance after the send are shown before you
    confirm.
 3. Add a message if you like. It goes only to the other wallet, never to the blockchain.
-4. **Review** on the desktop, **Continue** on the phone, check, then **Send … EPIC**. The desktop asks
+4. **Review** on the desktop (in the Shallow view the button is **Send … EPIC** at once), **Continue**
+   on the phone, check, then **Send … EPIC**. The desktop asks
    for the wallet password, the phone for the PIN.
 
 Now the recipient's wallet has to answer. Through a mailbox they do not have to be online right now:
@@ -88,10 +89,10 @@ them, see [Payment methods](payment-methods.md):
 ## Activity
 
 Every payment has a row in **Activity** with its state in words:
-Waiting for recipient, Confirming 2 of 6, Received, Sent, Cancelled. Open a row for its steps and
+Waiting for recipient, Confirming 2/6, Received, Sent, Cancelled. Open a row for its steps and
 details. Search finds a payment by name, address or transaction ID.
 
-Rows labelled **Restored** or **Found by scan** come from a restore or a
+Rows labelled **Restored** or **Found by recheck** (desktop), or **Found on the chain** (phone), come from a restore or a
 [recheck](troubleshooting.md#the-balance-looks-wrong). Rows called **Sent from another device** or
 **Received by another device** are payments of another wallet that uses the same recovery phrase
 (see [Troubleshooting](troubleshooting.md#payments-by-another-wallet)). **Mining reward** rows are

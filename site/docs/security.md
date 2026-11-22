@@ -14,14 +14,14 @@ Include:
 - what happens;
 - the smallest reproduction you have.
 
-Never send a recovery phrase, a wallet file of a wallet with funds, or a password. A wallet with no funds,
+Never send a recovery phrase, a wallet file of a wallet with coins, or a password. A wallet with no coins,
 or a very small amount, is enough to show almost anything.
 
 ## In scope
 
 Anything in BT Wallet, LEPIC or lepic-flutter that can:
 
-- lose or lock funds;
+- lose or lock coins;
 - leak keys, the recovery phrase or wallet data;
 - make the wallet accept an invalid transaction;
 - crash it from untrusted input: node responses, Epicbox messages, slates, files, QR codes.

@@ -40,7 +40,7 @@ That is why part of the balance can be unavailable for a while after a send:
 
 - **Locked**: outputs in a send that is not finished yet. They are unlocked if the send is
   cancelled.
-- **Awaiting finalization**: a transaction still waiting for the other wallet.
+- **Waiting for the response**: change from a send still waiting for the other wallet.
 - **Confirming**: outputs in a block with fewer confirmations than the setting, including the change.
 
 With **Outputs** on in Advanced, the outputs are listed under **Outputs**.

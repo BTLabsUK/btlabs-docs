@@ -5,9 +5,8 @@ description: One wallet on two of your own devices, kept in step with encrypted 
 
 # Linked devices
 
-Linked devices is there for everyone and has no switch. It is under **Settings › Linked devices** on
-the desktop, where it carries an **Experimental** badge, and under
-**Settings › This wallet › Linked devices** on the phone.
+Linked devices shows at every view and has no switch. It is under **Settings › Linked devices**, with
+an **Experiment** badge.
 
 ## What it adds
 

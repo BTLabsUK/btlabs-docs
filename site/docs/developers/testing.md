@@ -28,13 +28,13 @@ and names every step that failed.
 
 1. `tools/version.sh check`: every version number agrees with `app/pubspec.yaml`.
 2. The install contract, UI targets, no hosts in code, document names and the workflow files.
-3. The bot's tests and the release tools' tests, when those folders changed.
+3. The tests of the repository's own scripts, when the folders they live in changed.
 4. LEPIC at the pin.
 5. `dart run bin/core_check.dart`: the wallet core under plain Dart, with no Flutter.
 6. `flutter analyze`.
 7. `tools/t affected`.
 
-`--full` always runs the bot's and release tools' tests, and adds LEPIC's golden vectors. It runs
+`--full` always runs those script tests, and adds LEPIC's golden vectors. It runs
 `tools/t full --no-cache` in place of step 7, then the integration tests `simple_test` and
 `history_test` on Linux under `xvfb-run`, and the web build (`tool/build_web.sh`). The runner's options
 are in the header of [`tools/t`](https://github.com/BTLabsUK/wallet-for-epic/blob/main/tools/t).

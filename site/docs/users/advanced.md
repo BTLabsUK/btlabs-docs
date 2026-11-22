@@ -20,8 +20,9 @@ off.
 | **Logs** (desktop) | The Logs group under **Settings › Files & logs**. **Report a problem** can attach the log either way |
 | **Direct · File Transfer** (phone) | File Transfer under **Settings › Payments**: pay or get paid with a file you pass on yourself |
 
-Pairing, invoices and Linked devices have no switch here: they are there for everyone. Linked devices
-is marked **Experimental** in the app.
+Pairing, invoices and Linked devices have no switch here. Linked devices shows at every view and is
+marked **Experiment** in the app. Pairing and invoices show from the Deeper view on the phone and in
+the Deep end view on the desktop.
 
 ## In other places
 
@@ -33,5 +34,11 @@ is marked **Experimental** in the app.
 - **Confirmations**: how many blocks a received payment waits before its outputs can be spent. 6 by
   default, any count from 1 to 30. It is under **Settings › Transactions** on the desktop and on the
   Advanced page on the phone. Fewer confirmations give less protection against chain reorganisations.
-- **View** on the desktop: Shallow, Deeper or Deep end, how much of the wallet shows. Only the display
-  changes: every view sends and receives the same way, with the same keys and coins.
+- **View** (**Wallet view** on the phone), at the top of Advanced: Shallow, Deeper or Deep end, how
+  much of the wallet shows. Only the display changes: every view sends and receives the same way,
+  with the same keys and coins.
+
+:::note
+In the Shallow view Advanced holds only the view, and the switches above show from Deeper. On the
+desktop **Local node** shows in the Deep end view.
+:::
