@@ -64,10 +64,18 @@ The full steps are on [Build from source](build/index.md).
 ```bash
 git clone https://github.com/BTLabsUK/lepic.git
 cd lepic
+git config core.hooksPath .githooks   # commit message check
+cargo install cargo-deny --locked     # `cargo xtask check` runs `cargo deny check`
 cargo xtask check
 ```
 
-Run `cargo xtask` without arguments to list the commands. See [Testing](testing.md).
+`cargo xtask check` is the gate every commit passes. Run it from a git checkout. Its first run
+needs network access to fetch the lockfiles of `conformance/`, `fuzz/` and `interop/probe/`. Run
+`cargo xtask` without arguments to list the commands, for example `cargo xtask install` (builds
+the `lepic` binary and installs it in `~/.local/bin`, or in the `--dir` you give). The `conformance/`
+workspace uses the same pinned Rust as the product; building the reference node and wallet in it
+needs CMake, a C++ compiler, libclang and the OpenSSL headers. See [Testing](testing.md) and
+[Contributing](contributing.md).
 
 To try a LEPIC change in the app, point `LEPIC_REPO` at your clone. The pin in `tools/lepic.rev`
 must name a commit that exists there, and lepic-flutter's own `lepic.rev` must name the same

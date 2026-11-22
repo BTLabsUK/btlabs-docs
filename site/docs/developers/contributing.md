@@ -21,13 +21,20 @@ format of the app (see [Commit messages](#commit-messages)).
 
 ## Making a change
 
-- In LEPIC, one branch per task, named `<type>/<slug>`, for example `feat/legacy-v3-codec`.
+- In LEPIC, one branch per change, named `<type>/<slug>`, for example `feat/legacy-v3-codec`.
+  The `<type>` is one of the commit types below.
 - Each commit holds one logical change. Keep formatting, renames and refactors apart from changes in
   behaviour, and stage files by name.
 - Every commit builds and passes the checks below.
 - A change to wire formats, keys, proofs or storage needs golden vectors; see
   [Testing](testing.md#golden-vectors).
 - Logs never contain secrets.
+- In lepic-flutter, `lib/src/rust/` is generated and never edited by hand. Change LEPIC's
+  `crates/lepic-ffi/src/api`, then run `tool/lepic.sh generate`. `lepic.rev`, the LEPIC pin, moves
+  only in a commit whose message says why.
+- Read LEPIC's own [`CONTRIBUTING.md`](https://github.com/BTLabsUK/lepic/blob/main/CONTRIBUTING.md)
+  and [`docs/rules.md`](https://github.com/BTLabsUK/lepic/blob/main/docs/rules.md) before a
+  change to Rust code; they hold the rules for compatibility, testing and security.
 
 ## Checks
 
@@ -68,8 +75,8 @@ Signed-off-by: Full Name <email>
 ```
 
 - Types: `feat`, `fix`, `perf`, `refactor`, `test`, `docs`, `build`, `ci`, `chore`, `revert`.
-- LEPIC scopes: `primitives`, `crypto`, `keychain`, `slate`, `contact`, `node`, `store`,
-  `transport`, `epicbox`, `wallet`, `telemetry`, `ffi`, `cli`, `xtask`, `conformance`, `fuzz`,
+- LEPIC scopes: `primitives`, `crypto`, `keychain`, `slate`, `seal`, `contact`, `node`, `store`,
+  `transport`, `methods`, `epicbox`, `wallet`, `telemetry`, `ffi`, `cli`, `xtask`, `conformance`, `fuzz`,
   `interop`, `deps`, `ci`, `docs`, `repo`. Leave the scope out only when a change spans the whole
   repository.
 - Description: imperative mood, lowercase first word, no trailing period. The subject line is at
@@ -84,13 +91,16 @@ example `Send: the fee line shows before the amount is typed`.
 
 ### Commit-message hook
 
-LEPIC ships a `commit-msg` hook that rejects malformed messages. Enable it once per clone:
+LEPIC ships a `commit-msg` hook that rejects malformed messages. Enable it once per
+clone:
 
 ```bash
 git config core.hooksPath .githooks
 ```
 
-Maintainers run the same check before a merge, so a skipped hook only moves the failure later.
+In LEPIC, a `commit-lint` workflow runs the same script on the pull request title and on each
+commit. It refuses `fixup!`, `squash!` and `amend!` commits, so squash them before review. A skipped
+hook only moves the failure to the pull request.
 
 ## Sign-off
 
