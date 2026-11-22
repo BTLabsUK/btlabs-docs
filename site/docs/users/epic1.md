@@ -128,8 +128,7 @@ default mailbox does not see this step.
 
 ### Turn it on or off
 
-The switch is **epic1**, under **Settings › Transactions** on the desktop and **Settings ›
-Payments** on the phone. It also covers in-person codes and epic1 files. With it off, Receive
+The switch is **epic1**, under **Settings › Transactions**. It also covers in-person codes and epic1 files. With it off, Receive
 shows no epic1 address or link, and an epic1 address on Send stops with **epic1 is off in the
 payment settings.** See [Payment methods](payment-methods.md#epic1).
 

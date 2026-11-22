@@ -18,8 +18,7 @@ hand (**Direct**).
 | **Direct · File Transfer** | no | none | both |
 | **Direct · QR Payment** | side by side | none | phone |
 
-Each method has a switch under **Settings › Transactions** on the desktop and **Settings › Payments**
-on the phone. The Epicbox switch is named **Legacy Epicbox address**; it and **epic1** are on by
+Each method has a switch under **Settings › Transactions**. The Epicbox switch is named **Legacy Epicbox address**; it and **epic1** are on by
 default. A method that is off does not appear on Send and Receive. **Default method** picks the method Send opens with; you can still change it for
 one payment. On a phone, **Link · HTTP** has no switch: it only sends, to any http(s) address you
 paste. Direct · File Transfer on the phone needs its switch in [Advanced](advanced.md).
@@ -94,6 +93,6 @@ cancelled until you scan the reply.
 ## Send defaults
 
 With **Send options** on in [Advanced](advanced.md), the phone adds Strategy and Split change under
-**Settings › Payments**, and the desktop adds a fold on Send: which outputs a send spends
+**Settings › Transactions**, and the desktop adds a fold on Send: which outputs a send spends
 (**Smallest** or **All**) and whether its change is split. See
 [How Epic Cash works](how-it-works.md#smallest-or-all).

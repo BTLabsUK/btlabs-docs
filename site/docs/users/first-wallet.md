@@ -16,7 +16,7 @@ you already have, see [Restore](restore.md).
 3. **Reveal phrase** and write the words on paper, in order. Make sure nobody can see the screen.
 4. Confirm that you have written down all 24 words.
 
-The desktop app can hold several wallets: from the Deeper view, **Add a wallet** on the unlock
+The desktop app can hold several wallets: **Add a wallet** on the unlock
 screen, or **Settings › Wallets**.
 
 ## On the phone

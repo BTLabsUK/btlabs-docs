@@ -39,7 +39,7 @@ After the set number of confirmations (6 by default) it can be spent.
 2. Enter the amount. The **Network fee** and the balance after the send are shown before you
    confirm.
 3. Add a message if you like. It goes only to the other wallet, never to the blockchain.
-4. **Review** on the desktop (in the Shallow view the button is **Send … EPIC** at once), **Continue**
+4. **Review** on the desktop, **Continue**
    on the phone, check, then **Send … EPIC**. The desktop asks
    for the wallet password, the phone for the PIN.
 

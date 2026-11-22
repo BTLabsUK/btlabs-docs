@@ -40,7 +40,7 @@ node that answers ahead. Nodes you added or run stay, and a payment under way go
 
 ## The built-in node (desktop)
 
-The desktop app can run its own Epic Cash node on this computer. In the Deep end view, turn on
+The desktop app can run its own Epic Cash node on this computer. Turn on
 **Local node** in [Advanced](advanced.md), then choose **This computer** under **Settings › Node**, or **Start node** on
 Overview.
 

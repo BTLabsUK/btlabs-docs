@@ -37,8 +37,7 @@ to a current server and share the new address.
 
 ## Turn off Legacy Epicbox address
 
-**Legacy Epicbox address** is a switch under **Settings › Transactions** on the desktop and
-**Settings › Payments** on the phone. It covers the wallet's legacy Epicbox address only, the one
+**Legacy Epicbox address** is a switch under **Settings › Transactions**. It covers the wallet's legacy Epicbox address only, the one
 stock Epic Cash wallets use. Off, the wallet does not read that address or send to legacy Epicbox
 addresses, and Receive shows no Epicbox address. Payments sent to the address wait on the server
 until the switch is on again.
