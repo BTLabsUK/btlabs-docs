@@ -65,7 +65,7 @@ The full steps are on [Build from source](build/index.md).
 git clone https://github.com/BTLabsUK/lepic.git
 cd lepic
 git config core.hooksPath .githooks   # commit message check
-cargo install cargo-deny --locked     # `cargo xtask check` runs `cargo deny check`
+cargo install cargo-deny cargo-nextest --locked   # `cargo xtask check` runs both
 cargo xtask check
 ```
 

@@ -62,22 +62,24 @@ run a set both ways when you touch Tor code. For the switch, see [Build variants
 cargo xtask check
 ```
 
-This is the gate every LEPIC commit passes. Run it from a git checkout with `cargo-deny`
-installed. The first run needs network access, because it fetches the lockfiles of `conformance/`,
-`fuzz/` and `interop/probe/`. It stops at the first failing step:
+This is the gate every LEPIC commit passes. Run it from a git checkout with `cargo-nextest` and
+`cargo-deny` installed. The first run needs network access, because it fetches the lockfiles of
+`conformance/`, `fuzz/` and `interop/probe/`. It stops at the first failing step:
 
 1. `cargo fmt --check`
-2. `cargo clippy --workspace --all-targets --locked`, warnings denied, and again for `lepic-ffi`
-   without its default features (the build without Tor)
-3. `cargo test --workspace --locked`
-4. `cargo deny check`
-5. `deps-check`: crate edges and banned crates against the architecture
-6. `ci-lint`: workflow pins, read-only token permissions and checkout credentials
-7. `repo-lint`: workspace lints, unsafe code, pure crates, the vendored library, the bridge
-   fingerprint and interop images
-8. the lockfile checks for `conformance/`, `fuzz/` and `interop/probe/`
-9. `vectors verify`
-10. `no-legacy`: the crates that build without the legacy formats
+2. `cargo clippy --workspace --all-targets --locked`, warnings denied
+3. the same clippy for `lepic-ffi` without its default features (the build without Tor)
+4. `cargo nextest run --workspace --locked`
+5. `cargo test --workspace --doc --locked`: the doctests, which nextest does not run
+6. `cargo deny check`
+7. `deps-check`: crate edges and banned crates against the architecture
+8. `legacy-imports`: the legacy lane depends on no native crate
+9. `ci-lint`: workflow pins, read-only token permissions and checkout credentials
+10. `repo-lint`: workspace lints, unsafe code, pure crates, the vendored library, the bridge
+    fingerprint and interop images
+11. the lockfile checks for `conformance/`, `fuzz/` and `interop/probe/`
+12. `vectors verify`
+13. `no-legacy`: the crates that build without the legacy formats
 
 Each gate also runs alone, for example `cargo xtask vectors verify` or `cargo xtask repo-lint`.
 CI runs `cargo xtask check`, the fuzz build (`cargo xtask fuzz --build`), `cargo xtask ci-lint`
@@ -140,7 +142,7 @@ cargo xtask fuzz --smoke --target tx_decode
 cargo xtask fuzz --full --jobs 4           # every target for 10 minutes, four at a time
 ```
 
-There are 34 targets, among them `tx_decode`, `slate_v3`, `epicbox_message` and `foreign_rpc`.
+There are 32 targets, among them `tx_decode`, `slate_v3`, `epicbox_message` and `foreign_rpc`.
 Fuzzing uses the pinned nightly Rust in `fuzz/rust-toolchain.toml` and `cargo-fuzz`. A target may
 use up to 2.5 GB of memory, so keep `--jobs` within the machine's memory. See
 [docs/fuzzing.md](https://github.com/BTLabsUK/lepic/blob/main/docs/fuzzing.md).
