@@ -18,10 +18,12 @@ and history. On Epic Cash:
 
 ## What leaves the device
 
+The [privacy policy](https://btlabs.uk/privacy/) has the full list and how long BT LABS keeps logs.
+
 | To | What | Why |
 | --- | --- | --- |
 | The node (default `node.epiccash.com`) | which outputs the wallet asks about, transactions to post; the IP address | balance, confirmations, sending |
-| The Epicbox server (default `epicbox.epiccash.com`) | encrypted payment messages; the IP address | Epicbox payments |
+| The Epicbox server (default `epicbox.btlabs.uk`) | encrypted payment messages; the IP address | Epicbox payments |
 | The other wallet | the payment messages, and your note if you add one | every payment |
 | `status.btlabs.uk` | a request for the server list and its state, and the EPIC price; on the desktop also your public IP address and a port check for HTTP receiving | the server lists and the fiat value; a status switch and a price switch turn the first two off |
 | CoinGecko (`api.coingecko.com`) | a request for the EPIC price | only when BT LABS' copy gives no price and Tor is off |

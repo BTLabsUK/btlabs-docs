@@ -29,8 +29,8 @@ another server.
 
 ## Servers in the list
 
-The list holds `epicbox.epiccash.com`, which is the default, then `epicbox.stackwallet.com`,
-`epicbox.epicnet.us` and the BT LABS server `epicbox.btlabs.uk`. The BT LABS server is reached over
+The list starts with the BT LABS server `epicbox.btlabs.uk`, which is the default on a new install, then
+`epicbox.stackwallet.com`, `epicbox.epicnet.us` and `epicbox.epiccash.com`. The BT LABS server is reached over
 Tor at its onion address when [Tor](tor.md) is on. Its former name, `flooepicbox.btlabs.uk`,
 is retired and takes no payments: a wallet that still has an address ending in it needs to switch
 to a current server and share the new address.
