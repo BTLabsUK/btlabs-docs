@@ -52,7 +52,8 @@ lepic wallet info     # balances, from the node
 | `http`, `tor` | `listen`; `tor address` |
 | `node` | `status` |
 | `contact` | `invite`, `accept`, `list`, `check`, `move`, `move-home`, `allow-invoices`, `invoice`, `collect` |
-| `epic1` | `address`, `link`, `read`, `pay` (repeatable `--mailbox`) |
+| `epic1` | `address`, `link`, `read`, `pay` (repeatable `--mailbox`, `--require-proof`) |
+| `proof` | `export`, `verify`: the payment proof of a payment to an epic1 address |
 | `mailbox` | `list`, `add` (`--anyway`), `remove`, `probe` |
 | `profile` | `show`, `set`, `domain` |
 | `serve` | Unix only. Holds the wallet open and answers the wallet API (`/api/v1`) on a local socket; many other `lepic` commands on that wallet go through it, the rest stop with exit code 5 |

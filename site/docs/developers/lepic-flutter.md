@@ -92,6 +92,9 @@ The [usage guide](https://github.com/BTLabsUK/lepic-flutter/blob/main/doc/guide.
 repository covers the calls in detail: transactions over HTTP and Tor, invoices, contact pairing,
 epic1 links, slates as QR codes, offline sessions, and the mapping from the app's earlier binding.
 
+The app signs and keeps payment proofs for epic1 payments through LEPIC. The FFI calls to export
+and verify a proof are coming and are not there yet.
+
 ## Native libraries
 
 `hook/build.dart` adds the prebuilt `liblepic_ffi` for the target being built as a Flutter native

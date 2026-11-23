@@ -155,8 +155,8 @@ user guide's [Tor](../users/tor.md) page.
   HKDF-SHA256, ChaCha20-Poly1305) and signed with Ed25519, so only the contact opens it and the
   sender is authenticated.
 - **epic1 addresses.** An epic1 address holds two public keys from the seed: a seal key that
-  payments are sealed to, and a delivery key that names its slot on every mailbox. It holds no
-  signing key, and its payments carry no payment proof. An account has one address, and a request
+  payments are sealed to, and a delivery key that names its slot on every mailbox. The payee signs a
+  payment proof into its answer with a key derived from the delivery key; it names no payer. An account has one address, and a request
   link only fills in the payer's Send screen, so the payee keeps no record of a link.
 - **Mailbox list.** A payment goes to at most the three healthiest mailboxes of the payer's own list, and the answer to the mailbox the payment was read on plus the two healthiest others,
   so no one mailbox decides whether mail arrives. A mailbox

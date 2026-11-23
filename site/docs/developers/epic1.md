@@ -33,7 +33,8 @@ text  = bech32m("epic", data)    mainnet, 117 characters
 Payments are sealed to the **seal key**. The **delivery key**, read as an Epicbox key, is the
 address's slot, the same on every mailbox. Both derive from the seed, the account, the network
 and index 0, so each account has one address and a restore gives the same one. The address names
-no mailbox, transport or index, and carries no proof key: an epic1 payment has no payment proof.
+no mailbox, transport or index. A payment proof is signed with a key derived from the delivery key, so
+the address is all a verifier needs (see [Payment proofs](#payment-proofs)).
 
 The payment link is the address, `epic:<address>`. A request link adds an amount, a message or
 both, and up to three `http` or `tor` entries; it only fills in the payer's Send screen. The
@@ -89,6 +90,26 @@ mailbox cannot join two payments by their reply slot. The
 8. **Deadline.** Once the chain reaches the payment's cutoff, its TTL height or the wallet's
    own limit for the transaction if that comes first, the outbox stops posting it, and the
    next refresh expires it if it was not finalized.
+
+## Payment proofs
+
+The payee's LEPIC wallet signs a payment proof into the S2 of every epic1 payment it takes. This
+is always on and has no setting. The proof says the owner of the address took this amount in the
+transaction whose kernel excess it names, for this slate id. It names no payer: the payer key in it
+is one-time, derived from the payer's seed and the slate id. Anyone verifies it with only the
+address; only the chain shows the transaction was posted.
+
+The paying wallet checks the proof and keeps it with the payment if it holds. If the proof is
+missing or bad, the payment is still finalized, unless the payer asked for proof: `--require-proof`
+on `lepic epic1 pay` or `lepic tx send`, or the setting `epic1_require_proof`. Then the payer
+cancels the payment unfinalized, unlocks its inputs and tells the payee. Only LEPIC wallets sign
+proofs; a stock Epic wallet does not.
+
+`lepic proof export TX_ID` writes the proof as JSON (`application/vnd.lepic.receipt+json`), and
+`lepic proof verify FILE` checks it, with `--on-chain` also against a node. `lepic serve` takes
+`require_proof` on `POST /api/v1/payments` and returns the proof from
+`GET /api/v1/payments/{id}/proof`. The byte-level format is
+[Payment proofs](https://github.com/BTLabsUK/lepic/blob/main/docs/protocols/epic1-receipt.md).
 
 ## The mailbox list
 

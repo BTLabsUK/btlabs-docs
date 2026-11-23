@@ -180,5 +180,10 @@ payments waiting for the account's epic1 address.
 
 ## For advanced users
 
+When you pay an epic1 address with a LEPIC wallet, the payee's wallet signs a payment proof into
+its answer, and your wallet keeps it with the payment. The proof shows that the owner of the
+address took this amount. It names no payer. LEPIC's command line exports and verifies it
+(`lepic proof export`, `lepic proof verify`); the app has no screen for it yet.
+
 The address, the link format and the delivery rules are in LEPIC's
 [epic1 guide](https://github.com/BTLabsUK/lepic/blob/main/docs/protocols/epic1.md).
