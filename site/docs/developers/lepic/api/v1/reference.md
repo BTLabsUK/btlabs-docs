@@ -11,7 +11,7 @@ description: "Every endpoint of the `lepic serve` wallet API: paths, roles, para
 LEPIC is alpha and not ready for production use. Commands, the API and data formats can change between versions without a migration path.
 :::
 
-The reference of the `lepic serve` wallet API, version 2.0.0 of its contract: 59 operations under `/api/v1`. How to connect, the roles and the conventions are in the [guide](index.mdx). A running serve returns the same document at `GET /api/v1/openapi.json`; a copy is at [lepic-openapi.json](pathname:///lepic-openapi.json).
+The reference of the `lepic serve` wallet API, version 2.0.0 of its contract: 60 operations under `/api/v1`. How to connect, the roles and the conventions are in the [guide](index.mdx). A running serve returns the same document at `GET /api/v1/openapi.json`; a copy is at [lepic-openapi.json](pathname:///lepic-openapi.json).
 
 Every path below is relative to `/api/v1`. `Role` is the least role of an owner TLS client that may call the operation; the Unix socket always has `full`.
 
@@ -19,7 +19,7 @@ Every path below is relative to `/api/v1`. `Role` is the least role of an owner 
 
 - **Service**: [`GET /status`](#get-status), [`GET /openapi.json`](#get-openapi-json), [`GET /metrics`](#get-metrics)
 - **Wallet**: [`GET /wallet`](#get-wallet), [`PUT /wallet/password`](#put-wallet-password), [`POST /wallet/scan`](#post-wallet-scan), [`POST /sync`](#post-sync), [`POST /sync/boost`](#post-sync-boost), [`DELETE /sync/boost/{id}`](#delete-sync-boost-id), [`GET /accounts`](#get-accounts), [`POST /accounts`](#post-accounts)
-- **Payments**: [`GET /payments`](#get-payments), [`POST /payments`](#post-payments), [`POST /payments/estimate`](#post-payments-estimate), [`GET /payments/{id}`](#get-payments-id), [`PATCH /payments/{id}`](#patch-payments-id), [`POST /payments/{id}/approve`](#post-payments-id-approve), [`POST /payments/{id}/decline`](#post-payments-id-decline), [`POST /payments/{id}/deliver`](#post-payments-id-deliver), [`POST /payments/{id}/post`](#post-payments-id-post), [`POST /payments/{id}/cancel`](#post-payments-id-cancel), [`POST /payments/{id}/recover`](#post-payments-id-recover), [`GET /payments/{id}/handoff`](#get-payments-id-handoff)
+- **Payments**: [`GET /payments`](#get-payments), [`POST /payments`](#post-payments), [`POST /payments/estimate`](#post-payments-estimate), [`GET /payments/{id}`](#get-payments-id), [`PATCH /payments/{id}`](#patch-payments-id), [`POST /payments/{id}/approve`](#post-payments-id-approve), [`POST /payments/{id}/decline`](#post-payments-id-decline), [`POST /payments/{id}/deliver`](#post-payments-id-deliver), [`POST /payments/{id}/post`](#post-payments-id-post), [`POST /payments/{id}/cancel`](#post-payments-id-cancel), [`POST /payments/{id}/recover`](#post-payments-id-recover), [`GET /payments/{id}/handoff`](#get-payments-id-handoff), [`GET /payments/{id}/proof`](#get-payments-id-proof)
 - **Inspect and open**: [`POST /inspect`](#post-inspect), [`POST /open`](#post-open)
 - **Coins**: [`GET /outputs`](#get-outputs), [`POST /outputs/consolidate`](#post-outputs-consolidate)
 - **Addresses and links**: [`GET /addresses`](#get-addresses), [`POST /links`](#post-links)
@@ -528,6 +528,27 @@ Returns the handoff the create or the open returned. A plain slate of a payment 
 |---|---|
 | 200 | OK: [`Handoff`](#schema-handoff) |
 | 400 | Bad input |
+| 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
+| 404 | Not found |
+| 409 | Conflict with the object's state or an idempotency key |
+
+### `GET /payments/{id}/proof` {#get-payments-id-proof}
+
+The payment proof of a payment to an epic1 address.
+
+Role: `read`.
+
+The proof the payee signed into its answer to an epic1 payment this wallet made: the address paid, the amount, the kernel excess, the slate id and the payer's one-time key, signed with a key only the address's owner holds. It is the file `lepic proof export` writes; `lepic proof verify` checks it with no wallet, and with `--on-chain` asks a node for the kernel. The payer checks it when the answer comes and keeps it only when it holds. 409 `no_payment_proof` for any other payment and for an epic1 payment whose answer has not come or came without a proof that holds. Spec: `docs/protocols/epic1-receipt.md`.
+
+| Parameter | In | Type | Description |
+|---|---|---|---|
+| `id` | path (required) | `string` (uuid) | Payment id (UUID). |
+
+**Responses**
+
+| Status | Meaning |
+|---|---|
+| 200 | OK: [`PaymentProof`](#schema-paymentproof) |
 | 403 | Not allowed (403): code `socket_only` over TLS, or `role_required` when the TLS client role is too low |
 | 404 | Not found |
 | 409 | Conflict with the object's state or an idempotency key |
@@ -1385,6 +1406,22 @@ Errors are RFC 9457 problem documents (`application/problem+json`), the [`Proble
 | `slate_bytes` | `integer` |  | In a send's create response: the bytes the longest post of the payment takes on the mailbox, the first slate or the answer the receiver sends back. Only when the slate goes over Epicbox. |
 | `slate_limit` | `integer` |  | The most bytes the mailbox takes in one post: 131071. Beside `slate_bytes`. |
 
+### PaymentProof {#schema-paymentproof}
+
+A payment proof file (`application/vnd.lepic.receipt+json`). The signature is a Schnorr signature by the address's receipt key over the SHA-256 of the signed facts; `docs/protocols/epic1-receipt.md` gives the bytes and test vectors.
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `type` | one of `lepic-epic1-receipt` | yes |  |
+| `version` | one of `1` | yes |  |
+| `network` | one of `mainnet`, `floonet` | yes |  |
+| `address` | `string` | yes | The epic1 address paid. |
+| `amount` | `integer` | yes | The amount paid, in base units (1 EPIC = 100000000). |
+| `kernel_excess` | `string` (pattern ^[0-9a-f]{66}$) | yes | The transaction's kernel excess, 33 bytes as hex. |
+| `slate_id` | `string` (uuid) | yes |  |
+| `payer_key` | `string` (pattern ^[0-9a-f]{66}$) | yes | The payer's one-time key for this payment, 33 bytes as hex. |
+| `signature` | `string` (pattern ^[0-9a-f]{128}$) | yes | The payee's signature, 64 bytes as hex. |
+
 ### Account {#schema-account}
 
 | Field | Type | Required | Description |
@@ -1598,7 +1635,7 @@ InspectRequest plus `expect`, `message`, `deliver`.
 | `title` | `string` | yes |  |
 | `status` | `integer` | yes |  |
 | `detail` | `string` |  |  |
-| `code` | `string` | yes | Stable, fine-grained error name, e.g. `insufficient_funds`. Clients must accept codes they do not know and fall back on `category`. Any call: `no_route` 404, `method_not_allowed` 405 (with `Allow`), `body_too_slow` 408, `body_too_large` 413, `unsupported_media_type` 415, `role_required` 403, `socket_only` 403, `client_not_listed` 403, `serve_version_differs` and `serve_settings_differ` 409, `invalid_request`, `invalid_body`, `invalid_field`, `invalid_cursor`, `cursor_filters_changed` 400, `not_found` 404, `payment_declined` 404 (with `declined_at`), `internal` 500, `interrupted` and `cancelled` 503. `busy` 503 when the listener holds as many connections as it takes, and on payment creates when as many creates run. Creates: `idempotency_mismatch`, `in_progress`, `account_exists` 409. Payments: `action_not_available`, `format_not_available`, `no_handoff`, `nothing_to_open`, `too_many_held`, `no_more_routes`, `ambiguous_answer` 409; `unexpected_input`, `insufficient_funds` 422; `invoice_already_paid`, `invoice_locked_above_tip`, `inputs_spent_elsewhere`, `inputs_spent_by_own_transaction`, `peer_inputs_spent`, `on_chain`, `in_pool`, `recovery_open`, `not_recoverable`, `use_recover`, `changed_during_cancel` 409; `plain_http_not_allowed`, `http_url_invalid`, `onion_address_invalid`, `slate_too_large`, `invoice_to_address`, `via_mismatch` 400; `change_too_small`, `too_heavy`, `nothing_to_consolidate`, `invalid_slate`, `payment_expired`, `invoice_changed`, `amount_mismatch`, `not_posted`, `not_delivered` by category. Wallet and node: `wrong_password` 403, `wallet_not_found` 404, `wallet_already_exists`, `wallet_busy`, `receipts_full` (a payment nobody asked for refused because the open-receipt cap is full), `locked`, `foreign_wallet`, `offline`, `tor_expected`, `damaged_database_kept`, `wallet_too_new`, `wrong_key` 409, `restore_scan_required` 503, `scan_running` 409 or 503, `node_unreachable` 502 (504 on a timeout; 503 on an in-person request create), `tor_not_running` 503, `onion_unreachable` 502, `transport_failed` 502, `damaged_database` 500. Contacts: `contact_not_found`, `pairing_not_found` 404; `invite_expired`, `already_paired`, `pairing_in_progress`, `pairing_crossed`, `pairing_ended`, `pairing_waiting`, `contact_not_verified`, `key_check_refused`, `relay_changed`, `keys_not_changed`, `domain_fixed`, `contact_cap_reached`, `contacts_offline` 409; `wrong_pairing_class`, `earlier_epic1_address` 400; `other_address`, `address_proof_missing`, `no_free_slot` 422. A code not listed here has its category's status: `usage` 400, `wrong_password` 403, `not_found` 404, `wallet_state` and `conflict` 409, `rejected` and `funds` 422, `node` and `transport` 502, `interrupted` 503, `internal` and `config` 500. 409 `in_progress`, 502, 503 and 504 carry `Retry-After` when waiting is worth it. |
+| `code` | `string` | yes | Stable, fine-grained error name, e.g. `insufficient_funds`. Clients must accept codes they do not know and fall back on `category`. Any call: `no_route` 404, `method_not_allowed` 405 (with `Allow`), `body_too_slow` 408, `body_too_large` 413, `unsupported_media_type` 415, `role_required` 403, `socket_only` 403, `client_not_listed` 403, `serve_version_differs` and `serve_settings_differ` 409, `invalid_request`, `invalid_body`, `invalid_field`, `invalid_cursor`, `cursor_filters_changed` 400, `not_found` 404, `payment_declined` 404 (with `declined_at`), `internal` 500, `interrupted` and `cancelled` 503. `busy` 503 when the listener holds as many connections as it takes, and on payment creates when as many creates run. Creates: `idempotency_mismatch`, `in_progress`, `account_exists` 409. Payments: `action_not_available`, `format_not_available`, `no_handoff`, `no_payment_proof`, `nothing_to_open`, `too_many_held`, `no_more_routes`, `ambiguous_answer` 409; `unexpected_input`, `insufficient_funds` 422; `invoice_already_paid`, `invoice_locked_above_tip`, `inputs_spent_elsewhere`, `inputs_spent_by_own_transaction`, `peer_inputs_spent`, `on_chain`, `in_pool`, `recovery_open`, `not_recoverable`, `use_recover`, `changed_during_cancel` 409; `plain_http_not_allowed`, `http_url_invalid`, `onion_address_invalid`, `slate_too_large`, `invoice_to_address`, `via_mismatch` 400; `change_too_small`, `too_heavy`, `nothing_to_consolidate`, `invalid_slate`, `payment_expired`, `invoice_changed`, `amount_mismatch`, `not_posted`, `not_delivered` by category. Wallet and node: `wrong_password` 403, `wallet_not_found` 404, `wallet_already_exists`, `wallet_busy`, `receipts_full` (a payment nobody asked for refused because the open-receipt cap is full), `locked`, `foreign_wallet`, `offline`, `tor_expected`, `damaged_database_kept`, `wallet_too_new`, `wrong_key` 409, `restore_scan_required` 503, `scan_running` 409 or 503, `node_unreachable` 502 (504 on a timeout; 503 on an in-person request create), `tor_not_running` 503, `onion_unreachable` 502, `transport_failed` 502, `damaged_database` 500. Contacts: `contact_not_found`, `pairing_not_found` 404; `invite_expired`, `already_paired`, `pairing_in_progress`, `pairing_crossed`, `pairing_ended`, `pairing_waiting`, `contact_not_verified`, `key_check_refused`, `relay_changed`, `keys_not_changed`, `domain_fixed`, `contact_cap_reached`, `contacts_offline` 409; `wrong_pairing_class`, `earlier_epic1_address` 400; `other_address`, `address_proof_missing`, `no_free_slot` 422. A code not listed here has its category's status: `usage` 400, `wrong_password` 403, `not_found` 404, `wallet_state` and `conflict` 409, `rejected` and `funds` 422, `node` and `transport` 502, `interrupted` 503, `internal` and `config` 500. 409 `in_progress`, 502, 503 and 504 carry `Retry-After` when waiting is worth it. |
 | `category` | one of `usage`, `config`, `wrong_password`, `wallet_state`, `not_found`, `rejected`, `funds`, `node`, `transport`, `internal`, `interrupted`, `conflict` | yes |  |
 | `param` | `string` |  | JSON pointer to the bad field, when one field is to blame. `payment_id` and `contact_id` name the object an error is about; `errors` lists several faults. |
 | `payment_id` | `string` (uuid) |  |  |
@@ -1684,6 +1721,7 @@ Body of `POST /payments` and `POST /payments/estimate`. `amount` is required unl
 | `amount` | [`Decimal`](#schema-decimal) or one of `max` |  | Amount, or the string `max` (estimate only). May be left out when `to` is an `epic:` link that names one. When both name one, the amount given is paid, for a classic link and an epic1 link alike. |
 | `message` | `string` |  | Signed into the slate. At most 256 bytes, with no control, line-break or invisible formatting character; a longer or marked text is 400 `invalid_field` at `/message`, not cut. Shows as `message` on this payment and as `their_message` on the other party's, an invoice to a contact included. For an epic1 link, left out means the link's message, and an empty string or only spaces means no message. |
 | `mailboxes` | array of `string` |  | For an epic1 payment to the payee's mailbox: the mailboxes it is posted through in place of the wallet's list, each `domain` or `domain:port`. 400 `invalid_field` at `/mailboxes` for any other payment or a host that is not a public name. 422 `no_shared_mailbox` when the payee's address names none of the wallet's shipped mailboxes and no `mailboxes` is given. |
+| `require_proof` | `boolean` (default false) |  | For a payment to an epic1 address: cancel it, unfinalized, unless the payee's answer brings a payment proof that holds. Only the payee's genuine answer cancels it: an answer that would not finalize is dropped and the payment keeps waiting. The `epic1_require_proof` setting turns this on for every epic1 payment. Every LEPIC payee signs one, so this refuses payees that run other wallets. 400 `invalid_field` at `/require_proof` for any other payment. |
 | `min_confirmations` | `integer` |  |  |
 | `selection` | one of `all`, `smallest` |  |  |
 | `change_outputs` | `integer` |  | Number of change outputs; `account:default` with 3 splits coins. |

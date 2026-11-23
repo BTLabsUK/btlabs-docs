@@ -102,8 +102,9 @@ address; only the chain shows the transaction was posted.
 The paying wallet checks the proof and keeps it with the payment if it holds. If the proof is
 missing or bad, the payment is still finalized, unless the payer asked for proof: `--require-proof`
 on `lepic epic1 pay` or `lepic tx send`, or the setting `epic1_require_proof`. Then the payer
-cancels the payment unfinalized, unlocks its inputs and tells the payee. Only LEPIC wallets sign
-proofs; a stock Epic wallet does not.
+cancels the payment unfinalized, unlocks its inputs and tells the payee. Only the payee's genuine
+answer cancels it: an answer that would not finalize, such as a forged S2, is dropped and the
+payment keeps waiting. Only LEPIC wallets sign proofs; a stock Epic wallet does not.
 
 `lepic proof export TX_ID` writes the proof as JSON (`application/vnd.lepic.receipt+json`), and
 `lepic proof verify FILE` checks it, with `--on-chain` also against a node. `lepic serve` takes

@@ -92,8 +92,11 @@ The [usage guide](https://github.com/BTLabsUK/lepic-flutter/blob/main/doc/guide.
 repository covers the calls in detail: transactions over HTTP and Tor, invoices, contact pairing,
 epic1 links, slates as QR codes, offline sessions, and the mapping from the app's earlier binding.
 
-The app signs and keeps payment proofs for epic1 payments through LEPIC. The FFI calls to export
-and verify a proof are coming and are not there yet.
+The app signs and keeps payment proofs for epic1 payments through LEPIC. `epic1Proof(txId:)`
+returns a payment's proof, `epic1ProofVerify(proof:, onChain:)` checks one, and
+`epic1Pay(..., requireProof: true)` cancels a payment unless the payee's genuine answer brings a
+proof that holds. A forged answer is dropped and the payment keeps waiting. The guide covers each
+call.
 
 ## Native libraries
 
