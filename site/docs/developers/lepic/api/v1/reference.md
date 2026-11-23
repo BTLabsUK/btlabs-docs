@@ -595,6 +595,8 @@ The wallet's outputs.
 
 Role: `read`.
 
+On a wallet that answers `build_coinbase` for a mining node (`--coinbase`), an output with `coinbase: true` and `state: unconfirmed` is a candidate: the node asks for a coinbase for every block template it builds, and each request stores one output at that block's height. Several nodes, or several templates for one height, list several candidates for it. At most one of them can win; the others never confirm. Only a `coinbase: true` output that is no longer `unconfirmed` is a reward, so count those and skip the candidates. A candidate goes when a refresh finds the tip more than 50 blocks past its height (or its height more than 50 above the tip), or when the wallet holds more than 4096 candidates (the oldest go first). The winner stays and confirms when its block is on chain.
+
 | Parameter | In | Type | Description |
 |---|---|---|---|
 | `account` | query | `string` |  |

@@ -358,6 +358,11 @@ For `--coinbase`, the node's `wallet_listener_url` in `[server.stratum_mining_co
 `http://127.0.0.1:<port>`. Behind a local reverse proxy every caller is loopback, so `--coinbase`
 alone then serves whatever the proxy forwards.
 
+With `--coinbase` the wallet stores one unconfirmed coinbase output per block template the node
+requests, so `GET /outputs` shows several for one height. Only confirmed coinbase outputs are
+rewards. The rest are deleted once they are 50 blocks from the tip; see
+[Coinbase outputs](/developers/lepic/api/v1/#coinbase-outputs).
+
 ### Tor listener
 
 ```bash
