@@ -360,8 +360,10 @@ alone then serves whatever the proxy forwards.
 
 With `--coinbase` the wallet stores one unconfirmed coinbase output per block template the node
 requests, so `GET /outputs` shows several for one height. Only confirmed coinbase outputs are
-rewards. The rest are deleted once they are 50 blocks from the tip; see
-[Coinbase outputs](/developers/lepic/api/v1/#coinbase-outputs).
+rewards. A refresh checks them against the block at their height, so the node logs no
+`Output … Not found` for them; those the block did not hold are deleted once the tip is 10 blocks
+past it. A reward whose block a reorganisation replaced becomes `expired`
+(`expired_orphaned`); see [Coinbase outputs](/developers/lepic/api/v1/#coinbase-outputs).
 
 ### Tor listener
 
