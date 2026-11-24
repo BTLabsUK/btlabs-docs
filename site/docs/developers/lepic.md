@@ -27,7 +27,7 @@ The quickest first step is the CLI: [the CLI guide](lepic/cli/index.mdx) starts 
 creating a wallet, and [the recipes](lepic/recipes.mdx) give a command and an API call for each task.
 
 Repository: [github.com/BTLabsUK/lepic](https://github.com/BTLabsUK/lepic).
-Version documented here: 0.6.1. Licence: Apache-2.0. Rust edition 2024, toolchain pinned in
+Version documented here: 0.6.2. Licence: Apache-2.0. Rust edition 2024, toolchain pinned in
 `rust-toolchain.toml`.
 
 ## The `lepic` command-line wallet
